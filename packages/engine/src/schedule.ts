@@ -139,10 +139,12 @@ export function autoSchedule(
   const needed = [...new Set(required)].filter(
     (code) => !fixed.some((entry) => satisfiesUnit(code, entry.unit, catalog)),
   );
-  const sequence = Object.assign(
-    {},
-    ...components.map((component) => component.suggestedSequence),
-  );
+  const sequence: Record<string, string[]> = {};
+  for (const component of components) {
+    for (const [period, codes] of Object.entries(component.suggestedSequence)) {
+      sequence[period] = [...new Set([...(sequence[period] ?? []), ...codes])];
+    }
+  }
   const order = priority(needed, catalog, sequence);
   const remaining = new Set(needed);
   const newEntries: Plan["entries"] = [];

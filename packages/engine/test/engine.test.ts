@@ -566,6 +566,36 @@ describe("automatic scheduling", () => {
       result.entries.find((item) => item.unit === "TST3001")?.period,
     ).toEqual(result.entries.find((item) => item.unit === "TST3002")?.period);
   });
+  it("merges same-term suggestions in component order without duplicates", () => {
+    const catalog = fixtureCatalog();
+    const course = catalog.courses[0]!;
+    course.rules = [{ id: "total", totalCredits: 12 }];
+    course.majors = [
+      {
+        id: "first",
+        title: "First",
+        rules: [{ id: "first-core", requiredUnits: ["TST1001"] }],
+        suggestedSequence: { Y1S1: ["TST1001", "TST1002"] },
+      },
+      {
+        id: "second",
+        title: "Second",
+        rules: [{ id: "second-core", requiredUnits: ["TST1002"] }],
+        suggestedSequence: { Y1S1: ["TST1002", "TST1001"] },
+      },
+    ];
+    const plan = fixturePlan({
+      course: { ...fixturePlan().course, majorIds: ["first", "second"] },
+      maxUnitsPerTerm: 1,
+      selectedPathways: {},
+    });
+    const result = autoSchedule(plan, catalog, options);
+    expect(result.entries.map((item) => item.unit).slice(0, 2)).toEqual([
+      "TST1001",
+      "TST1002",
+    ]);
+  });
+
   it("reports an impossible unit with a reason and keeps fixed entries", () => {
     const catalog = fixtureCatalog();
     catalog.units.TST2001!.requisites.prerequisite = { enrolledIn: "C9999" };
