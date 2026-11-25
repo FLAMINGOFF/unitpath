@@ -3,14 +3,26 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { planSchema, type Plan } from "@unitpath/engine";
 import { catalog } from "./catalog";
 
+const defaultCourse = [...catalog.courses].sort((a, b) =>
+  a.code < b.code ? -1 : a.code > b.code ? 1 : b.version - a.version,
+)[0]!;
+const defaultMajor = defaultCourse.majors[0]!;
+const defaultPathway = defaultMajor.rules.flatMap((rule) =>
+  "oneOf" in rule ? rule.oneOf.slice(0, 1).map((branch) => branch.label) : [],
+)[0];
+
 export const initialPlan: Plan = {
   schemaVersion: 1,
-  course: { code: "C2000", version: 2026, majorId: "applied-cybersecurity" },
-  startPeriod: { year: 2026, term: "S1" },
+  course: {
+    code: defaultCourse.code,
+    version: defaultCourse.version,
+    majorId: defaultMajor.id,
+  },
+  startPeriod: { year: defaultCourse.version, term: "S1" },
   entries: [],
   creditBlocks: [],
   maxUnitsPerTerm: 4,
-  selectedPathway: "Standard pathway",
+  selectedPathway: defaultPathway,
 };
 
 export function validateImportedPlan(value: unknown): Plan {

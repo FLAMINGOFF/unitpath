@@ -5,6 +5,7 @@ import {
   evaluateRequisites,
   parsePlanJson,
   satisfiesUnit,
+  unitLevel,
   validatePlan,
 } from "../src";
 import {
@@ -36,6 +37,28 @@ function reportFor(
   catalog.units[subject.code] = subject;
   return evaluateRequisites(subject, period, plan, catalog).prerequisite;
 }
+
+describe("unit levels", () => {
+  it("uses the first code digit unless YAML overrides it", () => {
+    expect(unitLevel("ABC1234")).toBe(1);
+    expect(unitLevel("ABC4999")).toBe(4);
+    expect(unitLevel(unit("ABC1234", { level: 4 }))).toBe(4);
+    const catalog = fixtureCatalog();
+    catalog.units.ABC1234 = unit("ABC1234", { level: 4 });
+    catalog.courses[0]!.rules.push({
+      id: "level4-min",
+      minCreditsAtLevel: { level: 4, points: 6 },
+    });
+    const report = checkProgress(
+      fixturePlan({ entries: [entry("ABC1234", s1, "completed")] }),
+      catalog,
+    );
+    expect(report.actualCredits).toBe(6);
+    expect(report.actual.find((rule) => rule.id === "level4-min")?.status).toBe(
+      "met",
+    );
+  });
+});
 
 describe("replacement equivalence", () => {
   it("accepts the original unit and a direct replacement", () => {

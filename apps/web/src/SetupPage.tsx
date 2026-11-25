@@ -11,7 +11,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const updatePlan = usePlanStore((state) => state.updatePlan);
   const navigate = useNavigate();
   const [label, setLabel] = useState("Advanced standing");
-  const [level, setLevel] = useState<1 | 2 | 3>(1);
+  const [level, setLevel] = useState<number>(1);
   const [points, setPoints] = useState(6);
   const course = catalog.courses.find(
     (item) =>
@@ -21,6 +21,16 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const units = Object.values(catalog.units).sort((a, b) =>
     compareCodes(a.code, b.code),
   );
+  const unitLevels = [...new Set(units.map((unit) => unitLevel(unit)))].sort(
+    (a, b) => a - b,
+  );
+  const creditLevels = [
+    ...new Set([
+      level,
+      ...unitLevels,
+      ...plan.creditBlocks.map((block) => block.level),
+    ]),
+  ].sort((a, b) => a - b);
   const complete = new Set(
     plan.entries
       .filter((entry) => entry.status === "completed")
@@ -148,12 +158,12 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
             </p>
           </div>
           <div className="question-body">
-            {[1, 2, 3].map((year) => (
+            {unitLevels.map((year) => (
               <fieldset className="unit-picker" key={year}>
                 <legend>Level {year}</legend>
                 <div className="tile-grid">
                   {units
-                    .filter((unit) => unitLevel(unit.code) === year)
+                    .filter((unit) => unitLevel(unit) === year)
                     .map((unit) => (
                       <div
                         className={`tile${complete.has(unit.code) ? " on" : ""}`}
@@ -234,13 +244,13 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                 <span>Level</span>
                 <select
                   value={level}
-                  onChange={(event) =>
-                    setLevel(Number(event.target.value) as 1 | 2 | 3)
-                  }
+                  onChange={(event) => setLevel(Number(event.target.value))}
                 >
-                  <option value={1}>Level 1</option>
-                  <option value={2}>Level 2</option>
-                  <option value={3}>Level 3</option>
+                  {creditLevels.map((value) => (
+                    <option key={value} value={value}>
+                      Level {value}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="field narrow">

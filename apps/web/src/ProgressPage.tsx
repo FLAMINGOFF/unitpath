@@ -5,15 +5,12 @@ import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
 import { Note, PageHead } from "./ui";
 
-const names: Record<string, string> = {
-  total: "Degree credit points",
-  "level1-cap": "Level 1 credit cap",
-  "level3-min": "Level 3 minimum",
-  core: "Core units",
-  "studio-or-ibl": "Studio or IBL pathway",
-};
-
-const unitRules = new Set(["core", "studio-or-ibl"]);
+function ruleName(id: string): string {
+  return id
+    .split(/[-_]+/)
+    .map((word) => word[0]?.toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 function RuleLine({
   rule,
@@ -26,7 +23,7 @@ function RuleLine({
     100,
     Math.round((rule.current / Math.max(rule.target, 1)) * 100),
   );
-  const name = names[rule.id] ?? rule.id;
+  const name = ruleName(rule.id);
   const statusText =
     rule.status === "met"
       ? "Met"
@@ -51,7 +48,7 @@ function RuleLine({
           <small>
             {" "}
             / {rule.target}
-            {unitRules.has(rule.id) ? " units" : " cp"}
+            {rule.missingUnits ? " units" : " cp"}
           </small>
         </span>
       </div>
@@ -200,10 +197,10 @@ export function ProgressPage({
       {pathwayRule && "oneOf" in pathwayRule && (
         <section className="pathways" aria-labelledby="pathway-heading">
           <div>
-            <h2 id="pathway-heading">Which final-year pathway?</h2>
+            <h2 id="pathway-heading">Choose a pathway</h2>
             <p>
-              Guides the progress detail above and auto scheduling. Industry
-              Based Learning needs separate acceptance by the faculty.
+              Guides the progress detail above and auto scheduling. Check the
+              official course rules before making a selection.
             </p>
           </div>
           <div className="pathway-options">

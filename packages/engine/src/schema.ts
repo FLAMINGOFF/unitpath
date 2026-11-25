@@ -15,11 +15,12 @@ export type Expr =
   | { any: Expr[] }
   | { atLeast: { n: number; of: Expr[] } }
   | { minCredits: number }
-  | { minCreditsAtLevel: { level: 1 | 2 | 3; points: number } }
+  | { minCreditsAtLevel: { level: number; points: number } }
   | { enrolledIn: string };
 
 const unitCode = z.string().regex(/^[A-Z]{2,5}\d{4}$/);
-const level = z.union([z.literal(1), z.literal(2), z.literal(3)]);
+export const levelSchema = z.number().int().min(0).max(9);
+const level = levelSchema;
 const points = z.number().int().nonnegative().multipleOf(6);
 
 export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
@@ -43,6 +44,7 @@ export const unitSchema = z.strictObject({
   code: unitCode,
   title: z.string().min(1),
   creditPoints: z.number().int().positive().multipleOf(6).default(6),
+  level: level.optional(),
   offerings: z.union([z.array(termSchema).min(1), z.literal("TODO")]),
   requisites: z.strictObject({
     prerequisite: z.union([exprSchema, z.null(), z.literal("TODO")]),

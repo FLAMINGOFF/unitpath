@@ -157,7 +157,7 @@ export function autoSchedule(
     fixed.reduce(
       (sum, entry) =>
         sum +
-        (unitLevel(entry.unit) === 3
+        (unitLevel(catalog.units[entry.unit] ?? entry.unit) === 3
           ? (catalog.units[entry.unit]?.creditPoints ?? 0)
           : 0),
       0,
@@ -165,7 +165,9 @@ export function autoSchedule(
     needed.reduce(
       (sum, code) =>
         sum +
-        (unitLevel(code) === 3 ? (catalog.units[code]?.creditPoints ?? 0) : 0),
+        (unitLevel(catalog.units[code] ?? code) === 3
+          ? (catalog.units[code]?.creditPoints ?? 0)
+          : 0),
       0,
     ) +
     plan.creditBlocks

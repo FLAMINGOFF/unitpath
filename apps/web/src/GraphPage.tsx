@@ -27,10 +27,15 @@ function refs(expr: Expr | null | "TODO"): string[] {
   return [];
 }
 
+const allUnits = Object.values(catalog.units);
+const levels = [...new Set(allUnits.map((unit) => unitLevel(unit)))].sort(
+  (a, b) => a - b,
+);
+
 export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const { nodes, edges } = useMemo(() => {
-    const all = Object.values(catalog.units);
+    const all = allUnits;
     const graph = new dagre.graphlib.Graph();
     graph.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 22 });
     graph.setDefaultEdgeLabel(() => ({}));
@@ -49,9 +54,9 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
         });
       }
     dagre.layout(graph);
-    const labels: Node[] = [1, 2, 3].map((level) => ({
+    const labels: Node[] = levels.map((level, index) => ({
       id: `level-${level}`,
-      position: { x: (level - 1) * COLUMN_GAP, y: 0 },
+      position: { x: index * COLUMN_GAP, y: 0 },
       data: { label: `Level ${level}` },
       className: "level-label",
       selectable: false,
@@ -59,9 +64,9 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
       connectable: false,
       focusable: false,
     }));
-    const positioned: Node[] = [1, 2, 3].flatMap((level) =>
+    const positioned: Node[] = levels.flatMap((level, index) =>
       all
-        .filter((unit) => unitLevel(unit.code) === level)
+        .filter((unit) => unitLevel(unit) === level)
         .sort(
           (a, b) =>
             graph.node(a.code).y - graph.node(b.code).y ||
@@ -69,7 +74,7 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
         )
         .map((unit, index) => ({
           id: unit.code,
-          position: { x: (level - 1) * COLUMN_GAP, y: 56 + index * ROW_GAP },
+          position: { x: index * COLUMN_GAP, y: 56 + index * ROW_GAP },
           data: {
             label: (
               <div className="node-label">
@@ -226,7 +231,7 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
             </select>
           </label>
           <p className="mono-label">
-            {nodes.length - 3} units · {edges.length} verified links
+            {nodes.length - levels.length} units · {edges.length} verified links
           </p>
         </aside>
       </div>

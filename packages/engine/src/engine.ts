@@ -59,9 +59,14 @@ export function periodFromOrdinal(value: number): Period {
   return { year: Math.floor(value / 2), term: value % 2 === 0 ? "S1" : "S2" };
 }
 
-export function unitLevel(code: string): 1 | 2 | 3 {
-  const digit = Number(code.match(/\d/)?.[0]);
-  return digit === 1 ? 1 : digit === 2 ? 2 : 3;
+export function unitLevel(unit: Unit | string): number {
+  const code = typeof unit === "string" ? unit : unit.code;
+  const digit = code.match(/\d/)?.[0];
+  if (digit === undefined)
+    throw new Error(`Unit code ${code} has no level digit.`);
+  return typeof unit === "string"
+    ? Number(digit)
+    : (unit.level ?? Number(digit));
 }
 
 export function courseAndMajor(
@@ -122,14 +127,18 @@ function credits(
   entries: Plan["entries"],
   plan: Plan,
   catalog: Catalog,
-  level?: 1 | 2 | 3,
+  level?: number,
 ): number {
   const units = entries.reduce((sum, entry) => {
-    if (level && unitLevel(entry.unit) !== level) return sum;
+    if (
+      level !== undefined &&
+      unitLevel(catalog.units[entry.unit] ?? entry.unit) !== level
+    )
+      return sum;
     return sum + (catalog.units[entry.unit]?.creditPoints ?? 0);
   }, 0);
   const blocks = plan.creditBlocks
-    .filter((block) => !level || block.level === level)
+    .filter((block) => level === undefined || block.level === level)
     .reduce((sum, block) => sum + block.points, 0);
   return units + blocks;
 }
@@ -287,7 +296,7 @@ function tally(
   plan: Plan,
   catalog: Catalog,
   includePlanned: boolean,
-): { entries: Plan["entries"]; credits: Record<1 | 2 | 3, number> } {
+): { entries: Plan["entries"]; credits: Record<number, number> } {
   const entries = uniqueEntries(
     {
       ...plan,
@@ -300,12 +309,29 @@ function tally(
   );
   return {
     entries,
-    credits: {
-      1: credits(entries, plan, catalog, 1),
-      2: credits(entries, plan, catalog, 2),
-      3: credits(entries, plan, catalog, 3),
-    },
+    credits: Object.fromEntries(
+      [
+        ...new Set([
+          ...entries.map((entry) =>
+            unitLevel(catalog.units[entry.unit] ?? entry.unit),
+          ),
+          ...plan.creditBlocks.map((block) => block.level),
+        ]),
+      ].map((level) => [level, credits(entries, plan, catalog, level)]),
+    ),
   };
+}
+
+function countedCredits(
+  byLevel: Record<number, number>,
+  caps: Map<number, number>,
+): number {
+  return Object.entries(byLevel).reduce(
+    (sum, [level, value]) =>
+      sum +
+      Math.min(value, caps.get(Number(level)) ?? Number.POSITIVE_INFINITY),
+    0,
+  );
 }
 
 function progressForRule(
@@ -313,25 +339,30 @@ function progressForRule(
   plan: Plan,
   catalog: Catalog,
   entries: Plan["entries"],
-  byLevel: Record<1 | 2 | 3, number>,
-  level1Cap: number,
+  byLevel: Record<number, number>,
+  caps: Map<number, number>,
 ): RuleProgress {
   const status = (current: number, target: number): RuleProgress["status"] =>
     current >= target ? "met" : current > 0 ? "partial" : "unmet";
   if ("totalCredits" in rule) {
-    const current = Math.min(byLevel[1], level1Cap) + byLevel[2] + byLevel[3];
-    const overflow = Math.max(0, byLevel[1] - level1Cap);
+    const current = countedCredits(byLevel, caps);
+    const overflow = [...caps].flatMap(([level, cap]) => {
+      const excess = (byLevel[level] ?? 0) - cap;
+      return excess > 0
+        ? [`${excess} level ${level} points exceed the cap`]
+        : [];
+    });
     return {
       id: rule.id,
       status: status(current, rule.totalCredits),
       current,
       target: rule.totalCredits,
-      message: `${current}/${rule.totalCredits} credit points count toward the degree${overflow ? `; ${overflow} level 1 points exceed the cap` : ""}.`,
+      message: `${current}/${rule.totalCredits} credit points count toward the degree${overflow.length ? `; ${overflow.join("; ")}` : ""}.`,
     };
   }
   if ("maxCreditsAtLevel" in rule) {
     const { level, points } = rule.maxCreditsAtLevel;
-    const current = byLevel[level];
+    const current = byLevel[level] ?? 0;
     return {
       id: rule.id,
       status: current <= points ? "met" : "unmet",
@@ -342,7 +373,7 @@ function progressForRule(
   }
   if ("minCreditsAtLevel" in rule) {
     const { level, points } = rule.minCreditsAtLevel;
-    const current = byLevel[level];
+    const current = byLevel[level] ?? 0;
     return {
       id: rule.id,
       status: status(current, points),
@@ -403,17 +434,20 @@ function progressForRule(
 export function checkProgress(plan: Plan, catalog: Catalog): ProgressReport {
   const { course, major } = courseAndMajor(plan, catalog);
   const rules = [...course.rules, ...major.rules];
-  const level1Cap = course.rules.find(
-    (rule) => "maxCreditsAtLevel" in rule && rule.maxCreditsAtLevel.level === 1,
-  );
-  const cap =
-    level1Cap && "maxCreditsAtLevel" in level1Cap
-      ? level1Cap.maxCreditsAtLevel.points
-      : Number.POSITIVE_INFINITY;
+  const caps = new Map<number, number>();
+  for (const rule of rules) {
+    if ("maxCreditsAtLevel" in rule) {
+      const { level, points } = rule.maxCreditsAtLevel;
+      caps.set(
+        level,
+        Math.min(caps.get(level) ?? Number.POSITIVE_INFINITY, points),
+      );
+    }
+  }
   const actual = tally(plan, catalog, false);
   const projected = tally(plan, catalog, true);
   const actualRules = rules.map((rule) =>
-    progressForRule(rule, plan, catalog, actual.entries, actual.credits, cap),
+    progressForRule(rule, plan, catalog, actual.entries, actual.credits, caps),
   );
   const projectedRules = rules.map((rule) =>
     progressForRule(
@@ -422,18 +456,14 @@ export function checkProgress(plan: Plan, catalog: Catalog): ProgressReport {
       catalog,
       projected.entries,
       projected.credits,
-      cap,
+      caps,
     ),
   );
   return {
     actual: actualRules,
     projected: projectedRules,
-    actualCredits:
-      Math.min(actual.credits[1], cap) + actual.credits[2] + actual.credits[3],
-    projectedCredits:
-      Math.min(projected.credits[1], cap) +
-      projected.credits[2] +
-      projected.credits[3],
+    actualCredits: countedCredits(actual.credits, caps),
+    projectedCredits: countedCredits(projected.credits, caps),
   };
 }
 

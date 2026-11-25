@@ -85,7 +85,7 @@ export function UnitDrawer({
           </div>
           <div>
             <dt>Level</dt>
-            <dd>{unitLevel(unit.code)}</dd>
+            <dd>{unitLevel(unit)}</dd>
           </div>
           <div>
             <dt>Offered</dt>
