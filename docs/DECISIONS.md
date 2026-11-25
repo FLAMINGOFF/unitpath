@@ -46,7 +46,7 @@ Elective placeholders are estimates, never catalog units. Their nominal point si
 
 ### Setup and existing web design
 
-The PR #9 route-ledger design remains the basis for every changed screen. Setup searches course codes and titles, then exposes available entry-year versions and major/minor/specialisation choices. An absent course shows an English contribution prompt. The planner graph and default completed-unit picker focus on the selected course; the picker can search the full catalog for an external unit. No degree or subject prefix is singled out in engine or web logic.
+The PR #9 route-ledger design remains the basis for every changed screen. Setup uses the existing unit tile styling for component checkboxes and a consistent vertical gap between controls. Setup searches course codes and titles, then exposes available entry-year versions and major/minor/specialisation choices. An absent course shows an English contribution prompt. The planner graph and default completed-unit picker focus on the selected course; the picker can search the full catalog for an external unit. No degree or subject prefix is singled out in engine or web logic.
 
 ### Data contribution and quality signals
 

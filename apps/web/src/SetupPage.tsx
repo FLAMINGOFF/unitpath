@@ -342,26 +342,30 @@ export function SetupPage({
               .map((group) => (
                 <fieldset className="unit-picker" key={group.key}>
                   <legend>{group.label}</legend>
-                  <div className="pathway-options">
+                  <div className="tile-grid">
                     {group.items.map((item) => {
                       const checked = (plan.course[group.key] ?? []).includes(
                         item.id,
                       );
                       return (
-                        <label
-                          className={checked ? "pathway on" : "pathway"}
+                        <div
+                          className={checked ? "tile on" : "tile"}
                           key={item.id}
                         >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleComponent(group.key, item.id)}
-                          />
-                          <span className="pathway-text">
-                            <strong>{item.title}</strong>
-                            <span className="mono-label">{item.id}</span>
-                          </span>
-                        </label>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                toggleComponent(group.key, item.id)
+                              }
+                            />
+                            <span className="tile-text">
+                              <span className="code">{item.id}</span>
+                              <span className="tile-title">{item.title}</span>
+                            </span>
+                          </label>
+                        </div>
                       );
                     })}
                   </div>

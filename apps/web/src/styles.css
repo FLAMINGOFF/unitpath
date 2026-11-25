@@ -763,6 +763,18 @@ button.chip:hover {
   padding: 32px 0;
   border-bottom: 1px solid var(--rule);
 }
+.setup .question-body:not(.field-row) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.setup .question-body > .unit-picker,
+.setup .question-body > .credit-list {
+  margin: 0;
+}
+.setup .question-body > .hint {
+  margin-top: 0;
+}
 .question-label h2 {
   margin-top: 6px;
   font-family: var(--serif);
