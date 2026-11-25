@@ -1,0 +1,174 @@
+import { readdir, readFile, writeFile } from "node:fs/promises";
+import { basename, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import YAML from "yaml";
+import {
+  courseSchema,
+  type Catalog,
+  type Course,
+  type Expr,
+  type Unit,
+  unitSchema,
+} from "../packages/engine/src/schema";
+
+const root = resolve(
+  process.argv[2] ?? fileURLToPath(new URL("..", import.meta.url)),
+);
+const unitsDir = join(root, "data/units");
+const coursesDir = join(root, "data/courses");
+const errors: string[] = [];
+const warnings: string[] = [];
+
+function unitRefs(expr: Expr | null | "TODO"): string[] {
+  if (!expr || expr === "TODO") return [];
+  if ("unit" in expr) return [expr.unit];
+  if ("all" in expr) return expr.all.flatMap(unitRefs);
+  if ("any" in expr) return expr.any.flatMap(unitRefs);
+  if ("atLeast" in expr) return expr.atLeast.of.flatMap(unitRefs);
+  return [];
+}
+
+function checkGraph(edges: Map<string, string[]>, label: string): void {
+  const active = new Set<string>();
+  const visited = new Set<string>();
+  function visit(node: string, path: string[]): void {
+    if (active.has(node)) {
+      errors.push(`${label} cycle: ${[...path, node].join(" -> ")}`);
+      return;
+    }
+    if (visited.has(node)) return;
+    active.add(node);
+    for (const next of edges.get(node) ?? []) visit(next, [...path, node]);
+    active.delete(node);
+    visited.add(node);
+  }
+  for (const node of [...edges.keys()].sort()) visit(node, []);
+}
+
+async function collectCourseFiles(dir: string): Promise<string[]> {
+  const files: string[] = [];
+  for (const item of await readdir(dir, { withFileTypes: true })) {
+    const path = join(dir, item.name);
+    if (item.isDirectory()) files.push(...(await collectCourseFiles(path)));
+    else if (item.name.endsWith(".yaml")) files.push(path);
+  }
+  return files.sort();
+}
+
+async function main(): Promise<void> {
+  const units: Record<string, Unit> = {};
+  for (const name of (await readdir(unitsDir))
+    .filter((file) => file.endsWith(".yaml"))
+    .sort()) {
+    const file = join(unitsDir, name);
+    try {
+      const unit = unitSchema.parse(YAML.parse(await readFile(file, "utf8")));
+      if (basename(name, ".yaml") !== unit.code)
+        errors.push(`${name}: filename does not match code ${unit.code}`);
+      if (units[unit.code]) errors.push(`${name}: duplicate unit ${unit.code}`);
+      units[unit.code] = unit;
+      if (!unit.verified) warnings.push(`${unit.code}: unverified`);
+      for (const field of [
+        "offerings",
+        "prerequisite",
+        "corequisite",
+        "prohibitions",
+        "replacedBy",
+      ] as const) {
+        const value =
+          field === "offerings" || field === "replacedBy"
+            ? unit[field]
+            : unit.requisites[field];
+        if (value === "TODO") warnings.push(`${unit.code}: ${field} TODO`);
+      }
+    } catch (error) {
+      errors.push(`${name}: ${String(error)}`);
+    }
+  }
+  const courses: Course[] = [];
+  for (const file of await collectCourseFiles(coursesDir)) {
+    try {
+      const course = courseSchema.parse(
+        YAML.parse(await readFile(file, "utf8")),
+      );
+      if (
+        basename(file, ".yaml") !== String(course.version) ||
+        basename(resolve(file, "..")) !== course.code
+      ) {
+        errors.push(
+          `${file}: path must match ${course.code}/${course.version}.yaml`,
+        );
+      }
+      courses.push(course);
+    } catch (error) {
+      errors.push(`${file}: ${String(error)}`);
+    }
+  }
+  const prereqEdges = new Map<string, string[]>();
+  const replacementEdges = new Map<string, string[]>();
+  for (const unit of Object.values(units)) {
+    const references = [
+      ...unitRefs(unit.requisites.prerequisite),
+      ...unitRefs(unit.requisites.corequisite),
+      ...(unit.requisites.prohibitions === "TODO"
+        ? []
+        : unit.requisites.prohibitions),
+      ...(unit.replacedBy && unit.replacedBy !== "TODO"
+        ? [unit.replacedBy]
+        : []),
+    ];
+    for (const reference of references)
+      if (!units[reference])
+        errors.push(`${unit.code}: missing referenced unit ${reference}`);
+    prereqEdges.set(unit.code, unitRefs(unit.requisites.prerequisite));
+    replacementEdges.set(
+      unit.code,
+      unit.replacedBy && unit.replacedBy !== "TODO" ? [unit.replacedBy] : [],
+    );
+  }
+  for (const course of courses) {
+    for (const major of course.majors) {
+      for (const codes of Object.values(major.suggestedSequence)) {
+        for (const code of codes)
+          if (!units[code])
+            errors.push(
+              `${course.code}/${major.id}: missing sequence unit ${code}`,
+            );
+      }
+    }
+    for (const rule of [
+      ...course.rules,
+      ...course.majors.flatMap((major) => major.rules),
+    ]) {
+      const refs =
+        "requiredUnits" in rule
+          ? rule.requiredUnits
+          : "oneOf" in rule
+            ? rule.oneOf.flatMap((branch) => branch.requiredUnits)
+            : [];
+      for (const code of refs)
+        if (!units[code])
+          errors.push(
+            `${course.code}/${rule.id}: missing required unit ${code}`,
+          );
+    }
+  }
+  checkGraph(prereqEdges, "Prerequisite");
+  checkGraph(replacementEdges, "Replacement");
+  if (errors.length) {
+    for (const error of errors) console.error(`ERROR ${error}`);
+    process.exitCode = 1;
+    return;
+  }
+  const catalog: Catalog = { units, courses };
+  await writeFile(
+    join(root, "apps/web/src/catalog.json"),
+    `${JSON.stringify(catalog, null, 2)}\n`,
+  );
+  console.log(
+    `Catalog valid: ${Object.keys(units).length} units, ${courses.length} course version(s).`,
+  );
+  for (const warning of warnings) console.warn(`WARN ${warning}`);
+}
+
+await main();
