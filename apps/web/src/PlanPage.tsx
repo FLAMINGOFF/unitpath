@@ -379,9 +379,10 @@ function SchedulePreview({
                         ))}
                         {slots.map((slot, index) => (
                           <span className="chip elective" key={index}>
-                            {slot.unit === "ELECTIVE_L3"
-                              ? "Elective L3"
-                              : "Elective"}
+                            {slot.level === undefined
+                              ? "Elective"
+                              : `Elective L${slot.level}`}{" "}
+                            · {slot.points} cp
                           </span>
                         ))}
                       </div>
@@ -555,6 +556,16 @@ export function PlanPage({
   };
   const errors = issues.filter((issue) => issue.level === "error").length;
   const warnings = issues.filter((issue) => issue.level === "warning").length;
+  const selectedCourse = catalog.courses.find(
+    (course) =>
+      course.code === plan.course.code &&
+      course.version === plan.course.version,
+  );
+  const totalRule = selectedCourse?.rules.find(
+    (rule) => "totalCredits" in rule,
+  );
+  const targetCredits =
+    totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : null;
   const plannedPoints = plan.entries.reduce(
     (sum, entry) => sum + (catalog.units[entry.unit]?.creditPoints ?? 0),
     0,
@@ -601,7 +612,7 @@ export function PlanPage({
           <dt>Credit points</dt>
           <dd>
             {plannedPoints}
-            <small> / 144</small>
+            <small> / {targetCredits ?? "—"}</small>
           </dd>
         </div>
         <div className={errors ? "bad" : ""}>

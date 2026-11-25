@@ -21,7 +21,7 @@ export type Expr =
 const unitCode = z.string().regex(/^[A-Z]{2,5}\d{4}$/);
 export const levelSchema = z.number().int().min(0).max(9);
 const level = levelSchema;
-const points = z.number().int().nonnegative().multipleOf(6);
+const points = z.number().int().nonnegative();
 
 export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
   z.union([
@@ -43,7 +43,7 @@ export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
 export const unitSchema = z.strictObject({
   code: unitCode,
   title: z.string().min(1),
-  creditPoints: z.number().int().positive().multipleOf(6).default(6),
+  creditPoints: z.number().int().positive(),
   level: level.optional(),
   offerings: z.union([z.array(termSchema).min(1), z.literal("TODO")]),
   requisites: z.strictObject({
@@ -131,7 +131,7 @@ export const planSchema = z.strictObject({
     z.strictObject({
       label: z.string().min(1),
       level,
-      points: z.number().int().positive().multipleOf(6),
+      points: z.number().int().positive(),
     }),
   ),
   maxUnitsPerTerm: z.number().int().min(1).max(8),

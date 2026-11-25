@@ -6,6 +6,8 @@ import {
   parsePlanJson,
   satisfiesUnit,
   unitLevel,
+  unitSchema,
+  planSchema,
   validatePlan,
 } from "../src";
 import {
@@ -57,6 +59,27 @@ describe("unit levels", () => {
     expect(report.actual.find((rule) => rule.id === "level4-min")?.status).toBe(
       "met",
     );
+  });
+});
+
+describe("credit points", () => {
+  it("accepts positive non-six unit and advanced standing credits", () => {
+    expect(
+      unitSchema.safeParse(unit("TST1001", { creditPoints: 5 })).success,
+    ).toBe(true);
+    expect(
+      unitSchema.safeParse(unit("TST1001", { creditPoints: 0 })).success,
+    ).toBe(false);
+    const plan = fixturePlan({
+      entries: [entry("TST1001", s1, "completed")],
+      creditBlocks: [{ label: "Recognised study", level: 2, points: 3 }],
+    });
+    expect(planSchema.safeParse(plan).success).toBe(true);
+    const catalog = fixtureCatalog();
+    catalog.units.TST1001!.creditPoints = 5;
+    const report = checkProgress(plan, catalog);
+    expect(report.actualCredits).toBe(8);
+    expect(report.actual.find((rule) => rule.id === "total")?.current).toBe(8);
   });
 });
 

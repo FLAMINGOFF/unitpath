@@ -98,13 +98,17 @@ export function ProgressPage({
   );
   const totalRule = course?.rules.find((rule) => "totalCredits" in rule);
   const target =
-    totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 144;
-  const cells = Math.ceil(target / 6);
-  const earned = Math.min(cells, Math.floor(report.actualCredits / 6));
-  const planned = Math.min(
-    cells - earned,
-    Math.floor((report.projectedCredits - report.actualCredits) / 6),
-  );
+    totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 0;
+  const cells = target > 0 ? 24 : 0;
+  const earned =
+    target > 0
+      ? Math.min(cells, Math.floor((report.actualCredits / target) * cells))
+      : 0;
+  const projectedCells =
+    target > 0
+      ? Math.min(cells, Math.floor((report.projectedCredits / target) * cells))
+      : 0;
+  const planned = projectedCells - earned;
   const major = course?.majors.find((item) => item.id === plan.course.majorId);
   const pathwayRule = major?.rules.find((rule) => "oneOf" in rule);
 
@@ -162,8 +166,8 @@ export function ProgressPage({
               <i className="cell planned" aria-hidden="true" /> Planned
             </span>
             <span>
-              <i className="cell" aria-hidden="true" /> Remaining · one block =
-              6 cp
+              <i className="cell" aria-hidden="true" /> Remaining · each block
+              represents an equal share of the target
             </span>
           </div>
         </div>

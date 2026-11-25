@@ -12,7 +12,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const navigate = useNavigate();
   const [label, setLabel] = useState("Advanced standing");
   const [level, setLevel] = useState<number>(1);
-  const [points, setPoints] = useState(6);
+  const [points, setPoints] = useState(1);
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
@@ -57,7 +57,8 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
           startPeriod: { ...current.startPeriod, [field]: value },
         }) as Plan,
     );
-  const validBlock = label.trim() !== "" && points > 0 && points % 6 === 0;
+  const validBlock =
+    label.trim() !== "" && Number.isInteger(points) && points > 0;
   const addBlock = () => {
     if (!validBlock) return;
     updatePlan((current) => ({
@@ -68,7 +69,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
       ],
     }));
     setLabel("Advanced standing");
-    setPoints(6);
+    setPoints(1);
   };
 
   return (
@@ -257,8 +258,8 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                 <span>Points</span>
                 <input
                   type="number"
-                  min="6"
-                  step="6"
+                  min="1"
+                  step="1"
                   value={points}
                   onChange={(event) => setPoints(Number(event.target.value))}
                 />
