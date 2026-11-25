@@ -52,6 +52,10 @@ export type Issue = {
   message: string;
 };
 
+export function compareOrdinal(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 export function latestHandbookVersion(
   catalog: Catalog,
   courseCode: string,
@@ -679,7 +683,7 @@ export function validatePlan(plan: Plan, catalog: Catalog): Issue[] {
     (a, b) =>
       periodOrdinal(a.period ?? plan.startPeriod) -
         periodOrdinal(b.period ?? plan.startPeriod) ||
-      (a.unit ?? "").localeCompare(b.unit ?? "") ||
-      a.code.localeCompare(b.code),
+      compareOrdinal(a.unit ?? "", b.unit ?? "") ||
+      compareOrdinal(a.code, b.code),
   );
 }

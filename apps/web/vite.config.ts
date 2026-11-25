@@ -10,6 +10,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
     {
+      name: "development-websocket-csp",
+      apply: "serve",
+      transformIndexHtml(html) {
+        return html.replace("connect-src 'self';", "connect-src 'self' ws:;");
+      },
+    },
+    {
       name: "github-pages-fallback",
       apply: "build",
       async closeBundle() {

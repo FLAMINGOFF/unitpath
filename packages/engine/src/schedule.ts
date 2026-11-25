@@ -2,6 +2,7 @@ import type { Catalog, Expr, Period, Plan } from "./schema";
 import {
   courseAndComponents,
   checkProgress,
+  compareOrdinal,
   evaluateRequisites,
   offeredAt,
   periodFromOrdinal,
@@ -81,7 +82,7 @@ function priority(
     chain(b, new Set()) - chain(a, new Set()) ||
     (sequencePosition.get(a) ?? Number.MAX_SAFE_INTEGER) -
       (sequencePosition.get(b) ?? Number.MAX_SAFE_INTEGER) ||
-    a.localeCompare(b);
+    compareOrdinal(a, b);
 }
 
 function reasonFor(

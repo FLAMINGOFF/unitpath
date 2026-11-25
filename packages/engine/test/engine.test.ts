@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   autoSchedule,
   checkProgress,
+  compareOrdinal,
   courseDataMetrics,
   migratePlan,
   evaluateRequisites,
@@ -452,6 +453,14 @@ describe("progress", () => {
     const planned = fixturePlan({ entries: [entry("TST1001", s1, "planned")] });
     expect(checkProgress(planned, catalog).actualCredits).toBe(0);
     expect(checkProgress(planned, catalog).projectedCredits).toBe(6);
+  });
+});
+
+describe("stable ordering", () => {
+  it("compares codes by code point independently of locale", () => {
+    expect(compareOrdinal("Z", "a")).toBeLessThan(0);
+    expect(compareOrdinal("a", "Z")).toBeGreaterThan(0);
+    expect(compareOrdinal("FIT1001", "FIT1001")).toBe(0);
   });
 });
 

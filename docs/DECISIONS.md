@@ -12,7 +12,7 @@ Version 1 plans stored an optional `selectedPathway` for a single choice. Versio
 
 ## 2026-11-25: Static routing and CSP
 
-The app uses client routing with a generated `404.html` copy for direct GitHub Pages route access. GitHub Pages does not provide custom response headers, so the Content Security Policy is in an HTML meta tag. It does not replace an HTTP CSP header.
+The app uses client routing with a generated `404.html` copy for direct GitHub Pages route access. GitHub Pages does not provide custom response headers, so the Content Security Policy is in an HTML meta tag. It does not replace an HTTP CSP header. Production CSP permits only same-origin connections; the development server adds `ws:` to this directive for Vite hot reload.
 
 ## 2026-11-25: Private source repository, no public deployment
 
@@ -26,7 +26,7 @@ The web app was redesigned around a "route ledger" look: warm paper background, 
 
 ### Unit identity and credit points
 
-The engine derives a unit's level from the first digit in its code; a YAML `level` value overrides it. This is independent of the unit prefix or degree. Unit `creditPoints` defaults to 6 when omitted from YAML and otherwise accepts any positive integer; credit blocks and credit rules use positive integer points. Progress and validation add actual parsed values. The 24-cell progress graphic is proportional to the selected course's credit target, not a claim that every unit has six points.
+Engine sorting uses ordinal string comparison rather than locale-sensitive collation, so issue and schedule ordering is deterministic across hosts. The engine derives a unit's level from the first digit in its code; a YAML `level` value overrides it. This is independent of the unit prefix or degree. Unit `creditPoints` defaults to 6 when omitted from YAML and otherwise accepts any positive integer; credit blocks and credit rules use positive integer points. Progress and validation add actual parsed values. The 24-cell progress graphic is proportional to the selected course's credit target, not a claim that every unit has six points.
 
 ### Course versions and component choices
 
