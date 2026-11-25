@@ -50,6 +50,26 @@ describe("catalog builder", () => {
     );
     expect(output.units.TST1001.code).toBe("TST1001");
   });
+  it("points contributors to the invalid YAML field", async () => {
+    const root = await seed();
+    const file = join(root, "data/units/TST1001.yaml");
+    const record = YAML.parse(await readFile(file, "utf8"));
+    record.creditPoints = 0;
+    await writeFile(file, YAML.stringify(record));
+    const result = run(root);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("data/units/TST1001.yaml:creditPoints:");
+  });
+  it("rejects verified records with unknown fields", async () => {
+    const root = await seed();
+    const file = join(root, "data/units/TST1001.yaml");
+    const record = YAML.parse(await readFile(file, "utf8"));
+    record.offerings = "TODO";
+    await writeFile(file, YAML.stringify(record));
+    const result = run(root);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("data/units/TST1001.yaml:verified:");
+  });
   it("rejects a missing unit reference", async () => {
     const root = await seed();
     const file = join(root, "data/units/TST2001.yaml");

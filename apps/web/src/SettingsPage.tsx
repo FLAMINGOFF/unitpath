@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { compressToEncodedURIComponent } from "lz-string";
 import { Copy, Download, Link2, RotateCcw, Upload } from "lucide-react";
-import { parsePlanJson } from "@unitpath/engine";
+import { courseDataMetrics, parsePlanJson } from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore, validateImportedPlan } from "./store";
 import { disclaimer, PageHead } from "./ui";
@@ -202,6 +202,34 @@ export function SettingsPage({
           </div>
         </section>
       </div>
+
+      <section className="about" aria-labelledby="coverage-heading">
+        <h2 id="coverage-heading">Catalogue coverage by course version</h2>
+        <p>
+          Rates cover units referenced by published rules and suggested
+          sequences. They do not claim to cover every elective in the Handbook.
+        </p>
+        <dl className="facts">
+          {catalog.courses.map((item) => {
+            const metrics = courseDataMetrics(item, catalog);
+            const display = (value: number | null) =>
+              value === null ? "—" : value + "%";
+            return (
+              <div key={item.code + "/" + item.version}>
+                <dt>
+                  {item.code} · {item.version} · {item.title}
+                </dt>
+                <dd>
+                  Coverage {display(metrics.coveragePercent)} (
+                  {metrics.coveredUnits}/{metrics.referencedUnits}) · Verified{" "}
+                  {display(metrics.verificationPercent)} (
+                  {metrics.verifiedUnits}/{metrics.referencedUnits})
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+      </section>
 
       <section className="about" aria-labelledby="about-heading">
         <h2 id="about-heading">About UnitPath</h2>

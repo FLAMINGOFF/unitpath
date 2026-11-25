@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   autoSchedule,
   checkProgress,
+  courseDataMetrics,
   evaluateRequisites,
   parsePlanJson,
   satisfiesUnit,
@@ -179,6 +180,25 @@ describe("campus offerings", () => {
     expect(unknown.some((issue) => issue.code === "CAMPUS_UNSELECTED")).toBe(
       true,
     );
+  });
+});
+
+describe("course data metrics", () => {
+  it("counts only referenced, complete and verified records", () => {
+    const catalog = fixtureCatalog();
+    const course = catalog.courses[0]!;
+    const all = courseDataMetrics(course, catalog);
+    expect(all.referencedUnits).toBe(6);
+    expect(all.coveragePercent).toBe(100);
+    expect(all.verificationPercent).toBe(100);
+    catalog.units.TST1001!.offerings = "TODO";
+    catalog.units.TST1001!.verified = false;
+    catalog.units.TST2001!.verified = false;
+    const partial = courseDataMetrics(course, catalog);
+    expect(partial.coveredUnits).toBe(5);
+    expect(partial.verifiedUnits).toBe(4);
+    expect(partial.coveragePercent).toBe(83);
+    expect(partial.verificationPercent).toBe(67);
   });
 });
 

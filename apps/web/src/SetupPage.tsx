@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Info, Plus, Search, X } from "lucide-react";
 import {
   campusSchema,
+  courseDataMetrics,
   unitLevel,
   type Campus,
   type Plan,
@@ -10,6 +11,10 @@ import {
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
 import { compareCodes, Note, PageHead } from "./ui";
+
+function formatPercent(value: number | null | undefined): string {
+  return value == null ? "—" : value + "%";
+}
 
 export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const plan = usePlanStore((state) => state.plan);
@@ -23,6 +28,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
+  const metrics = course ? courseDataMetrics(course, catalog) : null;
   const selectedComponents = [
     ...(course?.majors ?? []).filter((item) =>
       (plan.course.majorIds ?? [plan.course.majorId]).includes(item.id),
@@ -221,6 +227,10 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                   {selectedComponents.map((item) => item.title).join(" · ") ||
                     "Choose a component below"}
                 </span>
+                <span className="mono-label">
+                  Coverage {formatPercent(metrics?.coveragePercent)} · Verified{" "}
+                  {formatPercent(metrics?.verificationPercent)}
+                </span>
               </div>
               <span className="flag ok">
                 <Check size={13} aria-hidden="true" /> Selected
@@ -247,6 +257,16 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                     >
                       <span className="mono-label">{item.code}</span>
                       <strong>{item.title}</strong>
+                      <span className="mono-label">
+                        Coverage{" "}
+                        {formatPercent(
+                          courseDataMetrics(item, catalog).coveragePercent,
+                        )}{" "}
+                        · Verified{" "}
+                        {formatPercent(
+                          courseDataMetrics(item, catalog).verificationPercent,
+                        )}
+                      </span>
                     </button>
                   ))
                 ) : (
