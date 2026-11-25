@@ -505,9 +505,7 @@ function progressForRule(
   });
   const selected =
     scored.find(
-      (item) =>
-        item.branch.label ===
-        (plan.selectedPathways[scopedId] ?? plan.selectedPathway),
+      (item) => item.branch.label === plan.selectedPathways[scopedId],
     ) ??
     [...scored].sort(
       (a, b) =>

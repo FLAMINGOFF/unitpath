@@ -43,7 +43,9 @@ export function SettingsPage({
     try {
       if (file.size > 1_000_000)
         throw new Error("Plan file exceeds the 1 MB limit.");
-      const imported = validateImportedPlan(parsePlanJson(await file.text()));
+      const imported = validateImportedPlan(
+        parsePlanJson(await file.text(), catalog),
+      );
       setPlan(imported);
       setError("");
       notify("Plan imported successfully.");

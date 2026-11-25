@@ -37,7 +37,7 @@ export const initialPlan: Plan = {
 };
 
 export function validateImportedPlan(value: unknown): Plan {
-  const plan = migratePlan(value);
+  const plan = migratePlan(value, catalog);
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,

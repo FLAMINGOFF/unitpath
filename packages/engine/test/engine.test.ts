@@ -593,7 +593,7 @@ describe("plan v1 migration", () => {
       maxUnitsPerTerm: 4,
       selectedPathway: "Standard pathway",
     };
-    const migrated = parsePlanJson(JSON.stringify(old));
+    const migrated = parsePlanJson(JSON.stringify(old), fixtureCatalog());
     expect(migrated.schemaVersion).toBe(2);
     expect(migrated.course).toEqual({
       code: "C2000",
@@ -605,28 +605,49 @@ describe("plan v1 migration", () => {
     expect(migrated.campus).toBeNull();
     expect(migrated.entries).toEqual(old.entries);
     expect(migrated.creditBlocks).toEqual(old.creditBlocks);
-    expect(migrated.selectedPathway).toBe("Standard pathway");
-    expect(migrated.selectedPathways).toEqual({});
-    expect(migratePlan(migrated)).toEqual(migrated);
+    expect(migrated.selectedPathways).toEqual({
+      "major:test-major/path": "Standard pathway",
+    });
+    expect(migratePlan(migrated, fixtureCatalog())).toEqual(migrated);
+  });
+
+  it("rejects the removed pathway field in v2 plans", () => {
+    const oldField = { ...fixturePlan(), selectedPathway: "Standard pathway" };
+    expect(planSchema.safeParse(oldField).success).toBe(false);
+    expect(() => migratePlan(oldField, fixtureCatalog())).toThrow();
   });
 });
 
 describe("plan import", () => {
   it("round-trips valid JSON and rejects malformed or unsupported versions", () => {
     const plan = fixturePlan();
-    expect(parsePlanJson(JSON.stringify(plan))).toEqual(plan);
-    expect(() => parsePlanJson("{")).toThrow("not valid JSON");
+    expect(parsePlanJson(JSON.stringify(plan), fixtureCatalog())).toEqual(plan);
+    expect(() => parsePlanJson("{", fixtureCatalog())).toThrow(
+      "not valid JSON",
+    );
     expect(() =>
-      parsePlanJson(JSON.stringify({ ...plan, entries: undefined })),
+      parsePlanJson(
+        JSON.stringify({ ...plan, entries: undefined }),
+        fixtureCatalog(),
+      ),
     ).toThrow();
     expect(() =>
-      parsePlanJson(JSON.stringify({ ...plan, maxUnitsPerTerm: "four" })),
+      parsePlanJson(
+        JSON.stringify({ ...plan, maxUnitsPerTerm: "four" }),
+        fixtureCatalog(),
+      ),
     ).toThrow();
     expect(() =>
-      parsePlanJson(JSON.stringify({ ...plan, schemaVersion: 3 })),
+      parsePlanJson(
+        JSON.stringify({ ...plan, schemaVersion: 3 }),
+        fixtureCatalog(),
+      ),
     ).toThrow();
     expect(() =>
-      parsePlanJson(`${JSON.stringify(plan)}${" ".repeat(1_000_001)}`),
+      parsePlanJson(
+        `${JSON.stringify(plan)}${" ".repeat(1_000_001)}`,
+        fixtureCatalog(),
+      ),
     ).toThrow("1 MB");
   });
 });

@@ -27,7 +27,6 @@ export type ScheduleResult = {
 };
 export type ScheduleOptions = {
   currentPeriod: Period;
-  selectedPathway?: string;
 };
 
 function referencedUnits(expr: Expr | null | "TODO"): string[] {
@@ -115,7 +114,6 @@ export function autoSchedule(
     catalog,
   );
   const allRules = scopedRules.map((entry) => entry.rule);
-  const selectedPathway = options.selectedPathway ?? plan.selectedPathway;
   const totalRule = course.rules.find((rule) => "totalCredits" in rule);
   const targetCredits =
     totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 0;
@@ -131,10 +129,8 @@ export function autoSchedule(
     if ("oneOf" in rule)
       return (
         (
-          rule.oneOf.find(
-            (item) =>
-              item.label === (plan.selectedPathways[id] ?? selectedPathway),
-          ) ?? rule.oneOf[0]
+          rule.oneOf.find((item) => item.label === plan.selectedPathways[id]) ??
+          rule.oneOf[0]
         )?.requiredUnits ?? []
       );
     return [];

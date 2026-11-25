@@ -84,7 +84,7 @@ export function App() {
         throw new Error("Share link is too large.");
       const json = decompressFromEncodedURIComponent(compressed);
       if (!json) throw new Error("Share link could not be decoded.");
-      setPlan(validateImportedPlan(parsePlanJson(json)));
+      setPlan(validateImportedPlan(parsePlanJson(json, catalog)));
       setNotice(
         "Shared plan imported. Review it against the official Handbook.",
       );

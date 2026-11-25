@@ -109,7 +109,6 @@ export function SetupPage({
           next.specialisations.some((item) => item.id === id),
         ),
       },
-      selectedPathway: undefined,
       selectedPathways: {},
     };
   };
@@ -137,7 +136,6 @@ export function SetupPage({
           minorIds: [],
           specialisationIds: [],
         },
-        selectedPathway: undefined,
         selectedPathways: {},
       };
     });

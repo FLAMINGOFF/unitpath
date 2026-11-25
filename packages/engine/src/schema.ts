@@ -153,7 +153,6 @@ const planFields = {
   entries: z.array(entrySchema),
   creditBlocks: z.array(creditBlockSchema),
   maxUnitsPerTerm: z.number().int().min(1).max(8),
-  selectedPathway: z.string().optional(),
 };
 
 export const planV1Schema = z.strictObject({
@@ -167,6 +166,7 @@ export const planV1Schema = z.strictObject({
     specialisationIds: z.array(z.string()).optional(),
   }),
   campus: campusSchema.optional(),
+  selectedPathway: z.string().optional(),
   ...planFields,
 });
 export type PlanV1 = z.infer<typeof planV1Schema>;
@@ -206,7 +206,38 @@ function utf8ByteLength(value: string): number {
   return bytes;
 }
 
-export function migratePlan(input: unknown): Plan {
+function migrateLegacyPathway(
+  old: PlanV1,
+  catalog: Catalog,
+): Record<string, string> {
+  if (!old.selectedPathway) return {};
+  const course = catalog.courses.find(
+    (item) =>
+      item.code === old.course.code && item.version === old.course.version,
+  );
+  if (!course)
+    throw new Error("Legacy plan course version is not in the catalog.");
+  const major = course.majors.find((item) => item.id === old.course.majorId);
+  const candidates = [
+    ...course.rules.map((rule) => ({ id: "course/" + rule.id, rule })),
+    ...(major?.rules ?? []).map((rule) => ({
+      id: "major:" + major!.id + "/" + rule.id,
+      rule,
+    })),
+  ];
+  const matches = candidates.filter(
+    ({ rule }) =>
+      "oneOf" in rule &&
+      rule.oneOf.some((branch) => branch.label === old.selectedPathway),
+  );
+  if (matches.length === 0)
+    throw new Error("Legacy pathway is not in the selected course version.");
+  return Object.fromEntries(
+    matches.map(({ id }) => [id, old.selectedPathway!]),
+  );
+}
+
+export function migratePlan(input: unknown, catalog: Catalog): Plan {
   if (
     typeof input === "object" &&
     input !== null &&
@@ -230,14 +261,13 @@ export function migratePlan(input: unknown): Plan {
       entries: old.entries,
       creditBlocks: old.creditBlocks,
       maxUnitsPerTerm: old.maxUnitsPerTerm,
-      selectedPathway: old.selectedPathway,
-      selectedPathways: {},
+      selectedPathways: migrateLegacyPathway(old, catalog),
     });
   }
   return planSchema.parse(input);
 }
 
-export function parsePlanJson(input: string): Plan {
+export function parsePlanJson(input: string, catalog: Catalog): Plan {
   if (utf8ByteLength(input) > 1_000_000) {
     throw new Error("Plan file exceeds the 1 MB limit.");
   }
@@ -247,5 +277,5 @@ export function parsePlanJson(input: string): Plan {
   } catch {
     throw new Error("Plan file is not valid JSON.");
   }
-  return migratePlan(parsed);
+  return migratePlan(parsed, catalog);
 }

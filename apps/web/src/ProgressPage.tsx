@@ -224,9 +224,8 @@ export function ProgressPage({
           <div className="pathway-options">
             {rule.oneOf.map((branch) => {
               const checked =
-                (plan.selectedPathways[id] ??
-                  plan.selectedPathway ??
-                  rule.oneOf[0]?.label) === branch.label;
+                (plan.selectedPathways[id] ?? rule.oneOf[0]?.label) ===
+                branch.label;
               return (
                 <label
                   key={branch.label}
@@ -239,7 +238,6 @@ export function ProgressPage({
                     onChange={() =>
                       updatePlan((current) => ({
                         ...current,
-                        selectedPathway: undefined,
                         selectedPathways: {
                           ...current.selectedPathways,
                           [id]: branch.label,
