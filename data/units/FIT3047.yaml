@@ -1,11 +1,53 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
 code: FIT3047
 title: Industry experience studio project 1
 creditPoints: 6
-offerings: TODO
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S2
+    campus: Clayton
 requisites:
-  prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1045
+          - unit: FIT1048
+          - unit: FIT1051
+          - unit: FIT1053
+      - unit: FIT1047
+      - unit: FIT1049
+      - unit: FIT2002
+      - any:
+          - unit: FIT2099
+          - unit: FIT2001
+      - any:
+          - unit: FIT2094
+          - unit: FIT3171
+      - minCreditsFrom:
+          points: 30
+          prefix: FIT
+          levels:
+            - 1
+      - minCreditsFrom:
+          points: 30
+          prefix: FIT
+          levels:
+            - 2
+            - 3
+      - minCredits: 90
+  corequisite: null
+  prohibitions:
+    - FIT2032
+    - FIT3039
+    - FIT3040
+    - FIT3045
+    - ITI3047
+replacedBy: null
 source: https://handbook.monash.edu/2026/units/FIT3047
 verified: false
+notes:
+  - "Handbook rule: the named units plus an additional 12 credit points of FIT units at level 1 and 12 at
+    level 2 or 3, and 90 credit points in total. UnitPath reads 'additional' as 30 FIT level 1 points
+    (18 named + 12) and 30 FIT level 2/3 points (18 named + 12)."
+  - "Handbook rule: the unit must be core in your degree program. UnitPath does not check this."

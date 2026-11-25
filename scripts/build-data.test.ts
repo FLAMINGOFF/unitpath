@@ -83,11 +83,23 @@ describe("catalog builder", () => {
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain("data/units/TST1001.yaml:verified:");
   });
-  it("rejects a missing unit reference", async () => {
+  it("warns about requisite references outside the catalogue", async () => {
     const root = await seed();
     const file = join(root, "data/units/TST2001.yaml");
     const unit = YAML.parse(await readFile(file, "utf8"));
     unit.requisites.prerequisite = { unit: "TST9999" };
+    await writeFile(file, YAML.stringify(unit));
+    const result = run(root);
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain(
+      "TST2001: references TST9999, which is not in the catalogue",
+    );
+  });
+  it("rejects a missing replacement unit", async () => {
+    const root = await seed();
+    const file = join(root, "data/units/TST2001.yaml");
+    const unit = YAML.parse(await readFile(file, "utf8"));
+    unit.replacedBy = "TST9999";
     await writeFile(file, YAML.stringify(unit));
     const result = run(root);
     expect(result.status).not.toBe(0);

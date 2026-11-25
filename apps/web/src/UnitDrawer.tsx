@@ -112,8 +112,10 @@ export function UnitDrawer({
         </dl>
         {!unit.verified && (
           <Note tone="warn" icon={<HelpCircle size={15} />}>
-            These rules have not been checked against the Handbook yet. Treat
-            every “unknown” as “find out”, not “fine”.
+            {unit.offerings === "TODO" ||
+            unit.requisites.prerequisite === "TODO"
+              ? "Some of these rules could not be read from the Handbook and are still unknown. Treat every “unknown” as “find out”, not “fine”."
+              : "Read from the 2026 Handbook but not yet checked by a person. Confirm on the Handbook page before you enrol."}
           </Note>
         )}
         <section className="sheet-section">
@@ -143,6 +145,16 @@ export function UnitDrawer({
             </div>
           ))}
         </section>
+        {unit.notes && unit.notes.length > 0 && (
+          <section className="sheet-section">
+            <h3>Handbook notes</h3>
+            <ul className="sheet-notes">
+              {unit.notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </section>
+        )}
         <section className="sheet-section">
           <h3>Replacement</h3>
           <p>

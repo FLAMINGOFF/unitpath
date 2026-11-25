@@ -198,24 +198,36 @@ function uniqueEntries(
     });
 }
 
+type CreditFilter = { levels?: number[]; prefix?: string };
+
 function credits(
   entries: Plan["entries"],
   plan: Plan,
   catalog: Catalog,
   level?: number,
+  filter: CreditFilter = {},
 ): number {
+  const levels =
+    level !== undefined ? [level] : filter.levels ? filter.levels : undefined;
+  const levelOk = (value: number | undefined) =>
+    levels === undefined || (value !== undefined && levels.includes(value));
   const units = entries.reduce((sum, entry) => {
-    if (
-      level !== undefined &&
-      unitLevel(catalog.units[entry.unit] ?? entry.unit) !== level
-    )
+    if (filter.prefix !== undefined && !entry.unit.startsWith(filter.prefix))
+      return sum;
+    if (!levelOk(unitLevel(catalog.units[entry.unit] ?? entry.unit)))
       return sum;
     return sum + (catalog.units[entry.unit]?.creditPoints ?? 0);
   }, 0);
+  // Credit blocks and elective slots carry no unit prefix, so they never count
+  // toward a prefix-specific requirement such as "12 points of FIT units".
+  if (filter.prefix !== undefined) return units;
   const blocks = plan.creditBlocks
-    .filter((block) => level === undefined || block.level === level)
+    .filter((block) => levelOk(block.level))
     .reduce((sum, block) => sum + block.points, 0);
-  return units + blocks;
+  const slots = (plan.electiveSlots ?? [])
+    .filter((slot) => levelOk(slot.level))
+    .reduce((sum, slot) => sum + slot.points, 0);
+  return units + blocks + slots;
 }
 
 function evalExpr(
@@ -241,7 +253,9 @@ function evalExpr(
       ok,
       message: ok
         ? `${expr.unit} is scheduled or completed.`
-        : `${expr.unit} has not been scheduled.`,
+        : catalog.units[expr.unit]
+          ? `${expr.unit} has not been scheduled.`
+          : `${expr.unit} is not in the UnitPath catalogue.`,
     };
   }
   if ("all" in expr || "any" in expr) {
@@ -294,6 +308,24 @@ function evalExpr(
       message: `${current} of ${expr.minCreditsAtLevel.points} level ${expr.minCreditsAtLevel.level} credit points earned.`,
     };
   }
+  if ("minCreditsFrom" in expr) {
+    const { points, prefix, levels } = expr.minCreditsFrom;
+    const current = credits(entries, plan, catalog, undefined, {
+      prefix,
+      levels,
+    });
+    const scope = [
+      levels ? `level ${levels.join("/")}` : "",
+      prefix ? `${prefix} unit` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return {
+      expr,
+      ok: current >= points,
+      message: `${current} of ${points}${scope ? " " + scope : ""} credit points earned before this term.`,
+    };
+  }
   const ok = plan.course.code === expr.enrolledIn;
   return {
     expr,
@@ -321,16 +353,24 @@ export function evaluateRequisites(
   const cutoff = periodOrdinal(period);
   const earlier = uniqueEntries(plan, cutoff, false);
   const concurrent = uniqueEntries(plan, cutoff, true);
+  const slotsUpTo = (inclusive: boolean): Plan => ({
+    ...plan,
+    electiveSlots: (plan.electiveSlots ?? []).filter((slot) =>
+      inclusive
+        ? periodOrdinal(slot.period) <= cutoff
+        : periodOrdinal(slot.period) < cutoff,
+    ),
+  });
   const prerequisite = evalExpr(
     unit.requisites.prerequisite,
     earlier,
-    plan,
+    slotsUpTo(false),
     catalog,
   );
   const corequisite = evalExpr(
     unit.requisites.corequisite,
     concurrent,
-    plan,
+    slotsUpTo(true),
     catalog,
   );
   const conflicts: string[] = [];
@@ -392,7 +432,11 @@ function tally(
           ),
           ...plan.creditBlocks.map((block) => block.level),
         ]),
-      ].map((level) => [level, credits(entries, plan, catalog, level)]),
+      ].map((level) => [
+        level,
+        // Elective slots are reminders, not enrolments: progress ignores them.
+        credits(entries, { ...plan, electiveSlots: [] }, catalog, level),
+      ]),
     ),
   };
 }
@@ -668,6 +712,10 @@ export function validatePlan(plan: Plan, catalog: Catalog): Issue[] {
         message: `${key}: ${node.message}`,
       });
     }
+  }
+  for (const slot of plan.electiveSlots ?? []) {
+    const ordinal = periodOrdinal(slot.period);
+    perTerm.set(ordinal, (perTerm.get(ordinal) ?? 0) + 1);
   }
   for (const [ordinal, count] of perTerm) {
     if (count > plan.maxUnitsPerTerm) {

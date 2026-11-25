@@ -1,0 +1,22 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT1043
+title: Introduction to data science
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+requisites:
+  prerequisite: TODO
+  corequisite: null
+  prohibitions:
+    - FIT5145
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT1043
+verified: false
+notes:
+  - "Handbook prerequisite: MTH1010 or VCE Mathematical Methods or Specialist Mathematics units 3 & 4 with
+    a study score of 25 or equivalent. School results cannot be modelled, so the prerequisite stays TODO."

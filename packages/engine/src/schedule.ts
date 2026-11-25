@@ -1,4 +1,4 @@
-import type { Catalog, Expr, Period, Plan } from "./schema";
+import type { Catalog, Expr, Period, Plan, PlanElectiveSlot } from "./schema";
 import {
   courseAndComponents,
   checkProgress,
@@ -29,6 +29,12 @@ export type ScheduleResult = {
 export type ScheduleOptions = {
   currentPeriod: Period;
 };
+
+export function toPlanSlots(slots: ElectiveSlot[]): PlanElectiveSlot[] {
+  return slots.map(({ period, points, level }) =>
+    level === undefined ? { period, points } : { period, points, level },
+  );
+}
 
 function referencedUnits(expr: Expr | null | "TODO"): string[] {
   if (!expr || expr === "TODO") return [];
@@ -217,7 +223,11 @@ export function autoSchedule(
       if (!remaining.has(code) || slots <= 0) continue;
       const unit = catalog.units[code];
       if (!unit || offeredAt(unit, period, plan.campus) !== true) continue;
-      const basePlan = { ...plan, entries: current };
+      const basePlan: Plan = {
+        ...plan,
+        entries: current,
+        electiveSlots: toPlanSlots(placeholders),
+      };
       const prereq = evaluateRequisites(
         unit,
         period,
@@ -241,6 +251,7 @@ export function autoSchedule(
         continue;
       const hypothetical: Plan = {
         ...plan,
+        electiveSlots: toPlanSlots(placeholders),
         entries: [
           ...fixed,
           ...newEntries,
@@ -312,7 +323,11 @@ export function autoSchedule(
     lastOrdinal = ordinal;
     if (noCoreProgress >= 2 && remaining.size > 0) break;
   }
-  const resultPlan: Plan = { ...plan, entries: [...fixed, ...newEntries] };
+  const resultPlan: Plan = {
+    ...plan,
+    entries: [...fixed, ...newEntries],
+    electiveSlots: toPlanSlots(placeholders),
+  };
   const unscheduled = [...remaining].sort(order).map((code) => ({
     unit: code,
     reason: reasonFor(

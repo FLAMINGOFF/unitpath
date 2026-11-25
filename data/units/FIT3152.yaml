@@ -1,0 +1,33 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT3152
+title: Data analytics
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+requisites:
+  prerequisite:
+    all:
+      - any:
+          - unit: ETW1000
+          - unit: ETF1100
+          - unit: ETW1010
+          - unit: FIT2086
+          - unit: ETW2111
+          - unit: ETC1010
+          - unit: STA1010
+          - unit: FIT1006
+          - unit: ETC1000
+      - any:
+          - unit: FIT2094
+          - unit: FIT3171
+  corequisite: null
+  prohibitions:
+    - ETX2250
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3152
+verified: false

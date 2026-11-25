@@ -72,16 +72,42 @@ test("share link restores a plan in a separate browser context", async ({
   await fresh.close();
 });
 
-test("unverified Handbook rules block automatic placement", async ({
+test("auto schedule fills an empty plan and the result survives a reload", async ({
   page,
 }) => {
-  await page.goto("/plan");
+  await page.goto("/setup");
+  await page.getByLabel("Campus").selectOption("Clayton");
+  await page.getByRole("link", { name: "Planner", exact: true }).click();
   await page.getByRole("button", { name: "Auto schedule" }).click();
   const dialog = page.getByRole("dialog", { name: "Auto schedule preview" });
-  await expect(dialog).toContainText("Teaching periods have not been verified");
+  await expect(dialog).toContainText("Every required unit found a term.");
+  await dialog.getByRole("button", { name: "Apply suggestion" }).click();
+  await page.reload();
   await expect(
-    dialog.getByRole("button", { name: "Apply suggestion" }),
-  ).toBeDisabled();
+    page.getByRole("button", { name: "FIT3048", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Elective slot").first()).toBeVisible();
+  const errors = page
+    .locator(".ledger-strip div")
+    .filter({ hasText: "Errors" });
+  await expect(errors.locator("dd")).toHaveText("0");
+});
+
+test("a unit placed in a term it is not offered shows an error badge", async ({
+  page,
+}) => {
+  await page.goto("/setup");
+  await page.getByLabel("Campus").selectOption("Clayton");
+  await page.getByRole("link", { name: "Planner", exact: true }).click();
+  await page
+    .getByRole("button", { name: `Add unit to ${entryYear} · Semester 2` })
+    .click();
+  await page
+    .getByRole("button", { name: `Add FIT1057 to ${entryYear} · Semester 2` })
+    .click();
+  const term = page.getByRole("region", { name: `${entryYear} · Semester 2` });
+  await expect(term.getByText("Error", { exact: true })).toBeVisible();
+  await expect(term).toContainText("not offered in S2 at Clayton");
 });
 
 test("a term above the unit limit shows a warning badge", async ({ page }) => {

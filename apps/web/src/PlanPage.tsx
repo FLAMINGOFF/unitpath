@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import {
   autoSchedule,
+  toPlanSlots,
+  type PlanElectiveSlot,
   evaluateRequisites,
   offeredAt,
   periodFromOrdinal,
@@ -184,7 +186,11 @@ function TermColumn({
   maxUnits,
   actions,
   addHere,
+  slots,
+  removeSlot,
 }: {
+  slots: PlanElectiveSlot[];
+  removeSlot: (period: Period) => void;
   period: Period;
   position: number;
   entries: Entry[];
@@ -201,10 +207,15 @@ function TermColumn({
   const termEntries = entries
     .filter((entry) => periodOrdinal(entry.period) === ordinal)
     .sort((a, b) => compareCodes(a.unit, b.unit));
-  const points = termEntries.reduce(
-    (sum, entry) => sum + (catalog.units[entry.unit]?.creditPoints ?? 0),
-    0,
+  const termSlots = slots.filter(
+    (slot) => periodOrdinal(slot.period) === ordinal,
   );
+  const points =
+    termEntries.reduce(
+      (sum, entry) => sum + (catalog.units[entry.unit]?.creditPoints ?? 0),
+      0,
+    ) + termSlots.reduce((sum, slot) => sum + slot.points, 0);
+  const used = termEntries.length + termSlots.length;
   const overloaded = issues.some(
     (issue) =>
       issue.code === "TERM_OVERLOAD" &&
@@ -234,7 +245,7 @@ function TermColumn({
         </div>
         <div className="term-load">
           <span className={overloaded ? "over-limit" : ""}>
-            {termEntries.length}/{maxUnits}
+            {used}/{maxUnits}
           </span>
           <span className="mono-label">{points} cp</span>
         </div>
@@ -254,7 +265,29 @@ function TermColumn({
             actions={actions}
           />
         ))}
-        {termEntries.length < maxUnits && (
+        {termSlots.map((slot, index) => (
+          <div className="elective-slot" key={index}>
+            <div>
+              <span className="mono-label">
+                {slot.level === undefined
+                  ? "Elective slot"
+                  : `Level ${slot.level} elective slot`}
+              </span>
+              <span className="elective-slot-hint">
+                {slot.points} cp reserved. Pick a unit from the catalogue.
+              </span>
+            </div>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => removeSlot(period)}
+              aria-label={`Remove elective slot from ${termLabel(period)}`}
+            >
+              <X size={15} aria-hidden="true" />
+            </button>
+          </div>
+        ))}
+        {used < maxUnits && (
           <button
             type="button"
             className="slot"
@@ -465,6 +498,7 @@ export function PlanPage({
   const maxUsed = Math.max(
     start + 5,
     ...plan.entries.map((entry) => periodOrdinal(entry.period)),
+    ...(plan.electiveSlots ?? []).map((slot) => periodOrdinal(slot.period)),
   );
   const periods = Array.from(
     { length: Math.min(16, maxUsed - start + 1) },
@@ -497,11 +531,42 @@ export function PlanPage({
       notify(`${code} is already on the plan.`);
       return;
     }
-    updatePlan((current) => ({
-      ...current,
-      entries: [...current.entries, { unit: code, period, status: "planned" }],
-    }));
+    updatePlan((current) => {
+      const ordinal = periodOrdinal(period);
+      const slots = current.electiveSlots ?? [];
+      const used =
+        current.entries.filter(
+          (entry) => periodOrdinal(entry.period) === ordinal,
+        ).length +
+        slots.filter((slot) => periodOrdinal(slot.period) === ordinal).length;
+      const slotIndex =
+        used >= current.maxUnitsPerTerm
+          ? slots.findIndex((slot) => periodOrdinal(slot.period) === ordinal)
+          : -1;
+      return {
+        ...current,
+        entries: [
+          ...current.entries,
+          { unit: code, period, status: "planned" },
+        ],
+        electiveSlots:
+          slotIndex >= 0
+            ? slots.filter((_, index) => index !== slotIndex)
+            : current.electiveSlots,
+      };
+    });
   };
+  const removeSlot = (period: Period) =>
+    updatePlan((current) => {
+      const slots = current.electiveSlots ?? [];
+      const index = slots.findIndex(
+        (slot) => periodOrdinal(slot.period) === periodOrdinal(period),
+      );
+      return {
+        ...current,
+        electiveSlots: slots.filter((_, position) => position !== index),
+      };
+    });
   const actions: CardActions = {
     openUnit,
     move: (code, period) =>
@@ -550,6 +615,7 @@ export function PlanPage({
         ...current.entries.filter((entry) => entry.status !== "planned"),
         ...preview.entries,
       ],
+      electiveSlots: toPlanSlots(preview.placeholders),
     }));
     setPreview(null);
     notify("Suggestion applied. Use Undo to go back one step.");
@@ -566,10 +632,15 @@ export function PlanPage({
   );
   const targetCredits =
     totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : null;
-  const plannedPoints = plan.entries.reduce(
-    (sum, entry) => sum + (catalog.units[entry.unit]?.creditPoints ?? 0),
+  const slotPoints = (plan.electiveSlots ?? []).reduce(
+    (sum, slot) => sum + slot.points,
     0,
   );
+  const plannedPoints =
+    plan.entries.reduce(
+      (sum, entry) => sum + (catalog.units[entry.unit]?.creditPoints ?? 0),
+      0,
+    ) + slotPoints;
   const draggedUnit = dragged ? catalog.units[dragged] : undefined;
 
   return (
@@ -659,6 +730,8 @@ export function PlanPage({
                     offeredAt(draggedUnit, period, plan.campus) === false
                   }
                   actions={actions}
+                  slots={plan.electiveSlots ?? []}
+                  removeSlot={removeSlot}
                   addHere={(value) => {
                     setSelectedOrdinal(periodOrdinal(value));
                     searchRef.current?.focus();

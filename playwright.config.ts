@@ -7,6 +7,9 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:5173",
     ...devices["Desktop Chrome"],
     channel: process.env.UNITPATH_SYSTEM_CHROME ? "chrome" : undefined,
+    launchOptions: process.env.UNITPATH_CHROMIUM_PATH
+      ? { executablePath: process.env.UNITPATH_CHROMIUM_PATH }
+      : {},
   },
   webServer: {
     command: "pnpm --filter @unitpath/web dev --host 127.0.0.1",

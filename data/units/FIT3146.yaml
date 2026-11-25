@@ -1,0 +1,26 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT3146
+title: Maker lab
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+requisites:
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1051
+          - unit: FIT1045
+          - unit: FIT1053
+          - unit: FIT1048
+          - unit: ENG1013
+          - unit: ENG1003
+      - minCredits: 90
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3146
+verified: false
+notes:
+  - "Handbook enrolment rule: plus 90 credit points of any units. UnitPath reads this as 90 credit points
+    in total."

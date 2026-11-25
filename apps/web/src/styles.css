@@ -2234,3 +2234,32 @@ button.chip:hover {
     transition: none !important;
   }
 }
+
+.sheet-notes {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.elective-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 46px;
+  padding: 8px 6px 8px 12px;
+  border: 1.5px dashed var(--ink-3);
+  border-radius: 8px;
+  background: var(--paper-2, transparent);
+}
+.elective-slot > div {
+  display: grid;
+  gap: 2px;
+}
+.elective-slot-hint {
+  font-size: 12px;
+  color: var(--ink-2);
+}

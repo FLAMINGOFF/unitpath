@@ -1,0 +1,14 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT1060
+title: Pervasive computing
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+requisites:
+  prerequisite: null
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT1060
+verified: false

@@ -1,0 +1,21 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT2175
+title: Usability
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: Summer
+    campus: Clayton
+requisites:
+  prerequisite:
+    unit: FIT1045
+  corequisite: null
+  prohibitions:
+    - ITI2175
+    - FIT3175
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT2175
+verified: false
+notes:
+  - Summer offering is Summer semester B.
