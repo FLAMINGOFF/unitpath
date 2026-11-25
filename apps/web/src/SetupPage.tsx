@@ -5,6 +5,7 @@ import {
   campusSchema,
   courseDataMetrics,
   courseUnitCodes,
+  latestHandbookVersion,
   unitLevel,
   type Campus,
   type Plan,
@@ -17,7 +18,13 @@ function formatPercent(value: number | null | undefined): string {
   return value == null ? "—" : value + "%";
 }
 
-export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
+export function SetupPage({
+  openUnit,
+  currentYear,
+}: {
+  openUnit: (code: string) => void;
+  currentYear: number;
+}) {
   const plan = usePlanStore((state) => state.plan);
   const updatePlan = usePlanStore((state) => state.updatePlan);
   const navigate = useNavigate();
@@ -57,6 +64,17 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const versionOptions = catalog.courses
     .filter((item) => item.code === plan.course.code)
     .sort((a, b) => b.version - a.version);
+  const latestEntryYear = Math.min(
+    2100,
+    Math.max(currentYear + 10, plan.startPeriod.year),
+  );
+  const entryYears = Array.from(
+    { length: latestEntryYear - 2019 },
+    (_, index) => latestEntryYear - index,
+  );
+  const hasExactVersion = versionOptions.some(
+    (item) => item.version === plan.startPeriod.year,
+  );
   const componentGroups = [
     { key: "majorIds" as const, label: "Majors", items: course?.majors ?? [] },
     { key: "minorIds" as const, label: "Minors", items: course?.minors ?? [] },
@@ -66,66 +84,80 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
       items: course?.specialisations ?? [],
     },
   ];
-  const chooseCourse = (code: string, version?: number) => {
+  const switchVersion = (current: Plan, version: number): Plan => {
     const next = catalog.courses.find(
-      (item) =>
-        item.code === code &&
-        item.version ===
-          (version ??
-            Math.max(
-              ...catalog.courses
-                .filter((item) => item.code === code)
-                .map((item) => item.version),
-            )),
+      (item) => item.code === current.course.code && item.version === version,
     );
-    if (!next) return;
-    const defaultMajor = next.majors[0];
-    updatePlan((current) => ({
+    if (!next) return current;
+    const retainedMajors = current.course.majorIds.filter((id) =>
+      next.majors.some((item) => item.id === id),
+    );
+    return {
       ...current,
       course: {
-        code: next.code,
-        version: next.version,
-        majorIds: defaultMajor ? [defaultMajor.id] : [],
-        minorIds: [],
-        specialisationIds: [],
+        ...current.course,
+        version,
+        majorIds: retainedMajors.length
+          ? retainedMajors
+          : next.majors[0]
+            ? [next.majors[0].id]
+            : [],
+        minorIds: current.course.minorIds.filter((id) =>
+          next.minors.some((item) => item.id === id),
+        ),
+        specialisationIds: current.course.specialisationIds.filter((id) =>
+          next.specialisations.some((item) => item.id === id),
+        ),
       },
-      startPeriod: { ...current.startPeriod, year: next.version },
       selectedPathway: undefined,
       selectedPathways: {},
-    }));
-    setCourseQuery("");
+    };
   };
-  const chooseVersion = (version: number) => {
-    const next = catalog.courses.find(
-      (item) => item.code === plan.course.code && item.version === version,
-    );
-    if (!next) return;
+  const chooseCourse = (code: string) => {
     updatePlan((current) => {
-      const majors = current.course.majorIds.filter((id) =>
-        next.majors.some((item) => item.id === id),
+      const available = catalog.courses
+        .filter((item) => item.code === code)
+        .sort((a, b) => a.version - b.version);
+      const matchedVersion = latestHandbookVersion(
+        catalog,
+        code,
+        current.startPeriod.year,
       );
-      const majorIds = majors.length
-        ? majors
-        : next.majors[0]
-          ? [next.majors[0].id]
-          : [];
+      const next =
+        available.find((item) => item.version === matchedVersion) ??
+        available[0];
+      if (!next) return current;
+      const defaultMajor = next.majors[0];
       return {
         ...current,
         course: {
-          ...current.course,
-          version,
-          majorIds,
-          minorIds: (current.course.minorIds ?? []).filter((id) =>
-            next.minors.some((item) => item.id === id),
-          ),
-          specialisationIds: (current.course.specialisationIds ?? []).filter(
-            (id) => next.specialisations.some((item) => item.id === id),
-          ),
+          code: next.code,
+          version: next.version,
+          majorIds: defaultMajor ? [defaultMajor.id] : [],
+          minorIds: [],
+          specialisationIds: [],
         },
-        startPeriod: { ...current.startPeriod, year: version },
         selectedPathway: undefined,
         selectedPathways: {},
       };
+    });
+    setCourseQuery("");
+  };
+  const chooseVersion = (version: number) =>
+    updatePlan((current) => switchVersion(current, version));
+  const chooseEntryYear = (year: number) => {
+    if (!Number.isInteger(year) || year < 2020 || year > 2100) return;
+    updatePlan((current) => {
+      const matchedVersion = latestHandbookVersion(
+        catalog,
+        current.course.code,
+        year,
+      );
+      const selected =
+        matchedVersion === null
+          ? current
+          : switchVersion(current, matchedVersion);
+      return { ...selected, startPeriod: { ...selected.startPeriod, year } };
     });
   };
   const toggleComponent = (
@@ -178,7 +210,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
             { unit: code, period: current.startPeriod, status: "completed" },
           ],
     }));
-  const changeStart = (field: "year" | "term", value: number | "S1" | "S2") =>
+  const changeStart = (field: "term", value: "S1" | "S2") =>
     updatePlan(
       (current) =>
         ({
@@ -289,7 +321,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
               </div>
             )}
             <label className="field">
-              <span>Handbook version · entry year</span>
+              <span>Handbook version</span>
               <select
                 value={plan.course.version}
                 onChange={(event) => chooseVersion(Number(event.target.value))}
@@ -301,6 +333,12 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                 ))}
               </select>
             </label>
+            {course && !hasExactVersion && (
+              <p className="hint" role="status">
+                No {plan.startPeriod.year} handbook data yet; using{" "}
+                {plan.course.version}.
+              </p>
+            )}
             {componentGroups
               .filter((group) => group.items.length > 0)
               .map((group) => (
@@ -344,11 +382,13 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
               <span>Entry year</span>
               <select
                 value={plan.startPeriod.year}
-                onChange={(event) => chooseVersion(Number(event.target.value))}
+                onChange={(event) =>
+                  chooseEntryYear(Number(event.target.value))
+                }
               >
-                {versionOptions.map((item) => (
-                  <option key={item.version} value={item.version}>
-                    {item.version}
+                {entryYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
                   </option>
                 ))}
               </select>

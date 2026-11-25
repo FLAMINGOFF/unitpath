@@ -52,6 +52,22 @@ export type Issue = {
   message: string;
 };
 
+export function latestHandbookVersion(
+  catalog: Catalog,
+  courseCode: string,
+  entryYear: number,
+): number | null {
+  return catalog.courses.reduce<number | null>(
+    (latest, course) =>
+      course.code === courseCode &&
+      course.version <= entryYear &&
+      (latest === null || course.version > latest)
+        ? course.version
+        : latest,
+    null,
+  );
+}
+
 export function periodOrdinal(period: Period): number {
   return period.year * 2 + (period.term === "S1" ? 0 : 1);
 }

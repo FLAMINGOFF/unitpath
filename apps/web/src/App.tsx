@@ -42,6 +42,7 @@ const links = [
 ];
 
 export function App() {
+  const currentYear = new Date().getFullYear();
   const plan = usePlanStore((state) => state.plan);
   const setPlan = usePlanStore((state) => state.setPlan);
   const navigate = useNavigate();
@@ -169,7 +170,9 @@ export function App() {
           <Route path="/" element={<Navigate to="/setup" replace />} />
           <Route
             path="/setup"
-            element={<SetupPage openUnit={setSelectedUnit} />}
+            element={
+              <SetupPage openUnit={setSelectedUnit} currentYear={currentYear} />
+            }
           />
           <Route
             path="/plan"

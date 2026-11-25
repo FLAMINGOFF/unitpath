@@ -5,6 +5,7 @@ import {
   courseDataMetrics,
   migratePlan,
   evaluateRequisites,
+  latestHandbookVersion,
   parsePlanJson,
   satisfiesUnit,
   unitLevel,
@@ -43,6 +44,19 @@ function reportFor(
   catalog.units[subject.code] = subject;
   return evaluateRequisites(subject, period, plan, catalog).prerequisite;
 }
+
+describe("Handbook version matching", () => {
+  it("chooses the latest version no later than the entry year", () => {
+    const catalog = fixtureCatalog();
+    catalog.courses.push({ ...catalog.courses[0]!, version: 2028 });
+    expect(latestHandbookVersion(catalog, "C2000", 2025)).toBeNull();
+    expect(latestHandbookVersion(catalog, "C2000", 2026)).toBe(2026);
+    expect(latestHandbookVersion(catalog, "C2000", 2027)).toBe(2026);
+    expect(latestHandbookVersion(catalog, "C2000", 2028)).toBe(2028);
+    expect(latestHandbookVersion(catalog, "C2000", 2030)).toBe(2028);
+    expect(latestHandbookVersion(catalog, "C9999", 2030)).toBeNull();
+  });
+});
 
 describe("unit levels", () => {
   it("uses the first code digit unless YAML overrides it", () => {

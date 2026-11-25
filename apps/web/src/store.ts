@@ -1,11 +1,23 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { migratePlan, type Plan } from "@unitpath/engine";
+import {
+  latestHandbookVersion,
+  migratePlan,
+  type Plan,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 
-const defaultCourse = [...catalog.courses].sort((a, b) =>
-  a.code < b.code ? -1 : a.code > b.code ? 1 : b.version - a.version,
-)[0]!;
+const entryYear = new Date().getFullYear();
+const defaultCode = [...catalog.courses].sort((a, b) =>
+  a.code.localeCompare(b.code),
+)[0]!.code;
+const availableVersions = catalog.courses
+  .filter((course) => course.code === defaultCode)
+  .sort((a, b) => a.version - b.version);
+const matchedVersion = latestHandbookVersion(catalog, defaultCode, entryYear);
+const defaultCourse =
+  availableVersions.find((course) => course.version === matchedVersion) ??
+  availableVersions[0]!;
 const defaultMajor = defaultCourse.majors[0];
 export const initialPlan: Plan = {
   schemaVersion: 2,
@@ -17,7 +29,7 @@ export const initialPlan: Plan = {
     specialisationIds: [],
   },
   campus: null,
-  startPeriod: { year: defaultCourse.version, term: "S1" },
+  startPeriod: { year: entryYear, term: "S1" },
   entries: [],
   creditBlocks: [],
   maxUnitsPerTerm: 4,
