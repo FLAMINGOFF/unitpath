@@ -1,0 +1,43 @@
+code: C2000
+version: 2026
+title: Bachelor of Information Technology
+source: https://www.monash.edu/__data/assets/pdf_file/0014/4150220/2026-C2000-BInfoTech-AppCyber.pdf
+rules:
+  - id: total
+    totalCredits: 144
+  - id: level1-cap
+    maxCreditsAtLevel: { level: 1, points: 60 }
+  - id: level3-min
+    minCreditsAtLevel: { level: 3, points: 36 }
+majors:
+  - id: applied-cybersecurity
+    title: Applied cybersecurity
+    rules:
+      - id: core
+        requiredUnits:
+          - FIT1045
+          - FIT1047
+          - FIT1057
+          - FIT1049
+          - FIT1093
+          - FIT2001
+          - FIT2165
+          - FIT2173
+          - FIT2002
+          - FIT2094
+          - FIT2100
+          - FIT3168
+          - FIT3186
+      - id: studio-or-ibl
+        oneOf:
+          - label: Standard pathway
+            requiredUnits: [FIT3047, FIT3048, FIT3031]
+          - label: Industry Based Learning
+            requiredUnits: [FIT3045]
+    suggestedSequence:
+      Y1S1: [FIT1045, FIT1047, FIT1057]
+      Y1S2: [FIT1049, FIT1093]
+      Y2S1: [FIT2001, FIT2165, FIT2173]
+      Y2S2: [FIT2002, FIT2094, FIT2100]
+      Y3S1: [FIT3047, FIT3031]
+      Y3S2: [FIT3048, FIT3168, FIT3186]
