@@ -156,6 +156,8 @@ async function main(): Promise<void> {
     );
   }
   for (const course of courses) {
+    const courseFile = `data/courses/${course.code}/${course.version}.yaml`;
+    const seenRuleIds = new Set<string>();
     const components = [
       ...course.majors,
       ...course.minors,
@@ -174,6 +176,9 @@ async function main(): Promise<void> {
       ...course.rules,
       ...components.flatMap((component) => component.rules),
     ]) {
+      if (seenRuleIds.has(rule.id))
+        errors.push(`${courseFile}: duplicate rule id ${rule.id}`);
+      seenRuleIds.add(rule.id);
       const refs =
         "requiredUnits" in rule
           ? rule.requiredUnits

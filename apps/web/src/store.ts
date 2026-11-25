@@ -7,12 +7,6 @@ const defaultCourse = [...catalog.courses].sort((a, b) =>
   a.code < b.code ? -1 : a.code > b.code ? 1 : b.version - a.version,
 )[0]!;
 const defaultMajor = defaultCourse.majors[0];
-const defaultPathways = Object.fromEntries(
-  [...defaultCourse.rules, ...(defaultMajor?.rules ?? [])].flatMap((rule) =>
-    "oneOf" in rule && rule.oneOf[0] ? [[rule.id, rule.oneOf[0].label]] : [],
-  ),
-);
-
 export const initialPlan: Plan = {
   schemaVersion: 2,
   course: {
@@ -27,7 +21,7 @@ export const initialPlan: Plan = {
   entries: [],
   creditBlocks: [],
   maxUnitsPerTerm: 4,
-  selectedPathways: defaultPathways,
+  selectedPathways: {},
 };
 
 export function validateImportedPlan(value: unknown): Plan {

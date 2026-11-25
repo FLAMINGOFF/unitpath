@@ -117,7 +117,7 @@ export function fixturePlan(changes: Partial<Plan> = {}): Plan {
     entries: [],
     creditBlocks: [],
     maxUnitsPerTerm: 4,
-    selectedPathways: { path: "Standard pathway" },
+    selectedPathways: { "major:test-major/path": "Standard pathway" },
     ...changes,
   };
 }

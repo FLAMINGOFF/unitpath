@@ -60,9 +60,9 @@ describe("unit levels", () => {
       catalog,
     );
     expect(report.actualCredits).toBe(6);
-    expect(report.actual.find((rule) => rule.id === "level4-min")?.status).toBe(
-      "met",
-    );
+    expect(
+      report.actual.find((rule) => rule.id === "course/level4-min")?.status,
+    ).toBe("met");
   });
 });
 
@@ -83,7 +83,9 @@ describe("credit points", () => {
     catalog.units.TST1001!.creditPoints = 5;
     const report = checkProgress(plan, catalog);
     expect(report.actualCredits).toBe(8);
-    expect(report.actual.find((rule) => rule.id === "total")?.current).toBe(8);
+    expect(
+      report.actual.find((rule) => rule.id === "course/total")?.current,
+    ).toBe(8);
   });
 });
 
@@ -132,17 +134,75 @@ describe("course component combinations", () => {
     expect(planSchema.safeParse(plan).success).toBe(true);
     const report = checkProgress(plan, catalog);
     expect(
-      report.actual.find((rule) => rule.id === "second-core")?.status,
+      report.actual.find((rule) => rule.id === "major:second-major/second-core")
+        ?.status,
     ).toBe("met");
     expect(
-      report.actual.find((rule) => rule.id === "specialisation-core")?.status,
+      report.actual.find(
+        (rule) =>
+          rule.id === "specialisation:test-specialisation/specialisation-core",
+      )?.status,
     ).toBe("met");
     expect(
-      report.actual.find((rule) => rule.id === "minor-credits")?.current,
+      report.actual.find((rule) => rule.id === "minor:test-minor/minor-credits")
+        ?.current,
     ).toBe(12);
     expect(
-      report.actual.find((rule) => rule.id === "minor-credits")?.status,
+      report.actual.find((rule) => rule.id === "minor:test-minor/minor-credits")
+        ?.status,
     ).toBe("met");
+  });
+  it("keeps same-named major rules and pathway choices independent", () => {
+    const catalog = fixtureCatalog();
+    catalog.courses[0]!.majors.push({
+      id: "other-major",
+      title: "Other major",
+      rules: [
+        {
+          id: "path",
+          oneOf: [
+            { label: "Other A", requiredUnits: ["TST1001"] },
+            { label: "Other B", requiredUnits: ["TST1002"] },
+          ],
+        },
+      ],
+      suggestedSequence: {},
+    });
+    const plan = fixturePlan({
+      course: {
+        ...fixturePlan().course,
+        majorIds: ["test-major", "other-major"],
+      },
+      selectedPathways: {
+        "major:test-major/path": "Alternative pathway",
+        "major:other-major/path": "Other B",
+      },
+      entries: [
+        entry("TST3003", s1, "completed"),
+        entry("TST1002", s1, "completed"),
+      ],
+    });
+    const rules = checkProgress(plan, catalog).actual;
+    expect(new Set(rules.map((rule) => rule.id)).size).toBe(rules.length);
+    expect(
+      rules.find((rule) => rule.id === "major:test-major/path")?.pathway,
+    ).toBe("Alternative pathway");
+    expect(
+      rules.find((rule) => rule.id === "major:other-major/path")?.pathway,
+    ).toBe("Other B");
+    const changed = checkProgress(
+      {
+        ...plan,
+        selectedPathways: {
+          ...plan.selectedPathways,
+          "major:test-major/path": "Standard pathway",
+        },
+      },
+      catalog,
+    ).actual;
+    expect(
+      changed.find((rule) => rule.id === "major:other-major/path")?.pathway,
+    ).toBe("Other B");
   });
 });
 
@@ -339,7 +399,7 @@ describe("progress", () => {
     const report = checkProgress(fixturePlan({ entries }), catalog);
     expect(report.actualCredits).toBe(60);
     expect(
-      report.actual.find((rule) => rule.id === "total")?.message,
+      report.actual.find((rule) => rule.id === "course/total")?.message,
     ).toContain("6 level 1 points exceed the cap");
   });
   it("reports partial level-three progress at 30 of 36 points", () => {
@@ -353,7 +413,7 @@ describe("progress", () => {
     });
     expect(
       checkProgress(plan, catalog).actual.find(
-        (rule) => rule.id === "level3-min",
+        (rule) => rule.id === "course/level3-min",
       )?.status,
     ).toBe("partial");
   });
@@ -366,12 +426,13 @@ describe("progress", () => {
       entries: [entry("TST3003", s2, "completed")],
     });
     expect(
-      checkProgress(standard, catalog).actual.find((rule) => rule.id === "path")
-        ?.status,
+      checkProgress(standard, catalog).actual.find(
+        (rule) => rule.id === "major:test-major/path",
+      )?.status,
     ).toBe("met");
     expect(
       checkProgress(alternative, catalog).actual.find(
-        (rule) => rule.id === "path",
+        (rule) => rule.id === "major:test-major/path",
       )?.status,
     ).toBe("met");
     const planned = fixturePlan({ entries: [entry("TST1001", s1, "planned")] });

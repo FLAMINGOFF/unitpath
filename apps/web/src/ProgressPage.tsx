@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { CheckCircle2, CircleDashed, ExternalLink, Info } from "lucide-react";
-import { checkProgress, type RuleProgress } from "@unitpath/engine";
+import {
+  checkProgress,
+  courseAndComponents,
+  type RuleProgress,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
 import { Note, PageHead } from "./ui";
 
 function ruleName(id: string): string {
   return id
-    .split(/[-_]+/)
+    .split(/[/:_-]+/)
     .map((word) => word[0]?.toUpperCase() + word.slice(1))
     .join(" ");
 }
@@ -109,24 +113,11 @@ export function ProgressPage({
       ? Math.min(cells, Math.floor((report.projectedCredits / target) * cells))
       : 0;
   const planned = projectedCells - earned;
-  const selectedComponents = course
-    ? [
-        ...course.majors.filter((item) =>
-          plan.course.majorIds.includes(item.id),
-        ),
-        ...course.minors.filter((item) =>
-          plan.course.minorIds.includes(item.id),
-        ),
-        ...course.specialisations.filter((item) =>
-          plan.course.specialisationIds.includes(item.id),
-        ),
-      ]
-    : [];
-  const selectedRules = [
-    ...(course?.rules ?? []),
-    ...selectedComponents.flatMap((item) => item.rules),
-  ];
-  const pathwayRules = selectedRules.filter((rule) => "oneOf" in rule);
+  const { scopedRules } = courseAndComponents(plan, catalog);
+  const selectedRules = scopedRules.map((entry) => entry.rule);
+  const pathwayRules = scopedRules.flatMap(({ id, rule }) =>
+    "oneOf" in rule ? [{ id, rule }] : [],
+  );
   const hasLevelCaps = selectedRules.some(
     (rule) => "maxCreditsAtLevel" in rule,
   );
@@ -217,27 +208,25 @@ export function ProgressPage({
         ))}
       </ol>
 
-      {pathwayRules.map((pathwayRule) => (
+      {pathwayRules.map(({ id, rule }) => (
         <section
           className="pathways"
-          aria-labelledby={"pathway-" + pathwayRule.id}
-          key={pathwayRule.id}
+          aria-labelledby={"pathway-" + id}
+          key={id}
         >
           <div>
-            <h2 id={"pathway-" + pathwayRule.id}>
-              {ruleName(pathwayRule.id)} pathway
-            </h2>
+            <h2 id={"pathway-" + id}>{ruleName(id)} pathway</h2>
             <p>
               Guides progress and auto scheduling. Check the official course
               rules before making a selection.
             </p>
           </div>
           <div className="pathway-options">
-            {pathwayRule.oneOf.map((branch) => {
+            {rule.oneOf.map((branch) => {
               const checked =
-                (plan.selectedPathways[pathwayRule.id] ??
+                (plan.selectedPathways[id] ??
                   plan.selectedPathway ??
-                  pathwayRule.oneOf[0]?.label) === branch.label;
+                  rule.oneOf[0]?.label) === branch.label;
               return (
                 <label
                   key={branch.label}
@@ -245,7 +234,7 @@ export function ProgressPage({
                 >
                   <input
                     type="radio"
-                    name={"pathway-" + pathwayRule.id}
+                    name={"pathway-" + id}
                     checked={checked}
                     onChange={() =>
                       updatePlan((current) => ({
@@ -253,7 +242,7 @@ export function ProgressPage({
                         selectedPathway: undefined,
                         selectedPathways: {
                           ...current.selectedPathways,
-                          [pathwayRule.id]: branch.label,
+                          [id]: branch.label,
                         },
                       }))
                     }

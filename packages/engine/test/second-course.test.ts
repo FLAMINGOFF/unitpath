@@ -34,11 +34,13 @@ describe("fictional second course", () => {
     });
     const report = checkProgress(plan, catalog);
     expect(report.actualCredits).toBe(20);
-    expect(report.actual.find((rule) => rule.id === "level-two")?.current).toBe(
-      12,
-    );
     expect(
-      report.actual.find((rule) => rule.id === "minor-list")?.current,
+      report.actual.find((rule) => rule.id === "course/level-two")?.current,
+    ).toBe(12);
+    expect(
+      report.actual.find(
+        (rule) => rule.id === "minor:synthetic-minor/minor-list",
+      )?.current,
     ).toBe(8);
     expect(report.actual.every((rule) => rule.status === "met")).toBe(true);
     expect(
@@ -85,7 +87,8 @@ describe("fictional second course", () => {
     expect(
       result.unscheduled.some(
         (item) =>
-          item.unit === "minor-list" && item.reason.includes("8 credit points"),
+          item.unit === "minor:synthetic-minor/minor-list" &&
+          item.reason.includes("8 credit points"),
       ),
     ).toBe(true);
     expect(result.expectedGraduation).toBeNull();

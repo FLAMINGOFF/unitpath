@@ -110,11 +110,11 @@ export function autoSchedule(
   catalog: Catalog,
   options: ScheduleOptions,
 ): ScheduleResult {
-  const { course, components } = courseAndComponents(plan, catalog);
-  const allRules = [
-    ...course.rules,
-    ...components.flatMap((component) => component.rules),
-  ];
+  const { course, components, scopedRules } = courseAndComponents(
+    plan,
+    catalog,
+  );
+  const allRules = scopedRules.map((entry) => entry.rule);
   const selectedPathway = options.selectedPathway ?? plan.selectedPathway;
   const totalRule = course.rules.find((rule) => "totalCredits" in rule);
   const targetCredits =
@@ -126,15 +126,14 @@ export function autoSchedule(
       levelMinimums.set(level, Math.max(levelMinimums.get(level) ?? 0, points));
     }
   }
-  const required = allRules.flatMap((rule) => {
+  const required = scopedRules.flatMap(({ id, rule }) => {
     if ("requiredUnits" in rule) return rule.requiredUnits;
     if ("oneOf" in rule)
       return (
         (
           rule.oneOf.find(
             (item) =>
-              item.label ===
-              (plan.selectedPathways[rule.id] ?? selectedPathway),
+              item.label === (plan.selectedPathways[id] ?? selectedPathway),
           ) ?? rule.oneOf[0]
         )?.requiredUnits ?? []
       );
@@ -325,14 +324,14 @@ export function autoSchedule(
     ),
   }));
   const projectedRules = checkProgress(resultPlan, catalog).projected;
-  for (const rule of allRules) {
+  for (const { id, rule } of scopedRules) {
     if ("creditsFromList" in rule) {
       const current =
-        projectedRules.find((item) => item.id === rule.id)?.current ?? 0;
+        projectedRules.find((item) => item.id === id)?.current ?? 0;
       const gap = Math.max(0, rule.creditsFromList.points - current);
       if (gap > 0)
         unscheduled.push({
-          unit: rule.id,
+          unit: id,
           reason:
             gap +
             " credit points still needed from the eligible unit list; choose units manually.",

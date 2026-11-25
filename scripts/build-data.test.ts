@@ -105,4 +105,16 @@ describe("catalog builder", () => {
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain("filename does not match code");
   });
+  it("rejects duplicate rule ids across course components", async () => {
+    const root = await seed();
+    const file = join(root, "data/courses/C2000/2026.yaml");
+    const course = YAML.parse(await readFile(file, "utf8"));
+    course.majors.push({ ...course.majors[0], id: "second-major" });
+    await writeFile(file, YAML.stringify(course));
+    const result = run(root);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(
+      "data/courses/C2000/2026.yaml: duplicate rule id core",
+    );
+  });
 });

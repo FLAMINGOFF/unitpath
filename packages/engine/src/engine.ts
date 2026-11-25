@@ -81,10 +81,12 @@ export function offeredAt(
   );
 }
 
+export type ScopedRule = { id: string; rule: Rule };
+
 export function courseAndComponents(
   plan: Plan,
   catalog: Catalog,
-): { course: Course; components: Component[] } {
+): { course: Course; components: Component[]; scopedRules: ScopedRule[] } {
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
@@ -108,17 +110,36 @@ export function courseAndComponents(
         throw new Error(kind + " " + id + " is not in the catalog.");
       return component;
     });
-  const majorIds = plan.course.majorIds;
-  const components = [
-    ...resolve("Major", majorIds, course.majors),
-    ...resolve("Minor", plan.course.minorIds ?? [], course.minors),
-    ...resolve(
-      "Specialisation",
-      plan.course.specialisationIds ?? [],
-      course.specialisations,
+  const majors = resolve("Major", plan.course.majorIds, course.majors);
+  const minors = resolve("Minor", plan.course.minorIds, course.minors);
+  const specialisations = resolve(
+    "Specialisation",
+    plan.course.specialisationIds,
+    course.specialisations,
+  );
+  const components = [...majors, ...minors, ...specialisations];
+  const scopedRules: ScopedRule[] = [
+    ...course.rules.map((rule) => ({ id: "course/" + rule.id, rule })),
+    ...majors.flatMap((component) =>
+      component.rules.map((rule) => ({
+        id: "major:" + component.id + "/" + rule.id,
+        rule,
+      })),
+    ),
+    ...minors.flatMap((component) =>
+      component.rules.map((rule) => ({
+        id: "minor:" + component.id + "/" + rule.id,
+        rule,
+      })),
+    ),
+    ...specialisations.flatMap((component) =>
+      component.rules.map((rule) => ({
+        id: "specialisation:" + component.id + "/" + rule.id,
+        rule,
+      })),
     ),
   ];
-  return { course, components };
+  return { course, components, scopedRules };
 }
 
 export function satisfiesUnit(
@@ -369,6 +390,7 @@ function countedCredits(
 }
 
 function progressForRule(
+  scopedId: string,
   rule: Rule,
   plan: Plan,
   catalog: Catalog,
@@ -387,7 +409,7 @@ function progressForRule(
         : [];
     });
     return {
-      id: rule.id,
+      id: scopedId,
       status: status(current, rule.totalCredits),
       current,
       target: rule.totalCredits,
@@ -398,7 +420,7 @@ function progressForRule(
     const { level, points } = rule.maxCreditsAtLevel;
     const current = byLevel[level] ?? 0;
     return {
-      id: rule.id,
+      id: scopedId,
       status: current <= points ? "met" : "unmet",
       current,
       target: points,
@@ -409,7 +431,7 @@ function progressForRule(
     const { level, points } = rule.minCreditsAtLevel;
     const current = byLevel[level] ?? 0;
     return {
-      id: rule.id,
+      id: scopedId,
       status: status(current, points),
       current,
       target: points,
@@ -426,7 +448,7 @@ function progressForRule(
         : sum;
     }, 0);
     return {
-      id: rule.id,
+      id: scopedId,
       status: status(current, rule.creditsFromList.points),
       current,
       target: rule.creditsFromList.points,
@@ -444,7 +466,7 @@ function progressForRule(
     );
     const current = rule.requiredUnits.length - missingUnits.length;
     return {
-      id: rule.id,
+      id: scopedId,
       status: status(current, rule.requiredUnits.length),
       current,
       target: rule.requiredUnits.length,
@@ -469,7 +491,7 @@ function progressForRule(
     scored.find(
       (item) =>
         item.branch.label ===
-        (plan.selectedPathways[rule.id] ?? plan.selectedPathway),
+        (plan.selectedPathways[scopedId] ?? plan.selectedPathway),
     ) ??
     [...scored].sort(
       (a, b) =>
@@ -478,7 +500,7 @@ function progressForRule(
     )[0]!;
   const anyMet = scored.some((item) => item.missingUnits.length === 0);
   return {
-    id: rule.id,
+    id: scopedId,
     status: anyMet
       ? "met"
       : status(selected.current, selected.branch.requiredUnits.length),
@@ -491,11 +513,8 @@ function progressForRule(
 }
 
 export function checkProgress(plan: Plan, catalog: Catalog): ProgressReport {
-  const { course, components } = courseAndComponents(plan, catalog);
-  const rules = [
-    ...course.rules,
-    ...components.flatMap((component) => component.rules),
-  ];
+  const { scopedRules } = courseAndComponents(plan, catalog);
+  const rules = scopedRules.map((entry) => entry.rule);
   const caps = new Map<number, number>();
   for (const rule of rules) {
     if ("maxCreditsAtLevel" in rule) {
@@ -508,11 +527,20 @@ export function checkProgress(plan: Plan, catalog: Catalog): ProgressReport {
   }
   const actual = tally(plan, catalog, false);
   const projected = tally(plan, catalog, true);
-  const actualRules = rules.map((rule) =>
-    progressForRule(rule, plan, catalog, actual.entries, actual.credits, caps),
-  );
-  const projectedRules = rules.map((rule) =>
+  const actualRules = scopedRules.map(({ id, rule }) =>
     progressForRule(
+      id,
+      rule,
+      plan,
+      catalog,
+      actual.entries,
+      actual.credits,
+      caps,
+    ),
+  );
+  const projectedRules = scopedRules.map(({ id, rule }) =>
+    progressForRule(
+      id,
       rule,
       plan,
       catalog,
