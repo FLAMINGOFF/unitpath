@@ -17,40 +17,40 @@ What UnitPath does not model, by design:
 
 ## Course units (C2000 applied cybersecurity)
 
-| Unit | Title | Status | Interpretation in notes | Source |
-| ---- | ----- | ------ | ----------------------- | ------ |
-| FIT1045 | Introduction to programming | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT1045) |
-| FIT1047 | Introduction to computer systems, networks and security | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT1047) |
-| FIT1049 | IT professional practice | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT1049) |
-| FIT1057 | Introduction to cybersecurity | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT1057) |
-| FIT1093 | Cybersecurity tools and techniques | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT1093) |
-| FIT2001 | Systems development | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT2001) |
-| FIT2002 | IT project management | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT2002) |
-| FIT2094 | Databases | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT2094) |
-| FIT2100 | Operating systems | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT2100) |
-| FIT2165 | Computer networks | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT2165) |
-| FIT2173 | Software security | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT2173) |
-| FIT3031 | Network security | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT3031) |
-| FIT3045 | Industry-based learning | TODO: offerings, prerequisite | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT3045) |
-| FIT3047 | Industry experience studio project 1 | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT3047) |
-| FIT3048 | Industry experience studio project 2 | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT3048) |
-| FIT3168 | IT forensics | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT3168) |
-| FIT3186 | Vulnerability analysis, response and mitigation | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT3186) |
+| Unit    | Title                                                   | Status                        | Interpretation in notes | Source                                                     |
+| ------- | ------------------------------------------------------- | ----------------------------- | ----------------------- | ---------------------------------------------------------- |
+| FIT1045 | Introduction to programming                             | Read, needs check             | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT1045) |
+| FIT1047 | Introduction to computer systems, networks and security | Read, needs check             | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT1047) |
+| FIT1049 | IT professional practice                                | Read, needs check             | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT1049) |
+| FIT1057 | Introduction to cybersecurity                           | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT1057) |
+| FIT1093 | Cybersecurity tools and techniques                      | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT1093) |
+| FIT2001 | Systems development                                     | Read, needs check             | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT2001) |
+| FIT2002 | IT project management                                   | Read, needs check             | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT2002) |
+| FIT2094 | Databases                                               | Read, needs check             | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT2094) |
+| FIT2100 | Operating systems                                       | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT2100) |
+| FIT2165 | Computer networks                                       | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT2165) |
+| FIT2173 | Software security                                       | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT2173) |
+| FIT3031 | Network security                                        | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT3031) |
+| FIT3045 | Industry-based learning                                 | TODO: offerings, prerequisite | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT3045) |
+| FIT3047 | Industry experience studio project 1                    | Read, needs check             | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT3047) |
+| FIT3048 | Industry experience studio project 2                    | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT3048) |
+| FIT3168 | IT forensics                                            | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT3168) |
+| FIT3186 | Vulnerability analysis, response and mitigation         | Read, needs check             |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT3186) |
 
 ## Electives
 
 These eleven units come from the free elective studies listed on the [C2000 2026 Handbook course page](https://handbook.monash.edu/2026/courses/C2000): FIT1059, FIT3195, and units of the cybersecurity, data science, mobile apps development and human computer interaction minors that are not already in the major. They include four level 3 units so the 36-point level 3 rule can be met.
 
-| Unit | Title | Status | Interpretation in notes | Source |
-| ---- | ----- | ------ | ----------------------- | ------ |
-| FIT1043 | Introduction to data science | TODO: prerequisite | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT1043) |
-| FIT1059 | AI for everyone | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT1059) |
-| FIT1060 | Pervasive computing | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT1060) |
-| FIT2081 | Mobile application development | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT2081) |
-| FIT2086 | Modelling for data analysis | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT2086) |
-| FIT2175 | Usability | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT2175) |
-| FIT2179 | Data visualisation | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT2179) |
-| FIT3146 | Maker lab | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT3146) |
-| FIT3152 | Data analytics | Read, needs check |  | [Handbook](https://handbook.monash.edu/2026/units/FIT3152) |
-| FIT3178 | iOS app development | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT3178) |
-| FIT3195 | Deep tech entrepreneurship | Read, needs check | Yes | [Handbook](https://handbook.monash.edu/2026/units/FIT3195) |
+| Unit    | Title                          | Status             | Interpretation in notes | Source                                                     |
+| ------- | ------------------------------ | ------------------ | ----------------------- | ---------------------------------------------------------- |
+| FIT1043 | Introduction to data science   | TODO: prerequisite | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT1043) |
+| FIT1059 | AI for everyone                | Read, needs check  | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT1059) |
+| FIT1060 | Pervasive computing            | Read, needs check  |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT1060) |
+| FIT2081 | Mobile application development | Read, needs check  |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT2081) |
+| FIT2086 | Modelling for data analysis    | Read, needs check  |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT2086) |
+| FIT2175 | Usability                      | Read, needs check  | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT2175) |
+| FIT2179 | Data visualisation             | Read, needs check  |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT2179) |
+| FIT3146 | Maker lab                      | Read, needs check  | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT3146) |
+| FIT3152 | Data analytics                 | Read, needs check  |                         | [Handbook](https://handbook.monash.edu/2026/units/FIT3152) |
+| FIT3178 | iOS app development            | Read, needs check  | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT3178) |
+| FIT3195 | Deep tech entrepreneurship     | Read, needs check  | Yes                     | [Handbook](https://handbook.monash.edu/2026/units/FIT3195) |
