@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const entryYear = new Date().getFullYear();
+
 test("setup persists a completed unit and updates progress", async ({
   page,
 }) => {
@@ -8,13 +10,13 @@ test("setup persists a completed unit and updates progress", async ({
   await page.getByRole("button", { name: "Open my planner" }).click();
   await expect(
     page
-      .getByRole("region", { name: "2026 · Semester 1" })
+      .getByRole("region", { name: `${entryYear} · Semester 1` })
       .getByRole("button", { name: "FIT1045", exact: true }),
   ).toBeVisible();
   await page.reload();
   await expect(
     page
-      .getByRole("region", { name: "2026 · Semester 1" })
+      .getByRole("region", { name: `${entryYear} · Semester 1` })
       .getByRole("button", { name: "FIT1045", exact: true }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Progress" }).click();
@@ -86,9 +88,20 @@ test("a term above the unit limit shows a warning badge", async ({ page }) => {
   await page.goto("/plan");
   for (const code of ["FIT1045", "FIT1047", "FIT1049", "FIT1057", "FIT1093"])
     await page
-      .getByRole("button", { name: `Add ${code} to 2026 · Semester 1` })
+      .getByRole("button", { name: `Add ${code} to ${entryYear} · Semester 1` })
       .click();
-  const term = page.getByRole("region", { name: "2026 · Semester 1" });
+  const term = page.getByRole("region", { name: `${entryYear} · Semester 1` });
   await expect(term).toContainText("5/4");
   await expect(term).toContainText("Above your 4-unit limit");
+});
+
+test("entry year and Handbook version stay independent", async ({ page }) => {
+  await page.goto("/setup");
+  await page.getByLabel("Entry year").selectOption("2029");
+  await expect(page.getByLabel("Handbook version")).toHaveValue("2026");
+  await expect(
+    page.getByText("No 2029 handbook data yet; using 2026."),
+  ).toBeVisible();
+  await page.getByLabel("Handbook version").selectOption("2026");
+  await expect(page.getByLabel("Entry year")).toHaveValue("2029");
 });

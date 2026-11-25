@@ -85,14 +85,16 @@ export function UnitDrawer({
           </div>
           <div>
             <dt>Level</dt>
-            <dd>{unitLevel(unit.code)}</dd>
+            <dd>{unitLevel(unit)}</dd>
           </div>
           <div>
             <dt>Offered</dt>
             <dd>
               {unit.offerings === "TODO"
                 ? "Unverified"
-                : unit.offerings.join(" · ")}
+                : unit.offerings
+                    .map((offering) => `${offering.term} · ${offering.campus}`)
+                    .join(" / ")}
             </dd>
           </div>
           <div>

@@ -2,6 +2,21 @@ import { z } from "zod";
 
 export const termSchema = z.enum(["S1", "S2"]);
 export type Term = z.infer<typeof termSchema>;
+export const teachingTermSchema = z.enum(["S1", "S2", "Summer", "Winter"]);
+export type TeachingTerm = z.infer<typeof teachingTermSchema>;
+export const campusSchema = z.enum([
+  "Clayton",
+  "Caulfield",
+  "Peninsula",
+  "Malaysia",
+  "Online",
+]);
+export type Campus = z.infer<typeof campusSchema>;
+export const offeringSchema = z.strictObject({
+  term: teachingTermSchema,
+  campus: campusSchema,
+});
+export type Offering = z.infer<typeof offeringSchema>;
 
 export const periodSchema = z.strictObject({
   year: z.number().int().min(2020).max(2100),
@@ -15,12 +30,13 @@ export type Expr =
   | { any: Expr[] }
   | { atLeast: { n: number; of: Expr[] } }
   | { minCredits: number }
-  | { minCreditsAtLevel: { level: 1 | 2 | 3; points: number } }
+  | { minCreditsAtLevel: { level: number; points: number } }
   | { enrolledIn: string };
 
 const unitCode = z.string().regex(/^[A-Z]{2,5}\d{4}$/);
-const level = z.union([z.literal(1), z.literal(2), z.literal(3)]);
-const points = z.number().int().nonnegative().multipleOf(6);
+export const levelSchema = z.number().int().min(0).max(9);
+const level = levelSchema;
+const points = z.number().int().nonnegative();
 
 export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
   z.union([
@@ -42,8 +58,9 @@ export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
 export const unitSchema = z.strictObject({
   code: unitCode,
   title: z.string().min(1),
-  creditPoints: z.number().int().positive().multipleOf(6).default(6),
-  offerings: z.union([z.array(termSchema).min(1), z.literal("TODO")]),
+  creditPoints: z.number().int().positive().default(6),
+  level: level.optional(),
+  offerings: z.union([z.array(offeringSchema).min(1), z.literal("TODO")]),
   requisites: z.strictObject({
     prerequisite: z.union([exprSchema, z.null(), z.literal("TODO")]),
     corequisite: z.union([exprSchema, z.null(), z.literal("TODO")]),
@@ -79,6 +96,13 @@ const oneOfRuleSchema = z.strictObject({
   id: z.string().min(1),
   oneOf: z.array(pathwaySchema).min(2),
 });
+const creditsFromListRuleSchema = z.strictObject({
+  id: z.string().min(1),
+  creditsFromList: z.strictObject({
+    units: z.array(unitCode).min(1),
+    points: z.number().int().positive(),
+  }),
+});
 
 export const ruleSchema = z.union([
   requiredUnitsRuleSchema,
@@ -86,19 +110,21 @@ export const ruleSchema = z.union([
   maxCreditsAtLevelRuleSchema,
   minCreditsAtLevelRuleSchema,
   oneOfRuleSchema,
+  creditsFromListRuleSchema,
 ]);
 export type Rule = z.infer<typeof ruleSchema>;
 
-export const majorSchema = z.strictObject({
+export const componentSchema = z.strictObject({
   id: z.string().min(1),
   title: z.string().min(1),
   rules: z.array(ruleSchema),
-  suggestedSequence: z.record(
-    z.string().regex(/^Y\d+S[12]$/),
-    z.array(unitCode),
-  ),
+  suggestedSequence: z
+    .record(z.string().regex(/^Y\d+S[12]$/), z.array(unitCode))
+    .default({}),
 });
-export type Major = z.infer<typeof majorSchema>;
+export const majorSchema = componentSchema;
+export type Component = z.infer<typeof componentSchema>;
+export type Major = Component;
 
 export const courseSchema = z.strictObject({
   code: z.string().regex(/^[A-Z]\d{4}$/),
@@ -106,34 +132,53 @@ export const courseSchema = z.strictObject({
   title: z.string().min(1),
   source: z.url(),
   rules: z.array(ruleSchema),
-  majors: z.array(majorSchema).min(1),
+  majors: z.array(componentSchema).default([]),
+  minors: z.array(componentSchema).default([]),
+  specialisations: z.array(componentSchema).default([]),
 });
 export type Course = z.infer<typeof courseSchema>;
 
-export const planSchema = z.strictObject({
+const entrySchema = z.strictObject({
+  unit: unitCode,
+  period: periodSchema,
+  status: z.enum(["completed", "enrolled", "planned"]),
+});
+const creditBlockSchema = z.strictObject({
+  label: z.string().min(1),
+  level,
+  points: z.number().int().positive(),
+});
+const planFields = {
+  startPeriod: periodSchema,
+  entries: z.array(entrySchema),
+  creditBlocks: z.array(creditBlockSchema),
+  maxUnitsPerTerm: z.number().int().min(1).max(8),
+};
+
+export const planV1Schema = z.strictObject({
   schemaVersion: z.literal(1),
   course: z.strictObject({
     code: z.string(),
     version: z.number().int(),
     majorId: z.string(),
   }),
-  startPeriod: periodSchema,
-  entries: z.array(
-    z.strictObject({
-      unit: unitCode,
-      period: periodSchema,
-      status: z.enum(["completed", "enrolled", "planned"]),
-    }),
-  ),
-  creditBlocks: z.array(
-    z.strictObject({
-      label: z.string().min(1),
-      level,
-      points: z.number().int().positive().multipleOf(6),
-    }),
-  ),
-  maxUnitsPerTerm: z.number().int().min(1).max(8),
   selectedPathway: z.string().optional(),
+  ...planFields,
+});
+export type PlanV1 = z.infer<typeof planV1Schema>;
+
+export const planSchema = z.strictObject({
+  schemaVersion: z.literal(2),
+  course: z.strictObject({
+    code: z.string().regex(/^[A-Z]\d{4}$/),
+    version: z.number().int().min(2020).max(2100),
+    majorIds: z.array(z.string().min(1)),
+    minorIds: z.array(z.string().min(1)),
+    specialisationIds: z.array(z.string().min(1)),
+  }),
+  campus: campusSchema.nullable(),
+  selectedPathways: z.record(z.string(), z.string()).default({}),
+  ...planFields,
 });
 export type Plan = z.infer<typeof planSchema>;
 
@@ -157,7 +202,66 @@ function utf8ByteLength(value: string): number {
   return bytes;
 }
 
-export function parsePlanJson(input: string): Plan {
+function migrateLegacyPathway(
+  old: PlanV1,
+  catalog: Catalog,
+): Record<string, string> {
+  if (!old.selectedPathway) return {};
+  const course = catalog.courses.find(
+    (item) =>
+      item.code === old.course.code && item.version === old.course.version,
+  );
+  if (!course)
+    throw new Error("Legacy plan course version is not in the catalog.");
+  const major = course.majors.find((item) => item.id === old.course.majorId);
+  const candidates = [
+    ...course.rules.map((rule) => ({ id: "course/" + rule.id, rule })),
+    ...(major?.rules ?? []).map((rule) => ({
+      id: "major:" + major!.id + "/" + rule.id,
+      rule,
+    })),
+  ];
+  const matches = candidates.filter(
+    ({ rule }) =>
+      "oneOf" in rule &&
+      rule.oneOf.some((branch) => branch.label === old.selectedPathway),
+  );
+  if (matches.length === 0)
+    throw new Error("Legacy pathway is not in the selected course version.");
+  return Object.fromEntries(
+    matches.map(({ id }) => [id, old.selectedPathway!]),
+  );
+}
+
+export function migratePlan(input: unknown, catalog: Catalog): Plan {
+  if (
+    typeof input === "object" &&
+    input !== null &&
+    "schemaVersion" in input &&
+    input.schemaVersion === 1
+  ) {
+    const old = planV1Schema.parse(input);
+    return planSchema.parse({
+      schemaVersion: 2,
+      course: {
+        code: old.course.code,
+        version: old.course.version,
+        majorIds: [old.course.majorId],
+        minorIds: [],
+        specialisationIds: [],
+      },
+      campus: null,
+      startPeriod: old.startPeriod,
+      entries: old.entries,
+      creditBlocks: old.creditBlocks,
+      maxUnitsPerTerm: old.maxUnitsPerTerm,
+      selectedPathways: migrateLegacyPathway(old, catalog),
+    });
+  }
+  return planSchema.parse(input);
+}
+
+export function parsePlanJson(input: string, catalog: Catalog): Plan {
   if (utf8ByteLength(input) > 1_000_000) {
     throw new Error("Plan file exceeds the 1 MB limit.");
   }
@@ -167,5 +271,5 @@ export function parsePlanJson(input: string): Plan {
   } catch {
     throw new Error("Plan file is not valid JSON.");
   }
-  return planSchema.parse(parsed);
+  return migratePlan(parsed, catalog);
 }

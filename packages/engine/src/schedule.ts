@@ -1,7 +1,10 @@
 import type { Catalog, Expr, Period, Plan } from "./schema";
 import {
-  courseAndMajor,
+  courseAndComponents,
+  checkProgress,
+  compareOrdinal,
   evaluateRequisites,
+  offeredAt,
   periodFromOrdinal,
   periodOrdinal,
   satisfiesUnit,
@@ -11,9 +14,10 @@ import {
 } from "./engine";
 
 export type ElectiveSlot = {
-  unit: "ELECTIVE" | "ELECTIVE_L3";
+  unit: "ELECTIVE";
   period: Period;
-  points: 6;
+  level?: number;
+  points: number;
 };
 export type ScheduleResult = {
   entries: Plan["entries"];
@@ -24,7 +28,6 @@ export type ScheduleResult = {
 };
 export type ScheduleOptions = {
   currentPeriod: Period;
-  selectedPathway?: string;
 };
 
 function referencedUnits(expr: Expr | null | "TODO"): string[] {
@@ -79,7 +82,7 @@ function priority(
     chain(b, new Set()) - chain(a, new Set()) ||
     (sequencePosition.get(a) ?? Number.MAX_SAFE_INTEGER) -
       (sequencePosition.get(b) ?? Number.MAX_SAFE_INTEGER) ||
-    a.localeCompare(b);
+    compareOrdinal(a, b);
 }
 
 function reasonFor(
@@ -92,6 +95,7 @@ function reasonFor(
   if (!unit) return "Unit is missing from the catalog.";
   if (unit.offerings === "TODO")
     return "Teaching periods have not been verified.";
+  if (!plan.campus) return "Select a campus before scheduling this unit.";
   const report = evaluateRequisites(unit, period, plan, catalog);
   return (
     [report.prerequisite, report.corequisite, report.prohibition]
@@ -106,24 +110,27 @@ export function autoSchedule(
   catalog: Catalog,
   options: ScheduleOptions,
 ): ScheduleResult {
-  const { course, major } = courseAndMajor(plan, catalog);
-  const selectedPathway = options.selectedPathway ?? plan.selectedPathway;
+  const { course, components, scopedRules } = courseAndComponents(
+    plan,
+    catalog,
+  );
+  const allRules = scopedRules.map((entry) => entry.rule);
   const totalRule = course.rules.find((rule) => "totalCredits" in rule);
   const targetCredits =
     totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 0;
-  const level3Rule = course.rules.find(
-    (rule) => "minCreditsAtLevel" in rule && rule.minCreditsAtLevel.level === 3,
-  );
-  const targetLevel3 =
-    level3Rule && "minCreditsAtLevel" in level3Rule
-      ? level3Rule.minCreditsAtLevel.points
-      : 0;
-  const required = [...course.rules, ...major.rules].flatMap((rule) => {
+  const levelMinimums = new Map<number, number>();
+  for (const rule of allRules) {
+    if ("minCreditsAtLevel" in rule) {
+      const { level, points } = rule.minCreditsAtLevel;
+      levelMinimums.set(level, Math.max(levelMinimums.get(level) ?? 0, points));
+    }
+  }
+  const required = scopedRules.flatMap(({ id, rule }) => {
     if ("requiredUnits" in rule) return rule.requiredUnits;
     if ("oneOf" in rule)
       return (
         (
-          rule.oneOf.find((item) => item.label === selectedPathway) ??
+          rule.oneOf.find((item) => item.label === plan.selectedPathways[id]) ??
           rule.oneOf[0]
         )?.requiredUnits ?? []
       );
@@ -133,7 +140,13 @@ export function autoSchedule(
   const needed = [...new Set(required)].filter(
     (code) => !fixed.some((entry) => satisfiesUnit(code, entry.unit, catalog)),
   );
-  const order = priority(needed, catalog, major.suggestedSequence);
+  const sequence: Record<string, string[]> = {};
+  for (const component of components) {
+    for (const [period, codes] of Object.entries(component.suggestedSequence)) {
+      sequence[period] = [...new Set([...(sequence[period] ?? []), ...codes])];
+    }
+  }
+  const order = priority(needed, catalog, sequence);
   const remaining = new Set(needed);
   const newEntries: Plan["entries"] = [];
   const placeholders: ElectiveSlot[] = [];
@@ -149,31 +162,35 @@ export function autoSchedule(
     (sum, code) => sum + (catalog.units[code]?.creditPoints ?? 0),
     0,
   );
-  let electiveCount = Math.max(
+  let electivePointsRemaining = Math.max(
     0,
-    Math.ceil((targetCredits - fixedCredit - blockCredit - neededCredit) / 6),
+    targetCredits - fixedCredit - blockCredit - neededCredit,
   );
-  const level3 =
-    fixed.reduce(
-      (sum, entry) =>
-        sum +
-        (unitLevel(entry.unit) === 3
-          ? (catalog.units[entry.unit]?.creditPoints ?? 0)
-          : 0),
-      0,
-    ) +
-    needed.reduce(
-      (sum, code) =>
-        sum +
-        (unitLevel(code) === 3 ? (catalog.units[code]?.creditPoints ?? 0) : 0),
-      0,
-    ) +
-    plan.creditBlocks
-      .filter((block) => block.level === 3)
-      .reduce((sum, block) => sum + block.points, 0);
-  let level3Electives = Math.min(
-    electiveCount,
-    Math.max(0, Math.ceil((targetLevel3 - level3) / 6)),
+  const knownPoints = [...new Set(required)]
+    .map((code) => catalog.units[code]?.creditPoints)
+    .filter((points): points is number => points !== undefined)
+    .sort((a, b) => a - b);
+  const nominalPoints = knownPoints.length
+    ? knownPoints[Math.floor((knownPoints.length - 1) / 2)]!
+    : 0;
+  const levelCredits = new Map<number, number>();
+  for (const code of [...fixed.map((entry) => entry.unit), ...needed]) {
+    const unit = catalog.units[code];
+    if (!unit) continue;
+    const level = unitLevel(unit);
+    levelCredits.set(level, (levelCredits.get(level) ?? 0) + unit.creditPoints);
+  }
+  for (const block of plan.creditBlocks) {
+    levelCredits.set(
+      block.level,
+      (levelCredits.get(block.level) ?? 0) + block.points,
+    );
+  }
+  const levelDeficits = new Map(
+    [...levelMinimums].map(([level, points]) => [
+      level,
+      Math.max(0, points - (levelCredits.get(level) ?? 0)),
+    ]),
   );
   const start = Math.max(
     periodOrdinal(plan.startPeriod),
@@ -184,7 +201,7 @@ export function autoSchedule(
 
   for (
     let offset = 0;
-    offset < 16 && (remaining.size > 0 || electiveCount > 0);
+    offset < 16 && (remaining.size > 0 || electivePointsRemaining > 0);
     offset++
   ) {
     const ordinal = start + offset;
@@ -199,12 +216,7 @@ export function autoSchedule(
     for (const code of candidates) {
       if (!remaining.has(code) || slots <= 0) continue;
       const unit = catalog.units[code];
-      if (
-        !unit ||
-        unit.offerings === "TODO" ||
-        !unit.offerings.includes(period.term)
-      )
-        continue;
+      if (!unit || offeredAt(unit, period, plan.campus) !== true) continue;
       const basePlan = { ...plan, entries: current };
       const prereq = evaluateRequisites(
         unit,
@@ -222,9 +234,7 @@ export function autoSchedule(
         bundle.some((item) => {
           const candidate = catalog.units[item];
           return (
-            !candidate ||
-            candidate.offerings === "TODO" ||
-            !candidate.offerings.includes(period.term)
+            !candidate || offeredAt(candidate, period, plan.campus) !== true
           );
         })
       )
@@ -262,18 +272,41 @@ export function autoSchedule(
     }
     if (corePlaced === 0 && remaining.size > 0) noCoreProgress++;
     else noCoreProgress = 0;
-    while (slots > 0 && electiveCount > 0) {
-      const isLevel3 =
-        level3Electives > 0 && ordinal - periodOrdinal(plan.startPeriod) >= 3;
-      const isGeneral = electiveCount > level3Electives;
-      if (!isLevel3 && !isGeneral) break;
+    while (slots > 0 && electivePointsRemaining > 0 && nominalPoints > 0) {
+      const availableLevel = [...levelDeficits].find(
+        ([level, deficit]) =>
+          deficit > 0 &&
+          ordinal - periodOrdinal(plan.startPeriod) >=
+            Math.max(0, level * 2 - 3),
+      )?.[0];
+      const requiredLevelPoints = [...levelDeficits.values()].reduce(
+        (sum, value) => sum + value,
+        0,
+      );
+      if (
+        availableLevel === undefined &&
+        electivePointsRemaining <= requiredLevelPoints
+      )
+        break;
+      const points = Math.min(
+        nominalPoints,
+        electivePointsRemaining,
+        availableLevel === undefined
+          ? Number.POSITIVE_INFINITY
+          : levelDeficits.get(availableLevel)!,
+      );
       placeholders.push({
-        unit: isLevel3 ? "ELECTIVE_L3" : "ELECTIVE",
+        unit: "ELECTIVE",
         period,
-        points: 6,
+        level: availableLevel,
+        points,
       });
-      if (isLevel3) level3Electives--;
-      electiveCount--;
+      electivePointsRemaining -= points;
+      if (availableLevel !== undefined)
+        levelDeficits.set(
+          availableLevel,
+          levelDeficits.get(availableLevel)! - points,
+        );
       slots--;
     }
     lastOrdinal = ordinal;
@@ -289,10 +322,28 @@ export function autoSchedule(
       catalog,
     ),
   }));
-  if (electiveCount > 0)
+  const projectedRules = checkProgress(resultPlan, catalog).projected;
+  for (const { id, rule } of scopedRules) {
+    if ("creditsFromList" in rule) {
+      const current =
+        projectedRules.find((item) => item.id === id)?.current ?? 0;
+      const gap = Math.max(0, rule.creditsFromList.points - current);
+      if (gap > 0)
+        unscheduled.push({
+          unit: id,
+          reason:
+            gap +
+            " credit points still needed from the eligible unit list; choose units manually.",
+        });
+    }
+  }
+  if (electivePointsRemaining > 0)
     unscheduled.push({
       unit: "ELECTIVE",
-      reason: `${electiveCount} elective slot(s) could not fit within 16 semesters.`,
+      reason:
+        nominalPoints === 0
+          ? "No required unit credit points are available to estimate elective slots."
+          : `${electivePointsRemaining} elective credit points could not fit within 16 semesters.`,
     });
   const allScheduled = unscheduled.length === 0;
   return {

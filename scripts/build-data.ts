@@ -1,7 +1,8 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { basename, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
+import { ZodError } from "zod";
 import {
   courseSchema,
   type Catalog,
@@ -18,6 +19,19 @@ const unitsDir = join(root, "data/units");
 const coursesDir = join(root, "data/courses");
 const errors: string[] = [];
 const warnings: string[] = [];
+
+function parseError(file: string, error: unknown): void {
+  const path = relative(root, file);
+  if (error instanceof ZodError) {
+    for (const issue of error.issues)
+      errors.push(
+        path + ":" + (issue.path.join(".") || "(root)") + ": " + issue.message,
+      );
+  } else
+    errors.push(
+      path + ": " + (error instanceof Error ? error.message : String(error)),
+    );
+}
 
 function unitRefs(expr: Expr | null | "TODO"): string[] {
   if (!expr || expr === "TODO") return [];
@@ -68,6 +82,7 @@ async function main(): Promise<void> {
       if (units[unit.code]) errors.push(`${name}: duplicate unit ${unit.code}`);
       units[unit.code] = unit;
       if (!unit.verified) warnings.push(`${unit.code}: unverified`);
+      const unknownFields: string[] = [];
       for (const field of [
         "offerings",
         "prerequisite",
@@ -79,13 +94,21 @@ async function main(): Promise<void> {
           field === "offerings" || field === "replacedBy"
             ? unit[field]
             : unit.requisites[field];
-        if (value === "TODO") warnings.push(`${unit.code}: ${field} TODO`);
+        if (value === "TODO") {
+          warnings.push(`${unit.code}: ${field} TODO`);
+          unknownFields.push(field);
+        }
       }
+      if (unit.verified && unknownFields.length)
+        errors.push(
+          `data/units/${unit.code}.yaml:verified: cannot be true while ${unknownFields.join(", ")} is TODO`,
+        );
     } catch (error) {
-      errors.push(`${name}: ${String(error)}`);
+      parseError(file, error);
     }
   }
   const courses: Course[] = [];
+  const courseKeys = new Set<string>();
   for (const file of await collectCourseFiles(coursesDir)) {
     try {
       const course = courseSchema.parse(
@@ -99,9 +122,13 @@ async function main(): Promise<void> {
           `${file}: path must match ${course.code}/${course.version}.yaml`,
         );
       }
+      const key = course.code + "/" + course.version;
+      if (courseKeys.has(key))
+        errors.push(relative(root, file) + ": duplicate course version " + key);
+      courseKeys.add(key);
       courses.push(course);
     } catch (error) {
-      errors.push(`${file}: ${String(error)}`);
+      parseError(file, error);
     }
   }
   const prereqEdges = new Map<string, string[]>();
@@ -119,7 +146,9 @@ async function main(): Promise<void> {
     ];
     for (const reference of references)
       if (!units[reference])
-        errors.push(`${unit.code}: missing referenced unit ${reference}`);
+        errors.push(
+          `data/units/${unit.code}.yaml: missing referenced unit ${reference}`,
+        );
     prereqEdges.set(unit.code, unitRefs(unit.requisites.prerequisite));
     replacementEdges.set(
       unit.code,
@@ -127,36 +156,56 @@ async function main(): Promise<void> {
     );
   }
   for (const course of courses) {
-    for (const major of course.majors) {
-      for (const codes of Object.values(major.suggestedSequence)) {
+    const courseFile = `data/courses/${course.code}/${course.version}.yaml`;
+    const seenRuleIds = new Set<string>();
+    const components = [
+      ...course.majors,
+      ...course.minors,
+      ...course.specialisations,
+    ];
+    for (const component of components) {
+      for (const codes of Object.values(component.suggestedSequence)) {
         for (const code of codes)
           if (!units[code])
             errors.push(
-              `${course.code}/${major.id}: missing sequence unit ${code}`,
+              `data/courses/${course.code}/${course.version}.yaml:${component.id}: missing sequence unit ${code}`,
             );
       }
     }
     for (const rule of [
       ...course.rules,
-      ...course.majors.flatMap((major) => major.rules),
+      ...components.flatMap((component) => component.rules),
     ]) {
+      if (seenRuleIds.has(rule.id))
+        errors.push(`${courseFile}: duplicate rule id ${rule.id}`);
+      seenRuleIds.add(rule.id);
       const refs =
         "requiredUnits" in rule
           ? rule.requiredUnits
           : "oneOf" in rule
             ? rule.oneOf.flatMap((branch) => branch.requiredUnits)
-            : [];
+            : "creditsFromList" in rule
+              ? rule.creditsFromList.units
+              : [];
       for (const code of refs)
         if (!units[code])
           errors.push(
-            `${course.code}/${rule.id}: missing required unit ${code}`,
+            `data/courses/${course.code}/${course.version}.yaml:${rule.id}: missing referenced unit ${code}`,
           );
     }
   }
   checkGraph(prereqEdges, "Prerequisite");
   checkGraph(replacementEdges, "Replacement");
   if (errors.length) {
-    for (const error of errors) console.error(`ERROR ${error}`);
+    for (const error of errors) {
+      console.error(`ERROR ${error}`);
+      if (process.env.GITHUB_ACTIONS) {
+        const file = error.match(/^([^:]+):/)?.[1];
+        console.error(
+          `::error${file ? ` file=${file}` : ""}::${error.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A")}`,
+        );
+      }
+    }
     process.exitCode = 1;
     return;
   }

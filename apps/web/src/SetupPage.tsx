@@ -1,23 +1,174 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Info, Plus, X } from "lucide-react";
-import { unitLevel, type Plan } from "@unitpath/engine";
+import { ArrowRight, Check, Info, Plus, Search, X } from "lucide-react";
+import {
+  campusSchema,
+  courseDataMetrics,
+  courseUnitCodes,
+  latestHandbookVersion,
+  unitLevel,
+  type Campus,
+  type Plan,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
 import { compareCodes, Note, PageHead } from "./ui";
 
-export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
+function formatPercent(value: number | null | undefined): string {
+  return value == null ? "—" : value + "%";
+}
+
+export function SetupPage({
+  openUnit,
+  currentYear,
+}: {
+  openUnit: (code: string) => void;
+  currentYear: number;
+}) {
   const plan = usePlanStore((state) => state.plan);
   const updatePlan = usePlanStore((state) => state.updatePlan);
   const navigate = useNavigate();
+  const [courseQuery, setCourseQuery] = useState("");
+  const [completedQuery, setCompletedQuery] = useState("");
   const [label, setLabel] = useState("Advanced standing");
-  const [level, setLevel] = useState<1 | 2 | 3>(1);
-  const [points, setPoints] = useState(6);
+  const [level, setLevel] = useState<number>(1);
+  const [points, setPoints] = useState(1);
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
-  const major = course?.majors.find((item) => item.id === plan.course.majorId);
+  const metrics = course ? courseDataMetrics(course, catalog) : null;
+  const selectedComponents = [
+    ...(course?.majors ?? []).filter((item) =>
+      plan.course.majorIds.includes(item.id),
+    ),
+    ...(course?.minors ?? []).filter((item) =>
+      (plan.course.minorIds ?? []).includes(item.id),
+    ),
+    ...(course?.specialisations ?? []).filter((item) =>
+      (plan.course.specialisationIds ?? []).includes(item.id),
+    ),
+  ];
+  const courseOptions = [
+    ...new Map(
+      [...catalog.courses]
+        .sort((a, b) => a.version - b.version)
+        .map((item) => [item.code, item]),
+    ).values(),
+  ].sort((a, b) => a.code.localeCompare(b.code));
+  const matches = courseOptions.filter((item) =>
+    (item.code + " " + item.title)
+      .toLowerCase()
+      .includes(courseQuery.toLowerCase()),
+  );
+  const versionOptions = catalog.courses
+    .filter((item) => item.code === plan.course.code)
+    .sort((a, b) => b.version - a.version);
+  const latestEntryYear = Math.min(
+    2100,
+    Math.max(currentYear + 10, plan.startPeriod.year),
+  );
+  const entryYears = Array.from(
+    { length: latestEntryYear - 2019 },
+    (_, index) => latestEntryYear - index,
+  );
+  const hasExactVersion = versionOptions.some(
+    (item) => item.version === plan.startPeriod.year,
+  );
+  const componentGroups = [
+    { key: "majorIds" as const, label: "Majors", items: course?.majors ?? [] },
+    { key: "minorIds" as const, label: "Minors", items: course?.minors ?? [] },
+    {
+      key: "specialisationIds" as const,
+      label: "Specialisations",
+      items: course?.specialisations ?? [],
+    },
+  ];
+  const switchVersion = (current: Plan, version: number): Plan => {
+    const next = catalog.courses.find(
+      (item) => item.code === current.course.code && item.version === version,
+    );
+    if (!next) return current;
+    const retainedMajors = current.course.majorIds.filter((id) =>
+      next.majors.some((item) => item.id === id),
+    );
+    return {
+      ...current,
+      course: {
+        ...current.course,
+        version,
+        majorIds: retainedMajors.length
+          ? retainedMajors
+          : next.majors[0]
+            ? [next.majors[0].id]
+            : [],
+        minorIds: current.course.minorIds.filter((id) =>
+          next.minors.some((item) => item.id === id),
+        ),
+        specialisationIds: current.course.specialisationIds.filter((id) =>
+          next.specialisations.some((item) => item.id === id),
+        ),
+      },
+      selectedPathways: {},
+    };
+  };
+  const chooseCourse = (code: string) => {
+    updatePlan((current) => {
+      const available = catalog.courses
+        .filter((item) => item.code === code)
+        .sort((a, b) => a.version - b.version);
+      const matchedVersion = latestHandbookVersion(
+        catalog,
+        code,
+        current.startPeriod.year,
+      );
+      const next =
+        available.find((item) => item.version === matchedVersion) ??
+        available[0];
+      if (!next) return current;
+      const defaultMajor = next.majors[0];
+      return {
+        ...current,
+        course: {
+          code: next.code,
+          version: next.version,
+          majorIds: defaultMajor ? [defaultMajor.id] : [],
+          minorIds: [],
+          specialisationIds: [],
+        },
+        selectedPathways: {},
+      };
+    });
+    setCourseQuery("");
+  };
+  const chooseVersion = (version: number) =>
+    updatePlan((current) => switchVersion(current, version));
+  const chooseEntryYear = (year: number) => {
+    if (!Number.isInteger(year) || year < 2020 || year > 2100) return;
+    updatePlan((current) => {
+      const matchedVersion = latestHandbookVersion(
+        catalog,
+        current.course.code,
+        year,
+      );
+      const selected =
+        matchedVersion === null
+          ? current
+          : switchVersion(current, matchedVersion);
+      return { ...selected, startPeriod: { ...selected.startPeriod, year } };
+    });
+  };
+  const toggleComponent = (
+    key: "majorIds" | "minorIds" | "specialisationIds",
+    id: string,
+  ) =>
+    updatePlan((current) => {
+      const previous = current.course[key] ?? [];
+      const ids = previous.includes(id)
+        ? previous.filter((item) => item !== id)
+        : [...previous, id];
+      return { ...current, course: { ...current.course, [key]: ids } };
+    });
   const units = Object.values(catalog.units).sort((a, b) =>
     compareCodes(a.code, b.code),
   );
@@ -26,6 +177,24 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
       .filter((entry) => entry.status === "completed")
       .map((entry) => entry.unit),
   );
+  const referenced = new Set(course ? courseUnitCodes(course) : []);
+  const visibleUnits = units.filter((unit) =>
+    completedQuery.trim()
+      ? (unit.code + " " + unit.title)
+          .toLowerCase()
+          .includes(completedQuery.trim().toLowerCase())
+      : referenced.has(unit.code) || complete.has(unit.code),
+  );
+  const unitLevels = [
+    ...new Set(visibleUnits.map((unit) => unitLevel(unit))),
+  ].sort((a, b) => a - b);
+  const creditLevels = [
+    ...new Set([
+      level,
+      ...units.map((unit) => unitLevel(unit)),
+      ...plan.creditBlocks.map((block) => block.level),
+    ]),
+  ].sort((a, b) => a - b);
   const completedPoints = units
     .filter((unit) => complete.has(unit.code))
     .reduce((sum, unit) => sum + unit.creditPoints, 0);
@@ -39,7 +208,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
             { unit: code, period: current.startPeriod, status: "completed" },
           ],
     }));
-  const changeStart = (field: "year" | "term", value: number | "S1" | "S2") =>
+  const changeStart = (field: "term", value: "S1" | "S2") =>
     updatePlan(
       (current) =>
         ({
@@ -47,7 +216,8 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
           startPeriod: { ...current.startPeriod, [field]: value },
         }) as Plan,
     );
-  const validBlock = label.trim() !== "" && points > 0 && points % 6 === 0;
+  const validBlock =
+    label.trim() !== "" && Number.isInteger(points) && points > 0;
   const addBlock = () => {
     if (!validBlock) return;
     updatePlan((current) => ({
@@ -58,7 +228,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
       ],
     }));
     setLabel("Advanced standing");
-    setPoints(6);
+    setPoints(1);
   };
 
   return (
@@ -86,17 +256,121 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                 <span className="mono-label">
                   {plan.course.code} · {plan.course.version} Handbook
                 </span>
-                <strong>{course?.title}</strong>
-                <span>{major?.title} major</span>
+                <strong>{course?.title ?? "Course unavailable"}</strong>
+                <span>
+                  {selectedComponents.map((item) => item.title).join(" · ") ||
+                    "Choose a component below"}
+                </span>
+                <span className="mono-label">
+                  Coverage {formatPercent(metrics?.coveragePercent)} · Verified{" "}
+                  {formatPercent(metrics?.verificationPercent)}
+                </span>
               </div>
               <span className="flag ok">
                 <Check size={13} aria-hidden="true" /> Selected
               </span>
             </div>
-            <p className="hint">
-              <Info size={14} aria-hidden="true" /> This is the only course
-              version in the catalogue so far.
-            </p>
+            <label className="search">
+              <Search size={15} aria-hidden="true" />
+              <input
+                value={courseQuery}
+                onChange={(event) => setCourseQuery(event.target.value)}
+                placeholder="Search course code or title"
+                aria-label="Search courses"
+              />
+            </label>
+            {(courseQuery.trim() || courseOptions.length > 1) && (
+              <div className="course-results">
+                {matches.length ? (
+                  matches.map((item) => (
+                    <button
+                      className="course-ticket"
+                      type="button"
+                      key={item.code}
+                      onClick={() => chooseCourse(item.code)}
+                    >
+                      <span className="mono-label">{item.code}</span>
+                      <strong>{item.title}</strong>
+                      <span className="mono-label">
+                        Coverage{" "}
+                        {formatPercent(
+                          courseDataMetrics(item, catalog).coveragePercent,
+                        )}{" "}
+                        · Verified{" "}
+                        {formatPercent(
+                          courseDataMetrics(item, catalog).verificationPercent,
+                        )}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="hint">
+                    No data for this course yet. Contributions welcome —{" "}
+                    <a
+                      href="https://github.com/FLAMINGOFF/unitpath/issues/new/choose"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      suggest course data
+                    </a>
+                    .
+                  </p>
+                )}
+              </div>
+            )}
+            <label className="field">
+              <span>Handbook version</span>
+              <select
+                value={plan.course.version}
+                onChange={(event) => chooseVersion(Number(event.target.value))}
+              >
+                {versionOptions.map((item) => (
+                  <option key={item.version} value={item.version}>
+                    {item.version}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {course && !hasExactVersion && (
+              <p className="hint" role="status">
+                No {plan.startPeriod.year} handbook data yet; using{" "}
+                {plan.course.version}.
+              </p>
+            )}
+            {componentGroups
+              .filter((group) => group.items.length > 0)
+              .map((group) => (
+                <fieldset className="unit-picker" key={group.key}>
+                  <legend>{group.label}</legend>
+                  <div className="tile-grid">
+                    {group.items.map((item) => {
+                      const checked = (plan.course[group.key] ?? []).includes(
+                        item.id,
+                      );
+                      return (
+                        <div
+                          className={checked ? "tile on" : "tile"}
+                          key={item.id}
+                        >
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                toggleComponent(group.key, item.id)
+                              }
+                            />
+                            <span className="tile-text">
+                              <span className="code">{item.id}</span>
+                              <span className="tile-title">{item.title}</span>
+                            </span>
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              ))}
           </div>
         </li>
 
@@ -111,11 +385,13 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
               <select
                 value={plan.startPeriod.year}
                 onChange={(event) =>
-                  changeStart("year", Number(event.target.value))
+                  chooseEntryYear(Number(event.target.value))
                 }
               >
-                {[2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
-                  <option key={year}>{year}</option>
+                {entryYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
                 ))}
               </select>
             </label>
@@ -129,6 +405,27 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
               >
                 <option value="S1">Semester 1</option>
                 <option value="S2">Semester 2</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Campus</span>
+              <select
+                value={plan.campus ?? ""}
+                onChange={(event) =>
+                  updatePlan((current) => ({
+                    ...current,
+                    campus: event.target.value
+                      ? (event.target.value as Campus)
+                      : null,
+                  }))
+                }
+              >
+                <option value="">Select campus</option>
+                {campusSchema.options.map((campus) => (
+                  <option key={campus} value={campus}>
+                    {campus}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -148,12 +445,28 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
             </p>
           </div>
           <div className="question-body">
-            {[1, 2, 3].map((year) => (
+            <label className="search">
+              <Search size={15} aria-hidden="true" />
+              <input
+                value={completedQuery}
+                onChange={(event) => setCompletedQuery(event.target.value)}
+                placeholder="Search all catalogue units"
+                aria-label="Search completed units"
+              />
+            </label>
+            <p className="hint">
+              Showing units referenced by this course. Search to find other
+              units or prior study.
+            </p>
+            {visibleUnits.length === 0 && (
+              <p className="hint">No matching unit data yet.</p>
+            )}
+            {unitLevels.map((year) => (
               <fieldset className="unit-picker" key={year}>
                 <legend>Level {year}</legend>
                 <div className="tile-grid">
-                  {units
-                    .filter((unit) => unitLevel(unit.code) === year)
+                  {visibleUnits
+                    .filter((unit) => unitLevel(unit) === year)
                     .map((unit) => (
                       <div
                         className={`tile${complete.has(unit.code) ? " on" : ""}`}
@@ -234,21 +547,21 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                 <span>Level</span>
                 <select
                   value={level}
-                  onChange={(event) =>
-                    setLevel(Number(event.target.value) as 1 | 2 | 3)
-                  }
+                  onChange={(event) => setLevel(Number(event.target.value))}
                 >
-                  <option value={1}>Level 1</option>
-                  <option value={2}>Level 2</option>
-                  <option value={3}>Level 3</option>
+                  {creditLevels.map((value) => (
+                    <option key={value} value={value}>
+                      Level {value}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label className="field narrow">
                 <span>Points</span>
                 <input
                   type="number"
-                  min="6"
-                  step="6"
+                  min="1"
+                  step="1"
                   value={points}
                   onChange={(event) => setPoints(Number(event.target.value))}
                 />

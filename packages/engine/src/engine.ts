@@ -1,8 +1,9 @@
 import type {
+  Campus,
   Catalog,
   Course,
   Expr,
-  Major,
+  Component,
   Period,
   Plan,
   Rule,
@@ -51,6 +52,26 @@ export type Issue = {
   message: string;
 };
 
+export function compareOrdinal(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+export function latestHandbookVersion(
+  catalog: Catalog,
+  courseCode: string,
+  entryYear: number,
+): number | null {
+  return catalog.courses.reduce<number | null>(
+    (latest, course) =>
+      course.code === courseCode &&
+      course.version <= entryYear &&
+      (latest === null || course.version > latest)
+        ? course.version
+        : latest,
+    null,
+  );
+}
+
 export function periodOrdinal(period: Period): number {
   return period.year * 2 + (period.term === "S1" ? 0 : 1);
 }
@@ -59,27 +80,86 @@ export function periodFromOrdinal(value: number): Period {
   return { year: Math.floor(value / 2), term: value % 2 === 0 ? "S1" : "S2" };
 }
 
-export function unitLevel(code: string): 1 | 2 | 3 {
-  const digit = Number(code.match(/\d/)?.[0]);
-  return digit === 1 ? 1 : digit === 2 ? 2 : 3;
+export function unitLevel(unit: Unit | string): number {
+  const code = typeof unit === "string" ? unit : unit.code;
+  const digit = code.match(/\d/)?.[0];
+  if (digit === undefined)
+    throw new Error(`Unit code ${code} has no level digit.`);
+  return typeof unit === "string"
+    ? Number(digit)
+    : (unit.level ?? Number(digit));
 }
 
-export function courseAndMajor(
+export function offeredAt(
+  unit: Unit,
+  period: Period,
+  campus?: Campus | null,
+): boolean | "unknown" {
+  if (unit.offerings === "TODO" || !campus) return "unknown";
+  return unit.offerings.some(
+    (offering) => offering.term === period.term && offering.campus === campus,
+  );
+}
+
+export type ScopedRule = { id: string; rule: Rule };
+
+export function courseAndComponents(
   plan: Plan,
   catalog: Catalog,
-): { course: Course; major: Major } {
+): { course: Course; components: Component[]; scopedRules: ScopedRule[] } {
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
   if (!course)
     throw new Error(
-      `Course ${plan.course.code}/${plan.course.version} is not in the catalog.`,
+      "Course " +
+        plan.course.code +
+        "/" +
+        plan.course.version +
+        " is not in the catalog.",
     );
-  const major = course.majors.find((item) => item.id === plan.course.majorId);
-  if (!major)
-    throw new Error(`Major ${plan.course.majorId} is not in the catalog.`);
-  return { course, major };
+  const resolve = (
+    kind: string,
+    ids: string[],
+    options: Component[],
+  ): Component[] =>
+    ids.map((id) => {
+      const component = options.find((item) => item.id === id);
+      if (!component)
+        throw new Error(kind + " " + id + " is not in the catalog.");
+      return component;
+    });
+  const majors = resolve("Major", plan.course.majorIds, course.majors);
+  const minors = resolve("Minor", plan.course.minorIds, course.minors);
+  const specialisations = resolve(
+    "Specialisation",
+    plan.course.specialisationIds,
+    course.specialisations,
+  );
+  const components = [...majors, ...minors, ...specialisations];
+  const scopedRules: ScopedRule[] = [
+    ...course.rules.map((rule) => ({ id: "course/" + rule.id, rule })),
+    ...majors.flatMap((component) =>
+      component.rules.map((rule) => ({
+        id: "major:" + component.id + "/" + rule.id,
+        rule,
+      })),
+    ),
+    ...minors.flatMap((component) =>
+      component.rules.map((rule) => ({
+        id: "minor:" + component.id + "/" + rule.id,
+        rule,
+      })),
+    ),
+    ...specialisations.flatMap((component) =>
+      component.rules.map((rule) => ({
+        id: "specialisation:" + component.id + "/" + rule.id,
+        rule,
+      })),
+    ),
+  ];
+  return { course, components, scopedRules };
 }
 
 export function satisfiesUnit(
@@ -122,14 +202,18 @@ function credits(
   entries: Plan["entries"],
   plan: Plan,
   catalog: Catalog,
-  level?: 1 | 2 | 3,
+  level?: number,
 ): number {
   const units = entries.reduce((sum, entry) => {
-    if (level && unitLevel(entry.unit) !== level) return sum;
+    if (
+      level !== undefined &&
+      unitLevel(catalog.units[entry.unit] ?? entry.unit) !== level
+    )
+      return sum;
     return sum + (catalog.units[entry.unit]?.creditPoints ?? 0);
   }, 0);
   const blocks = plan.creditBlocks
-    .filter((block) => !level || block.level === level)
+    .filter((block) => level === undefined || block.level === level)
     .reduce((sum, block) => sum + block.points, 0);
   return units + blocks;
 }
@@ -287,7 +371,7 @@ function tally(
   plan: Plan,
   catalog: Catalog,
   includePlanned: boolean,
-): { entries: Plan["entries"]; credits: Record<1 | 2 | 3, number> } {
+): { entries: Plan["entries"]; credits: Record<number, number> } {
   const entries = uniqueEntries(
     {
       ...plan,
@@ -300,40 +384,63 @@ function tally(
   );
   return {
     entries,
-    credits: {
-      1: credits(entries, plan, catalog, 1),
-      2: credits(entries, plan, catalog, 2),
-      3: credits(entries, plan, catalog, 3),
-    },
+    credits: Object.fromEntries(
+      [
+        ...new Set([
+          ...entries.map((entry) =>
+            unitLevel(catalog.units[entry.unit] ?? entry.unit),
+          ),
+          ...plan.creditBlocks.map((block) => block.level),
+        ]),
+      ].map((level) => [level, credits(entries, plan, catalog, level)]),
+    ),
   };
 }
 
+function countedCredits(
+  byLevel: Record<number, number>,
+  caps: Map<number, number>,
+): number {
+  return Object.entries(byLevel).reduce(
+    (sum, [level, value]) =>
+      sum +
+      Math.min(value, caps.get(Number(level)) ?? Number.POSITIVE_INFINITY),
+    0,
+  );
+}
+
 function progressForRule(
+  scopedId: string,
   rule: Rule,
   plan: Plan,
   catalog: Catalog,
   entries: Plan["entries"],
-  byLevel: Record<1 | 2 | 3, number>,
-  level1Cap: number,
+  byLevel: Record<number, number>,
+  caps: Map<number, number>,
 ): RuleProgress {
   const status = (current: number, target: number): RuleProgress["status"] =>
     current >= target ? "met" : current > 0 ? "partial" : "unmet";
   if ("totalCredits" in rule) {
-    const current = Math.min(byLevel[1], level1Cap) + byLevel[2] + byLevel[3];
-    const overflow = Math.max(0, byLevel[1] - level1Cap);
+    const current = countedCredits(byLevel, caps);
+    const overflow = [...caps].flatMap(([level, cap]) => {
+      const excess = (byLevel[level] ?? 0) - cap;
+      return excess > 0
+        ? [`${excess} level ${level} points exceed the cap`]
+        : [];
+    });
     return {
-      id: rule.id,
+      id: scopedId,
       status: status(current, rule.totalCredits),
       current,
       target: rule.totalCredits,
-      message: `${current}/${rule.totalCredits} credit points count toward the degree${overflow ? `; ${overflow} level 1 points exceed the cap` : ""}.`,
+      message: `${current}/${rule.totalCredits} credit points count toward the degree${overflow.length ? `; ${overflow.join("; ")}` : ""}.`,
     };
   }
   if ("maxCreditsAtLevel" in rule) {
     const { level, points } = rule.maxCreditsAtLevel;
-    const current = byLevel[level];
+    const current = byLevel[level] ?? 0;
     return {
-      id: rule.id,
+      id: scopedId,
       status: current <= points ? "met" : "unmet",
       current,
       target: points,
@@ -342,13 +449,34 @@ function progressForRule(
   }
   if ("minCreditsAtLevel" in rule) {
     const { level, points } = rule.minCreditsAtLevel;
-    const current = byLevel[level];
+    const current = byLevel[level] ?? 0;
     return {
-      id: rule.id,
+      id: scopedId,
       status: status(current, points),
       current,
       target: points,
       message: `${current}/${points} level ${level} points.`,
+    };
+  }
+  if ("creditsFromList" in rule) {
+    const eligible = new Set(rule.creditsFromList.units);
+    const current = entries.reduce((sum, entry) => {
+      const unit = catalog.units[entry.unit];
+      return unit &&
+        [...eligible].some((code) => satisfiesUnit(code, entry.unit, catalog))
+        ? sum + unit.creditPoints
+        : sum;
+    }, 0);
+    return {
+      id: scopedId,
+      status: status(current, rule.creditsFromList.points),
+      current,
+      target: rule.creditsFromList.points,
+      message:
+        current +
+        "/" +
+        rule.creditsFromList.points +
+        " credit points from the selected unit list.",
     };
   }
   if ("requiredUnits" in rule) {
@@ -358,7 +486,7 @@ function progressForRule(
     );
     const current = rule.requiredUnits.length - missingUnits.length;
     return {
-      id: rule.id,
+      id: scopedId,
       status: status(current, rule.requiredUnits.length),
       current,
       target: rule.requiredUnits.length,
@@ -380,7 +508,9 @@ function progressForRule(
     };
   });
   const selected =
-    scored.find((item) => item.branch.label === plan.selectedPathway) ??
+    scored.find(
+      (item) => item.branch.label === plan.selectedPathways[scopedId],
+    ) ??
     [...scored].sort(
       (a, b) =>
         b.current / b.branch.requiredUnits.length -
@@ -388,7 +518,7 @@ function progressForRule(
     )[0]!;
   const anyMet = scored.some((item) => item.missingUnits.length === 0);
   return {
-    id: rule.id,
+    id: scopedId,
     status: anyMet
       ? "met"
       : status(selected.current, selected.branch.requiredUnits.length),
@@ -401,39 +531,47 @@ function progressForRule(
 }
 
 export function checkProgress(plan: Plan, catalog: Catalog): ProgressReport {
-  const { course, major } = courseAndMajor(plan, catalog);
-  const rules = [...course.rules, ...major.rules];
-  const level1Cap = course.rules.find(
-    (rule) => "maxCreditsAtLevel" in rule && rule.maxCreditsAtLevel.level === 1,
-  );
-  const cap =
-    level1Cap && "maxCreditsAtLevel" in level1Cap
-      ? level1Cap.maxCreditsAtLevel.points
-      : Number.POSITIVE_INFINITY;
+  const { scopedRules } = courseAndComponents(plan, catalog);
+  const rules = scopedRules.map((entry) => entry.rule);
+  const caps = new Map<number, number>();
+  for (const rule of rules) {
+    if ("maxCreditsAtLevel" in rule) {
+      const { level, points } = rule.maxCreditsAtLevel;
+      caps.set(
+        level,
+        Math.min(caps.get(level) ?? Number.POSITIVE_INFINITY, points),
+      );
+    }
+  }
   const actual = tally(plan, catalog, false);
   const projected = tally(plan, catalog, true);
-  const actualRules = rules.map((rule) =>
-    progressForRule(rule, plan, catalog, actual.entries, actual.credits, cap),
-  );
-  const projectedRules = rules.map((rule) =>
+  const actualRules = scopedRules.map(({ id, rule }) =>
     progressForRule(
+      id,
+      rule,
+      plan,
+      catalog,
+      actual.entries,
+      actual.credits,
+      caps,
+    ),
+  );
+  const projectedRules = scopedRules.map(({ id, rule }) =>
+    progressForRule(
+      id,
       rule,
       plan,
       catalog,
       projected.entries,
       projected.credits,
-      cap,
+      caps,
     ),
   );
   return {
     actual: actualRules,
     projected: projectedRules,
-    actualCredits:
-      Math.min(actual.credits[1], cap) + actual.credits[2] + actual.credits[3],
-    projectedCredits:
-      Math.min(projected.credits[1], cap) +
-      projected.credits[2] +
-      projected.credits[3],
+    actualCredits: countedCredits(actual.credits, caps),
+    projectedCredits: countedCredits(projected.credits, caps),
   };
 }
 
@@ -474,21 +612,32 @@ export function validatePlan(plan: Plan, catalog: Catalog): Issue[] {
         message: `${entry.unit} data has not been verified against the Handbook.`,
       });
     }
-    if (unit.offerings === "TODO") {
+    const offered = offeredAt(unit, entry.period, plan.campus);
+    if (offered === "unknown") {
       issues.push({
         level: "info",
         unit: entry.unit,
         period: entry.period,
-        code: "OFFERING_UNKNOWN",
-        message: `${entry.unit} offerings are not verified.`,
+        code:
+          unit.offerings === "TODO" ? "OFFERING_UNKNOWN" : "CAMPUS_UNSELECTED",
+        message:
+          unit.offerings === "TODO"
+            ? entry.unit + " offerings are not verified."
+            : "Choose a campus to check " + entry.unit + " offerings.",
       });
-    } else if (!unit.offerings.includes(entry.period.term)) {
+    } else if (!offered) {
       issues.push({
         level: "error",
         unit: entry.unit,
         period: entry.period,
         code: "NOT_OFFERED",
-        message: `${entry.unit} is not offered in ${entry.period.term}.`,
+        message:
+          entry.unit +
+          " is not offered in " +
+          entry.period.term +
+          " at " +
+          plan.campus +
+          ".",
       });
     }
     if (
@@ -534,7 +683,7 @@ export function validatePlan(plan: Plan, catalog: Catalog): Issue[] {
     (a, b) =>
       periodOrdinal(a.period ?? plan.startPeriod) -
         periodOrdinal(b.period ?? plan.startPeriod) ||
-      (a.unit ?? "").localeCompare(b.unit ?? "") ||
-      a.code.localeCompare(b.code),
+      compareOrdinal(a.unit ?? "", b.unit ?? "") ||
+      compareOrdinal(a.code, b.code),
   );
 }

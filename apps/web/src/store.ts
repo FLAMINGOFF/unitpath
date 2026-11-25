@@ -1,31 +1,64 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { planSchema, type Plan } from "@unitpath/engine";
+import {
+  latestHandbookVersion,
+  migratePlan,
+  type Plan,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 
+const entryYear = new Date().getFullYear();
+const defaultCode = [...catalog.courses].sort((a, b) =>
+  a.code.localeCompare(b.code),
+)[0]!.code;
+const availableVersions = catalog.courses
+  .filter((course) => course.code === defaultCode)
+  .sort((a, b) => a.version - b.version);
+const matchedVersion = latestHandbookVersion(catalog, defaultCode, entryYear);
+const defaultCourse =
+  availableVersions.find((course) => course.version === matchedVersion) ??
+  availableVersions[0]!;
+const defaultMajor = defaultCourse.majors[0];
 export const initialPlan: Plan = {
-  schemaVersion: 1,
-  course: { code: "C2000", version: 2026, majorId: "applied-cybersecurity" },
-  startPeriod: { year: 2026, term: "S1" },
+  schemaVersion: 2,
+  course: {
+    code: defaultCourse.code,
+    version: defaultCourse.version,
+    majorIds: defaultMajor ? [defaultMajor.id] : [],
+    minorIds: [],
+    specialisationIds: [],
+  },
+  campus: null,
+  startPeriod: { year: entryYear, term: "S1" },
   entries: [],
   creditBlocks: [],
   maxUnitsPerTerm: 4,
-  selectedPathway: "Standard pathway",
+  selectedPathways: {},
 };
 
 export function validateImportedPlan(value: unknown): Plan {
-  const plan = planSchema.parse(value);
-  if (
-    !catalog.courses.some(
-      (course) =>
-        course.code === plan.course.code &&
-        course.version === plan.course.version &&
-        course.majors.some((major) => major.id === plan.course.majorId),
-    )
-  ) {
+  const plan = migratePlan(value, catalog);
+  const course = catalog.courses.find(
+    (item) =>
+      item.code === plan.course.code && item.version === plan.course.version,
+  );
+  if (!course)
     throw new Error(
-      "The selected course version or major is not available in this catalog.",
+      "The selected course version is not available in this catalog.",
     );
+  const selections = [
+    [plan.course.majorIds, course.majors],
+    [plan.course.minorIds ?? [], course.minors],
+    [plan.course.specialisationIds ?? [], course.specialisations],
+  ] as const;
+  for (const [ids, options] of selections) {
+    if (
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => !options.some((item) => item.id === id))
+    )
+      throw new Error(
+        "A selected course component is not available in this catalog.",
+      );
   }
   const unknown = plan.entries.find((entry) => !catalog.units[entry.unit]);
   if (unknown)

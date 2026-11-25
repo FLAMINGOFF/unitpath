@@ -50,6 +50,39 @@ describe("catalog builder", () => {
     );
     expect(output.units.TST1001.code).toBe("TST1001");
   });
+  it("defaults omitted unit credit points to six", async () => {
+    const root = await seed();
+    const path = join(root, "data/units/TST1001.yaml");
+    const record = YAML.parse(await readFile(path, "utf8"));
+    delete record.creditPoints;
+    await writeFile(path, YAML.stringify(record));
+    const result = run(root);
+    expect(result.status).toBe(0);
+    const output = JSON.parse(
+      await readFile(join(root, "apps/web/src/catalog.json"), "utf8"),
+    );
+    expect(output.units.TST1001.creditPoints).toBe(6);
+  });
+  it("points contributors to the invalid YAML field", async () => {
+    const root = await seed();
+    const file = join(root, "data/units/TST1001.yaml");
+    const record = YAML.parse(await readFile(file, "utf8"));
+    record.creditPoints = 0;
+    await writeFile(file, YAML.stringify(record));
+    const result = run(root);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("data/units/TST1001.yaml:creditPoints:");
+  });
+  it("rejects verified records with unknown fields", async () => {
+    const root = await seed();
+    const file = join(root, "data/units/TST1001.yaml");
+    const record = YAML.parse(await readFile(file, "utf8"));
+    record.offerings = "TODO";
+    await writeFile(file, YAML.stringify(record));
+    const result = run(root);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("data/units/TST1001.yaml:verified:");
+  });
   it("rejects a missing unit reference", async () => {
     const root = await seed();
     const file = join(root, "data/units/TST2001.yaml");
@@ -84,5 +117,17 @@ describe("catalog builder", () => {
     const result = run(root);
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain("filename does not match code");
+  });
+  it("rejects duplicate rule ids across course components", async () => {
+    const root = await seed();
+    const file = join(root, "data/courses/C2000/2026.yaml");
+    const course = YAML.parse(await readFile(file, "utf8"));
+    course.majors.push({ ...course.majors[0], id: "second-major" });
+    await writeFile(file, YAML.stringify(course));
+    const result = run(root);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(
+      "data/courses/C2000/2026.yaml: duplicate rule id core",
+    );
   });
 });

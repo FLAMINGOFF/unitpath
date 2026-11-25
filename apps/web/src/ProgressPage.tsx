@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { CheckCircle2, CircleDashed, ExternalLink, Info } from "lucide-react";
-import { checkProgress, type RuleProgress } from "@unitpath/engine";
+import {
+  checkProgress,
+  courseAndComponents,
+  type RuleProgress,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
 import { Note, PageHead } from "./ui";
 
-const names: Record<string, string> = {
-  total: "Degree credit points",
-  "level1-cap": "Level 1 credit cap",
-  "level3-min": "Level 3 minimum",
-  core: "Core units",
-  "studio-or-ibl": "Studio or IBL pathway",
-};
-
-const unitRules = new Set(["core", "studio-or-ibl"]);
+function ruleName(id: string): string {
+  return id
+    .split(/[/:_-]+/)
+    .map((word) => word[0]?.toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 function RuleLine({
   rule,
@@ -26,7 +27,7 @@ function RuleLine({
     100,
     Math.round((rule.current / Math.max(rule.target, 1)) * 100),
   );
-  const name = names[rule.id] ?? rule.id;
+  const name = ruleName(rule.id);
   const statusText =
     rule.status === "met"
       ? "Met"
@@ -51,7 +52,7 @@ function RuleLine({
           <small>
             {" "}
             / {rule.target}
-            {unitRules.has(rule.id) ? " units" : " cp"}
+            {rule.missingUnits ? " units" : " cp"}
           </small>
         </span>
       </div>
@@ -101,15 +102,25 @@ export function ProgressPage({
   );
   const totalRule = course?.rules.find((rule) => "totalCredits" in rule);
   const target =
-    totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 144;
-  const cells = Math.ceil(target / 6);
-  const earned = Math.min(cells, Math.floor(report.actualCredits / 6));
-  const planned = Math.min(
-    cells - earned,
-    Math.floor((report.projectedCredits - report.actualCredits) / 6),
+    totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 0;
+  const cells = target > 0 ? 24 : 0;
+  const earned =
+    target > 0
+      ? Math.min(cells, Math.floor((report.actualCredits / target) * cells))
+      : 0;
+  const projectedCells =
+    target > 0
+      ? Math.min(cells, Math.floor((report.projectedCredits / target) * cells))
+      : 0;
+  const planned = projectedCells - earned;
+  const { scopedRules } = courseAndComponents(plan, catalog);
+  const selectedRules = scopedRules.map((entry) => entry.rule);
+  const pathwayRules = scopedRules.flatMap(({ id, rule }) =>
+    "oneOf" in rule ? [{ id, rule }] : [],
   );
-  const major = course?.majors.find((item) => item.id === plan.course.majorId);
-  const pathwayRule = major?.rules.find((rule) => "oneOf" in rule);
+  const hasLevelCaps = selectedRules.some(
+    (rule) => "maxCreditsAtLevel" in rule,
+  );
 
   return (
     <div className="page progress">
@@ -165,8 +176,8 @@ export function ProgressPage({
               <i className="cell planned" aria-hidden="true" /> Planned
             </span>
             <span>
-              <i className="cell" aria-hidden="true" /> Remaining · one block =
-              6 cp
+              <i className="cell" aria-hidden="true" /> Remaining · each block
+              represents an equal share of the target
             </span>
           </div>
         </div>
@@ -197,33 +208,40 @@ export function ProgressPage({
         ))}
       </ol>
 
-      {pathwayRule && "oneOf" in pathwayRule && (
-        <section className="pathways" aria-labelledby="pathway-heading">
+      {pathwayRules.map(({ id, rule }) => (
+        <section
+          className="pathways"
+          aria-labelledby={"pathway-" + id}
+          key={id}
+        >
           <div>
-            <h2 id="pathway-heading">Which final-year pathway?</h2>
+            <h2 id={"pathway-" + id}>{ruleName(id)} pathway</h2>
             <p>
-              Guides the progress detail above and auto scheduling. Industry
-              Based Learning needs separate acceptance by the faculty.
+              Guides progress and auto scheduling. Check the official course
+              rules before making a selection.
             </p>
           </div>
           <div className="pathway-options">
-            {pathwayRule.oneOf.map((branch) => {
+            {rule.oneOf.map((branch) => {
               const checked =
-                (plan.selectedPathway ?? pathwayRule.oneOf[0]?.label) ===
+                (plan.selectedPathways[id] ?? rule.oneOf[0]?.label) ===
                 branch.label;
               return (
                 <label
                   key={branch.label}
-                  className={`pathway${checked ? " on" : ""}`}
+                  className={checked ? "pathway on" : "pathway"}
                 >
                   <input
                     type="radio"
-                    name="pathway"
+                    name={"pathway-" + id}
                     checked={checked}
                     onChange={() =>
                       updatePlan((current) => ({
                         ...current,
-                        selectedPathway: branch.label,
+                        selectedPathways: {
+                          ...current.selectedPathways,
+                          [id]: branch.label,
+                        },
                       }))
                     }
                   />
@@ -238,11 +256,16 @@ export function ProgressPage({
             })}
           </div>
         </section>
-      )}
+      ))}
 
       <div className="notes">
-        <Note tone="warn" icon={<Info size={15} />}>
-          Level 1 points above the cap are left out of the counted total.
+        {hasLevelCaps && (
+          <Note tone="warn" icon={<Info size={15} />}>
+            Credit points above a level cap do not count toward the course
+            total.
+          </Note>
+        )}
+        <Note icon={<Info size={15} />}>
           Advanced standing counts at the level you recorded.
         </Note>
         {course && (

@@ -15,7 +15,11 @@ import {
 } from "react-router-dom";
 import { AlertTriangle, X } from "lucide-react";
 import { decompressFromEncodedURIComponent } from "lz-string";
-import { parsePlanJson, validatePlan } from "@unitpath/engine";
+import {
+  courseDataMetrics,
+  parsePlanJson,
+  validatePlan,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { SetupPage } from "./SetupPage";
 import { PlanPage } from "./PlanPage";
@@ -38,6 +42,7 @@ const links = [
 ];
 
 export function App() {
+  const currentYear = new Date().getFullYear();
   const plan = usePlanStore((state) => state.plan);
   const setPlan = usePlanStore((state) => state.setPlan);
   const navigate = useNavigate();
@@ -47,14 +52,27 @@ export function App() {
   const closeUnit = useCallback(() => setSelectedUnit(null), []);
   const issues = validatePlan(plan, catalog);
   const errors = issues.filter((issue) => issue.level === "error").length;
-  const unverified = Object.values(catalog.units).filter(
-    (unit) => !unit.verified,
-  ).length;
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
-  const major = course?.majors.find((item) => item.id === plan.course.majorId);
+  const metrics = course ? courseDataMetrics(course, catalog) : null;
+  const unverified = metrics
+    ? metrics.referencedUnits - metrics.verifiedUnits
+    : 0;
+  const selectedComponents = course
+    ? [
+        ...course.majors.filter((item) =>
+          plan.course.majorIds.includes(item.id),
+        ),
+        ...course.minors.filter((item) =>
+          plan.course.minorIds.includes(item.id),
+        ),
+        ...course.specialisations.filter((item) =>
+          plan.course.specialisationIds.includes(item.id),
+        ),
+      ]
+    : [];
 
   useEffect(() => {
     if (processedShare.current || !window.location.hash.startsWith("#share="))
@@ -66,7 +84,7 @@ export function App() {
         throw new Error("Share link is too large.");
       const json = decompressFromEncodedURIComponent(compressed);
       if (!json) throw new Error("Share link could not be decoded.");
-      setPlan(validateImportedPlan(parsePlanJson(json)));
+      setPlan(validateImportedPlan(parsePlanJson(json, catalog)));
       setNotice(
         "Shared plan imported. Review it against the official Handbook.",
       );
@@ -115,7 +133,9 @@ export function App() {
         <div className="masthead-meta">
           <span className="ticket" title={course?.title}>
             {plan.course.code} · {plan.course.version}
-            {major ? ` · ${major.title}` : ""}
+            {selectedComponents.length
+              ? " · " + selectedComponents.map((item) => item.title).join(" · ")
+              : ""}
           </span>
           <span
             className={`health${errors ? " bad" : ""}`}
@@ -137,8 +157,8 @@ export function App() {
           <AlertTriangle size={14} aria-hidden="true" />
           <span>
             <strong>Data under review.</strong> {unverified} of{" "}
-            {Object.keys(catalog.units).length} unit records still need checking
-            against the Handbook.{" "}
+            {metrics?.referencedUnits ?? 0} referenced unit records still need
+            checking against the Handbook.{" "}
             <span className="more">
               Unknown rules are never treated as met.
             </span>
@@ -150,7 +170,9 @@ export function App() {
           <Route path="/" element={<Navigate to="/setup" replace />} />
           <Route
             path="/setup"
-            element={<SetupPage openUnit={setSelectedUnit} />}
+            element={
+              <SetupPage openUnit={setSelectedUnit} currentYear={currentYear} />
+            }
           />
           <Route
             path="/plan"

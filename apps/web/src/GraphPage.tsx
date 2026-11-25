@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Background,
   Controls,
@@ -10,8 +10,9 @@ import {
 import dagre from "dagre";
 import { ArrowRight, Info } from "lucide-react";
 import "@xyflow/react/dist/style.css";
-import { unitLevel, type Expr } from "@unitpath/engine";
+import { courseUnitCodes, unitLevel, type Expr } from "@unitpath/engine";
 import { catalog } from "./catalog";
+import { usePlanStore } from "./store";
 import { compareCodes, Note, PageHead } from "./ui";
 
 const NODE_WIDTH = 200;
@@ -29,8 +30,32 @@ function refs(expr: Expr | null | "TODO"): string[] {
 
 export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const { nodes, edges } = useMemo(() => {
-    const all = Object.values(catalog.units);
+  const plan = usePlanStore((state) => state.plan);
+  const course = catalog.courses.find(
+    (item) =>
+      item.code === plan.course.code && item.version === plan.course.version,
+  );
+  useEffect(() => setSelected(null), [plan.course.code, plan.course.version]);
+  const { nodes, edges, levels } = useMemo(() => {
+    const codes = new Set(course ? courseUnitCodes(course) : []);
+    for (const entry of plan.entries) codes.add(entry.unit);
+    const queue = [...codes];
+    for (const code of queue) {
+      const unit = catalog.units[code];
+      if (!unit) continue;
+      for (const prerequisite of refs(unit.requisites.prerequisite)) {
+        if (catalog.units[prerequisite] && !codes.has(prerequisite)) {
+          codes.add(prerequisite);
+          queue.push(prerequisite);
+        }
+      }
+    }
+    const all = Object.values(catalog.units).filter((unit) =>
+      codes.has(unit.code),
+    );
+    const levels = [...new Set(all.map((unit) => unitLevel(unit)))].sort(
+      (a, b) => a - b,
+    );
     const graph = new dagre.graphlib.Graph();
     graph.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 22 });
     graph.setDefaultEdgeLabel(() => ({}));
@@ -39,7 +64,7 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
     const connections: Edge[] = [];
     for (const unit of all)
       for (const source of [...new Set(refs(unit.requisites.prerequisite))]) {
-        if (!catalog.units[source]) continue;
+        if (!codes.has(source)) continue;
         graph.setEdge(source, unit.code);
         connections.push({
           id: `${source}-${unit.code}`,
@@ -49,9 +74,9 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
         });
       }
     dagre.layout(graph);
-    const labels: Node[] = [1, 2, 3].map((level) => ({
+    const labels: Node[] = levels.map((level, index) => ({
       id: `level-${level}`,
-      position: { x: (level - 1) * COLUMN_GAP, y: 0 },
+      position: { x: index * COLUMN_GAP, y: 0 },
       data: { label: `Level ${level}` },
       className: "level-label",
       selectable: false,
@@ -59,17 +84,17 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
       connectable: false,
       focusable: false,
     }));
-    const positioned: Node[] = [1, 2, 3].flatMap((level) =>
+    const positioned: Node[] = levels.flatMap((level, levelIndex) =>
       all
-        .filter((unit) => unitLevel(unit.code) === level)
+        .filter((unit) => unitLevel(unit) === level)
         .sort(
           (a, b) =>
             graph.node(a.code).y - graph.node(b.code).y ||
             compareCodes(a.code, b.code),
         )
-        .map((unit, index) => ({
+        .map((unit, unitIndex) => ({
           id: unit.code,
-          position: { x: (level - 1) * COLUMN_GAP, y: 56 + index * ROW_GAP },
+          position: { x: levelIndex * COLUMN_GAP, y: 56 + unitIndex * ROW_GAP },
           data: {
             label: (
               <div className="node-label">
@@ -85,8 +110,8 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
           style: { width: NODE_WIDTH },
         })),
     );
-    return { nodes: [...labels, ...positioned], edges: connections };
-  }, []);
+    return { nodes: [...labels, ...positioned], edges: connections, levels };
+  }, [course, plan.entries]);
 
   const related = useMemo(() => {
     const up = new Set<string>();
@@ -226,7 +251,7 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
             </select>
           </label>
           <p className="mono-label">
-            {nodes.length - 3} units · {edges.length} verified links
+            {nodes.length - levels.length} units · {edges.length} verified links
           </p>
         </aside>
       </div>
