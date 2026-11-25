@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Info, Plus, X } from "lucide-react";
+import { ArrowRight, Check, Info, Plus, Search, X } from "lucide-react";
 import {
   campusSchema,
   unitLevel,
@@ -15,6 +15,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const plan = usePlanStore((state) => state.plan);
   const updatePlan = usePlanStore((state) => state.updatePlan);
   const navigate = useNavigate();
+  const [courseQuery, setCourseQuery] = useState("");
   const [label, setLabel] = useState("Advanced standing");
   const [level, setLevel] = useState<number>(1);
   const [points, setPoints] = useState(1);
@@ -22,7 +23,120 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
-  const major = course?.majors.find((item) => item.id === plan.course.majorId);
+  const selectedComponents = [
+    ...(course?.majors ?? []).filter((item) =>
+      (plan.course.majorIds ?? [plan.course.majorId]).includes(item.id),
+    ),
+    ...(course?.minors ?? []).filter((item) =>
+      (plan.course.minorIds ?? []).includes(item.id),
+    ),
+    ...(course?.specialisations ?? []).filter((item) =>
+      (plan.course.specialisationIds ?? []).includes(item.id),
+    ),
+  ];
+  const courseOptions = [
+    ...new Map(
+      [...catalog.courses]
+        .sort((a, b) => a.version - b.version)
+        .map((item) => [item.code, item]),
+    ).values(),
+  ].sort((a, b) => a.code.localeCompare(b.code));
+  const matches = courseOptions.filter((item) =>
+    (item.code + " " + item.title)
+      .toLowerCase()
+      .includes(courseQuery.toLowerCase()),
+  );
+  const versionOptions = catalog.courses
+    .filter((item) => item.code === plan.course.code)
+    .sort((a, b) => b.version - a.version);
+  const componentGroups = [
+    { key: "majorIds" as const, label: "Majors", items: course?.majors ?? [] },
+    { key: "minorIds" as const, label: "Minors", items: course?.minors ?? [] },
+    {
+      key: "specialisationIds" as const,
+      label: "Specialisations",
+      items: course?.specialisations ?? [],
+    },
+  ];
+  const chooseCourse = (code: string, version?: number) => {
+    const next = catalog.courses.find(
+      (item) =>
+        item.code === code &&
+        item.version ===
+          (version ??
+            Math.max(
+              ...catalog.courses
+                .filter((item) => item.code === code)
+                .map((item) => item.version),
+            )),
+    );
+    if (!next) return;
+    const defaultMajor = next.majors[0];
+    updatePlan((current) => ({
+      ...current,
+      course: {
+        code: next.code,
+        version: next.version,
+        majorId: defaultMajor?.id ?? "",
+        majorIds: defaultMajor ? [defaultMajor.id] : [],
+        minorIds: [],
+        specialisationIds: [],
+      },
+      startPeriod: { ...current.startPeriod, year: next.version },
+      selectedPathway: undefined,
+    }));
+    setCourseQuery("");
+  };
+  const chooseVersion = (version: number) => {
+    const next = catalog.courses.find(
+      (item) => item.code === plan.course.code && item.version === version,
+    );
+    if (!next) return;
+    updatePlan((current) => {
+      const majors = (
+        current.course.majorIds ?? [current.course.majorId]
+      ).filter((id) => next.majors.some((item) => item.id === id));
+      const majorIds = majors.length
+        ? majors
+        : next.majors[0]
+          ? [next.majors[0].id]
+          : [];
+      return {
+        ...current,
+        course: {
+          ...current.course,
+          version,
+          majorId: majorIds[0] ?? "",
+          majorIds,
+          minorIds: (current.course.minorIds ?? []).filter((id) =>
+            next.minors.some((item) => item.id === id),
+          ),
+          specialisationIds: (current.course.specialisationIds ?? []).filter(
+            (id) => next.specialisations.some((item) => item.id === id),
+          ),
+        },
+        startPeriod: { ...current.startPeriod, year: version },
+      };
+    });
+  };
+  const toggleComponent = (
+    key: "majorIds" | "minorIds" | "specialisationIds",
+    id: string,
+  ) =>
+    updatePlan((current) => {
+      const previous = current.course[key] ?? [];
+      const ids = previous.includes(id)
+        ? previous.filter((item) => item !== id)
+        : [...previous, id];
+      return {
+        ...current,
+        course: {
+          ...current.course,
+          [key]: ids,
+          majorId: key === "majorIds" ? (ids[0] ?? "") : current.course.majorId,
+        },
+      };
+    });
   const units = Object.values(catalog.units).sort((a, b) =>
     compareCodes(a.code, b.code),
   );
@@ -102,17 +216,96 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                 <span className="mono-label">
                   {plan.course.code} · {plan.course.version} Handbook
                 </span>
-                <strong>{course?.title}</strong>
-                <span>{major?.title} major</span>
+                <strong>{course?.title ?? "Course unavailable"}</strong>
+                <span>
+                  {selectedComponents.map((item) => item.title).join(" · ") ||
+                    "Choose a component below"}
+                </span>
               </div>
               <span className="flag ok">
                 <Check size={13} aria-hidden="true" /> Selected
               </span>
             </div>
-            <p className="hint">
-              <Info size={14} aria-hidden="true" /> This is the only course
-              version in the catalogue so far.
-            </p>
+            <label className="search">
+              <Search size={15} aria-hidden="true" />
+              <input
+                value={courseQuery}
+                onChange={(event) => setCourseQuery(event.target.value)}
+                placeholder="Search course code or title"
+                aria-label="Search courses"
+              />
+            </label>
+            {(courseQuery.trim() || courseOptions.length > 1) && (
+              <div className="course-results">
+                {matches.length ? (
+                  matches.map((item) => (
+                    <button
+                      className="course-ticket"
+                      type="button"
+                      key={item.code}
+                      onClick={() => chooseCourse(item.code)}
+                    >
+                      <span className="mono-label">{item.code}</span>
+                      <strong>{item.title}</strong>
+                    </button>
+                  ))
+                ) : (
+                  <p className="hint">
+                    暂无数据，欢迎贡献。
+                    <a
+                      href="https://github.com/FLAMINGOFF/unitpath/issues/new/choose"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      提交课程数据建议
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
+            <label className="field">
+              <span>Handbook version · entry year</span>
+              <select
+                value={plan.course.version}
+                onChange={(event) => chooseVersion(Number(event.target.value))}
+              >
+                {versionOptions.map((item) => (
+                  <option key={item.version} value={item.version}>
+                    {item.version}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {componentGroups
+              .filter((group) => group.items.length > 0)
+              .map((group) => (
+                <fieldset className="unit-picker" key={group.key}>
+                  <legend>{group.label}</legend>
+                  <div className="pathway-options">
+                    {group.items.map((item) => {
+                      const checked = (plan.course[group.key] ?? []).includes(
+                        item.id,
+                      );
+                      return (
+                        <label
+                          className={checked ? "pathway on" : "pathway"}
+                          key={item.id}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleComponent(group.key, item.id)}
+                          />
+                          <span className="pathway-text">
+                            <strong>{item.title}</strong>
+                            <span className="mono-label">{item.id}</span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              ))}
           </div>
         </li>
 
@@ -126,12 +319,12 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
               <span>Entry year</span>
               <select
                 value={plan.startPeriod.year}
-                onChange={(event) =>
-                  changeStart("year", Number(event.target.value))
-                }
+                onChange={(event) => chooseVersion(Number(event.target.value))}
               >
-                {[2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
-                  <option key={year}>{year}</option>
+                {versionOptions.map((item) => (
+                  <option key={item.version} value={item.version}>
+                    {item.version}
+                  </option>
                 ))}
               </select>
             </label>

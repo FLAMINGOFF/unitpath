@@ -64,7 +64,7 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
       connectable: false,
       focusable: false,
     }));
-    const positioned: Node[] = levels.flatMap((level, index) =>
+    const positioned: Node[] = levels.flatMap((level, levelIndex) =>
       all
         .filter((unit) => unitLevel(unit) === level)
         .sort(
@@ -72,9 +72,9 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
             graph.node(a.code).y - graph.node(b.code).y ||
             compareCodes(a.code, b.code),
         )
-        .map((unit, index) => ({
+        .map((unit, unitIndex) => ({
           id: unit.code,
-          position: { x: index * COLUMN_GAP, y: 56 + index * ROW_GAP },
+          position: { x: levelIndex * COLUMN_GAP, y: 56 + unitIndex * ROW_GAP },
           data: {
             label: (
               <div className="node-label">
