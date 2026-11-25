@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DndContext,
   KeyboardSensor,
@@ -12,9 +12,9 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  CalendarClock,
   GripVertical,
   Info,
+  MoreHorizontal,
   Plus,
   RotateCcw,
   Search,
@@ -32,206 +32,213 @@ import {
   type Period,
   type Plan,
   type ScheduleResult,
-  type Unit,
 } from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
+import {
+  compareCodes,
+  Flag,
+  Note,
+  PageHead,
+  shortTerm,
+  StatusMark,
+  termLabel,
+  type EntryStatus,
+} from "./ui";
 
-const termLabel = (period: Period) =>
-  `${period.year} · Semester ${period.term === "S1" ? "1" : "2"}`;
+type Entry = Plan["entries"][number];
+
+type CardActions = {
+  move: (code: string, period: Period) => void;
+  remove: (code: string) => void;
+  changeStatus: (code: string, status: EntryStatus) => void;
+  openUnit: (code: string) => void;
+};
 
 function UnitCard({
   entry,
   issues,
   periods,
-  move,
-  remove,
-  changeStatus,
-  openUnit,
+  actions,
 }: {
-  entry: Plan["entries"][number];
+  entry: Entry;
   issues: Issue[];
   periods: Period[];
-  move: (code: string, period: Period) => void;
-  remove: (code: string) => void;
-  changeStatus: (
-    code: string,
-    status: Plan["entries"][number]["status"],
-  ) => void;
-  openUnit: (code: string) => void;
+  actions: CardActions;
 }) {
   const unit = catalog.units[entry.unit];
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: entry.unit });
-  const error = issues.some((issue) => issue.level === "error");
-  const warning = issues.some((issue) => issue.level === "warning");
+  const firstError = issues.find((issue) => issue.level === "error");
+  const firstWarning = issues.find((issue) => issue.level === "warning");
+  const tone = firstError ? " has-error" : firstWarning ? " has-warning" : "";
   return (
     <article
       ref={setNodeRef}
-      style={{
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.55 : 1,
-      }}
-      className={`unit-card ${entry.status}${error ? " error" : warning ? " warning" : ""}`}
+      style={{ transform: CSS.Translate.toString(transform) }}
+      className={`card ${entry.status}${tone}${isDragging ? " dragging" : ""}`}
     >
-      <div className="unit-card-top">
+      <div className="card-top">
         <button
-          className="drag-handle"
+          className="grip"
           type="button"
           aria-label={`Drag ${entry.unit}`}
           {...attributes}
           {...listeners}
         >
-          <GripVertical size={15} />
+          <GripVertical size={14} />
         </button>
         <button
-          className="unit-code-button"
+          className="card-code"
           type="button"
-          onClick={() => openUnit(entry.unit)}
+          onClick={() => actions.openUnit(entry.unit)}
         >
           {entry.unit}
         </button>
-        <span className={`status-dot ${entry.status}`} aria-hidden="true" />
+        <span className="card-meta">{unit?.creditPoints ?? "?"}cp</span>
       </div>
       <button
-        className="unit-title-button"
+        className="card-title"
         type="button"
-        onClick={() => openUnit(entry.unit)}
+        onClick={() => actions.openUnit(entry.unit)}
       >
         {unit?.title ?? "Unknown unit"}
       </button>
-      <div className="unit-card-meta">
-        <span>{unit?.creditPoints ?? "?"} points</span>
-        {error ? (
-          <span className="issue-tag error">✕ Error</span>
-        ) : warning ? (
-          <span className="issue-tag warning">! Warning</span>
-        ) : !unit?.verified ? (
-          <span className="issue-tag unknown">? Unverified</span>
-        ) : (
-          <span className="issue-tag okay">✓ Listed</span>
-        )}
+      <div className="card-foot">
+        <StatusMark status={entry.status} />
+        {firstError ? (
+          <Flag tone="error">Error</Flag>
+        ) : firstWarning ? (
+          <Flag tone="warning">Warning</Flag>
+        ) : null}
+        <details className="card-menu">
+          <summary aria-label={`Edit ${entry.unit}`}>
+            <MoreHorizontal size={16} />
+          </summary>
+          <div className="card-menu-body">
+            <label className="field compact">
+              <span>Status</span>
+              <select
+                value={entry.status}
+                onChange={(event) =>
+                  actions.changeStatus(
+                    entry.unit,
+                    event.target.value as EntryStatus,
+                  )
+                }
+              >
+                <option value="planned">Planned</option>
+                <option value="enrolled">Enrolled</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+            <label className="field compact">
+              <span>Move to</span>
+              <select
+                value={periodOrdinal(entry.period)}
+                onChange={(event) =>
+                  actions.move(
+                    entry.unit,
+                    periodFromOrdinal(Number(event.target.value)),
+                  )
+                }
+              >
+                {periods.map((period) => (
+                  <option
+                    key={periodOrdinal(period)}
+                    value={periodOrdinal(period)}
+                  >
+                    {termLabel(period)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="button danger-ghost small"
+              onClick={() => actions.remove(entry.unit)}
+            >
+              <Trash2 size={14} /> Remove {entry.unit}
+            </button>
+          </div>
+        </details>
       </div>
-      <div className="unit-card-controls">
-        <label className="sr-only" htmlFor={`status-${entry.unit}`}>
-          Status for {entry.unit}
-        </label>
-        <select
-          id={`status-${entry.unit}`}
-          value={entry.status}
-          onChange={(event) =>
-            changeStatus(
-              entry.unit,
-              event.target.value as Plan["entries"][number]["status"],
-            )
-          }
-        >
-          <option value="planned">Planned</option>
-          <option value="enrolled">Enrolled</option>
-          <option value="completed">Completed</option>
-        </select>
-        <label className="sr-only" htmlFor={`move-${entry.unit}`}>
-          Move {entry.unit} to term
-        </label>
-        <select
-          id={`move-${entry.unit}`}
-          value={periodOrdinal(entry.period)}
-          onChange={(event) =>
-            move(entry.unit, periodFromOrdinal(Number(event.target.value)))
-          }
-        >
-          {periods.map((period) => (
-            <option key={periodOrdinal(period)} value={periodOrdinal(period)}>
-              {period.year} {period.term}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="icon-button subtle"
-          onClick={() => remove(entry.unit)}
-          aria-label={`Remove ${entry.unit}`}
-        >
-          <Trash2 size={15} />
-        </button>
-      </div>
-      {issues
-        .filter((issue) => issue.level === "error")
-        .slice(0, 1)
-        .map((issue) => (
-          <p className="card-issue" key={issue.code}>
-            {issue.message}
-          </p>
-        ))}
+      {(firstError ?? firstWarning) && (
+        <p className={`card-issue ${firstError ? "error" : "warning"}`}>
+          {(firstError ?? firstWarning)!.message}
+        </p>
+      )}
     </article>
   );
 }
 
 function TermColumn({
   period,
+  position,
   entries,
   issues,
   periods,
   dimmed,
-  move,
-  remove,
-  changeStatus,
-  openUnit,
+  selected,
+  maxUnits,
+  actions,
   addHere,
 }: {
   period: Period;
-  entries: Plan["entries"];
+  position: number;
+  entries: Entry[];
   issues: Issue[];
   periods: Period[];
   dimmed: boolean;
-  move: (code: string, period: Period) => void;
-  remove: (code: string) => void;
-  changeStatus: (
-    code: string,
-    status: Plan["entries"][number]["status"],
-  ) => void;
-  openUnit: (code: string) => void;
+  selected: boolean;
+  maxUnits: number;
+  actions: CardActions;
   addHere: (period: Period) => void;
 }) {
-  const { isOver, setNodeRef } = useDroppable({
-    id: `term-${periodOrdinal(period)}`,
-  });
-  const termEntries = entries.filter(
-    (entry) => periodOrdinal(entry.period) === periodOrdinal(period),
-  );
+  const ordinal = periodOrdinal(period);
+  const { isOver, setNodeRef } = useDroppable({ id: `term-${ordinal}` });
+  const termEntries = entries
+    .filter((entry) => periodOrdinal(entry.period) === ordinal)
+    .sort((a, b) => compareCodes(a.unit, b.unit));
   const points = termEntries.reduce(
     (sum, entry) => sum + (catalog.units[entry.unit]?.creditPoints ?? 0),
     0,
   );
+  const overloaded = issues.some(
+    (issue) =>
+      issue.code === "TERM_OVERLOAD" &&
+      issue.period &&
+      periodOrdinal(issue.period) === ordinal,
+  );
+  const allDone =
+    termEntries.length > 0 &&
+    termEntries.every((entry) => entry.status === "completed");
+  const year = Math.floor(position / 2) + 1;
   return (
     <section
       ref={setNodeRef}
-      className={`term-column${isOver ? " drag-over" : ""}${dimmed ? " dimmed" : ""}`}
+      className={`term${isOver ? " over" : ""}${dimmed ? " dimmed" : ""}${selected ? " selected" : ""}`}
       aria-label={termLabel(period)}
     >
-      <div className="term-top">
-        <span className="term-marker">
-          {period.term === "S1" ? "01" : "02"}
-        </span>
-        <div>
-          <h3>
-            {period.year} <span>{period.term}</span>
-          </h3>
-          <p>
-            {termEntries.length} unit{termEntries.length === 1 ? "" : "s"} ·{" "}
-            {points} points
-          </p>
+      <header className="term-head">
+        <span
+          className={`station${allDone ? " done" : termEntries.length ? " busy" : ""}`}
+          aria-hidden="true"
+        />
+        <div className="term-name">
+          <span className="term-year">
+            Year {year} <em>· {period.term}</em>
+          </span>
+          <span className="mono-label">{shortTerm(period)}</span>
         </div>
-        <button
-          className="icon-button"
-          type="button"
-          onClick={() => addHere(period)}
-          aria-label={`Add unit to ${termLabel(period)}`}
-        >
-          <Plus size={17} />
-        </button>
-      </div>
-      <div className="term-cards">
+        <div className="term-load">
+          <span className={overloaded ? "over-limit" : ""}>
+            {termEntries.length}/{maxUnits}
+          </span>
+          <span className="mono-label">{points} cp</span>
+        </div>
+      </header>
+      <div className="term-body">
         {termEntries.map((entry) => (
           <UnitCard
             key={entry.unit}
@@ -240,33 +247,190 @@ function TermColumn({
               (issue) =>
                 issue.unit === entry.unit &&
                 issue.period &&
-                periodOrdinal(issue.period) === periodOrdinal(entry.period),
+                periodOrdinal(issue.period) === ordinal,
             )}
             periods={periods}
-            move={move}
-            remove={remove}
-            changeStatus={changeStatus}
-            openUnit={openUnit}
+            actions={actions}
           />
         ))}
-        {termEntries.length === 0 && (
-          <div className="empty-term">
-            <Plus size={19} />
-            <span>
-              Drop a unit here
-              <br />
-              or add from the library
-            </span>
-          </div>
+        {termEntries.length < maxUnits && (
+          <button
+            type="button"
+            className="slot"
+            onClick={() => addHere(period)}
+            aria-label={`Add unit to ${termLabel(period)}`}
+          >
+            <Plus size={15} aria-hidden="true" />
+            <span>{termEntries.length ? "Add unit" : "Empty term"}</span>
+          </button>
         )}
       </div>
-      {issues.some(
-        (issue) =>
-          issue.code === "TERM_OVERLOAD" &&
-          issue.period &&
-          periodOrdinal(issue.period) === periodOrdinal(period),
-      ) && <p className="term-warning">! Above your term limit</p>}
+      {overloaded && (
+        <p className="term-warning">
+          <Flag tone="warning">Above your {maxUnits}-unit limit</Flag>
+        </p>
+      )}
     </section>
+  );
+}
+
+function SchedulePreview({
+  plan,
+  preview,
+  close,
+  apply,
+}: {
+  plan: Plan;
+  preview: ScheduleResult;
+  close: () => void;
+  apply: () => void;
+}) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    closeRef.current?.focus();
+    const listener = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    document.addEventListener("keydown", listener);
+    return () => document.removeEventListener("keydown", listener);
+  }, [close]);
+  const ordinals = [
+    ...new Set(
+      [...preview.entries, ...preview.placeholders].map((item) =>
+        periodOrdinal(item.period),
+      ),
+    ),
+  ].sort((a, b) => a - b);
+  const kept = plan.entries.filter((entry) => entry.status !== "planned");
+  const dropped = plan.entries.length - kept.length;
+  return (
+    <div className="scrim" onMouseDown={close}>
+      <section
+        className="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Auto schedule preview"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <header className="dialog-head">
+          <div>
+            <p className="kicker">
+              <span>⟶</span>Auto schedule
+            </p>
+            <h2>Here’s a suggested route.</h2>
+          </div>
+          <button
+            ref={closeRef}
+            className="icon-button"
+            type="button"
+            onClick={close}
+            aria-label="Close preview"
+          >
+            <X size={18} />
+          </button>
+        </header>
+        <dl className="dialog-stats">
+          <div>
+            <dt>Kept as is</dt>
+            <dd>{kept.length}</dd>
+          </div>
+          <div>
+            <dt>Replaced</dt>
+            <dd>{dropped}</dd>
+          </div>
+          <div>
+            <dt>New core units</dt>
+            <dd>{preview.entries.length}</dd>
+          </div>
+          <div>
+            <dt>Elective slots</dt>
+            <dd>{preview.placeholders.length}</dd>
+          </div>
+          <div>
+            <dt>Graduates</dt>
+            <dd>
+              {preview.expectedGraduation
+                ? shortTerm(preview.expectedGraduation)
+                : "—"}
+            </dd>
+          </div>
+        </dl>
+        <div className="dialog-grid">
+          <div>
+            <h3>Suggested terms</h3>
+            {preview.entries.length ? (
+              <ol className="preview-terms">
+                {ordinals.map((ordinal) => {
+                  const period = periodFromOrdinal(ordinal);
+                  const units = preview.entries.filter(
+                    (entry) => periodOrdinal(entry.period) === ordinal,
+                  );
+                  const slots = preview.placeholders.filter(
+                    (slot) => periodOrdinal(slot.period) === ordinal,
+                  );
+                  return (
+                    <li key={ordinal}>
+                      <span className="mono-label">{shortTerm(period)}</span>
+                      <div className="chips">
+                        {units.map((entry) => (
+                          <span className="chip" key={entry.unit}>
+                            {entry.unit}
+                          </span>
+                        ))}
+                        {slots.map((slot, index) => (
+                          <span className="chip elective" key={index}>
+                            {slot.unit === "ELECTIVE_L3"
+                              ? "Elective L3"
+                              : "Elective"}
+                          </span>
+                        ))}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            ) : (
+              <p className="muted">
+                No core unit can be placed safely with the current data.
+              </p>
+            )}
+          </div>
+          <div>
+            <h3>Needs attention</h3>
+            {preview.unscheduled.length ? (
+              <ul className="attention">
+                {preview.unscheduled.map((item) => (
+                  <li key={item.unit}>
+                    <span className="code">{item.unit}</span>
+                    <span>{item.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">Every required unit found a term.</p>
+            )}
+          </div>
+        </div>
+        <Note icon={<Info size={15} />}>
+          This is a heuristic, not an optimal timetable. Unknown Handbook rules
+          are never treated as met, and elective slots are reminders, not
+          enrolments.
+        </Note>
+        <footer className="dialog-foot">
+          <button className="button ghost" type="button" onClick={close}>
+            Keep current plan
+          </button>
+          <button
+            className="button primary"
+            type="button"
+            onClick={apply}
+            disabled={!preview.entries.length}
+          >
+            Apply suggestion
+          </button>
+        </footer>
+      </section>
+    </div>
   );
 }
 
@@ -288,6 +452,8 @@ export function PlanPage({
   );
   const [dragged, setDragged] = useState<string | null>(null);
   const [preview, setPreview] = useState<ScheduleResult | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const closePreview = useCallback(() => setPreview(null), []);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
@@ -302,16 +468,17 @@ export function PlanPage({
     { length: Math.min(16, maxUsed - start + 1) },
     (_, index) => periodFromOrdinal(start + index),
   );
-  const selectedPeriod = periodFromOrdinal(
+  const activeOrdinal =
     selectedOrdinal >= start && selectedOrdinal <= maxUsed
       ? selectedOrdinal
-      : start,
-  );
+      : start;
+  const selectedPeriod = periodFromOrdinal(activeOrdinal);
   const units = useMemo(
     () =>
-      Object.values(catalog.units).sort((a, b) => a.code.localeCompare(b.code)),
+      Object.values(catalog.units).sort((a, b) => compareCodes(a.code, b.code)),
     [],
   );
+  const onPlan = new Set(plan.entries.map((entry) => entry.unit));
   const visibleUnits = units.filter((unit) => {
     if (
       !`${unit.code} ${unit.title}`.toLowerCase().includes(search.toLowerCase())
@@ -325,7 +492,7 @@ export function PlanPage({
     );
   });
   const add = (code: string, period: Period) => {
-    if (plan.entries.some((entry) => entry.unit === code)) {
+    if (onPlan.has(code)) {
       notify(`${code} is already on the plan.`);
       return;
     }
@@ -334,34 +501,34 @@ export function PlanPage({
       entries: [...current.entries, { unit: code, period, status: "planned" }],
     }));
   };
-  const move = (code: string, period: Period) =>
-    updatePlan((current) => ({
-      ...current,
-      entries: current.entries.map((entry) =>
-        entry.unit === code ? { ...entry, period } : entry,
-      ),
-    }));
-  const remove = (code: string) =>
-    updatePlan((current) => ({
-      ...current,
-      entries: current.entries.filter((entry) => entry.unit !== code),
-    }));
-  const changeStatus = (
-    code: string,
-    status: Plan["entries"][number]["status"],
-  ) =>
-    updatePlan((current) => ({
-      ...current,
-      entries: current.entries.map((entry) =>
-        entry.unit === code ? { ...entry, status } : entry,
-      ),
-    }));
+  const actions: CardActions = {
+    openUnit,
+    move: (code, period) =>
+      updatePlan((current) => ({
+        ...current,
+        entries: current.entries.map((entry) =>
+          entry.unit === code ? { ...entry, period } : entry,
+        ),
+      })),
+    remove: (code) =>
+      updatePlan((current) => ({
+        ...current,
+        entries: current.entries.filter((entry) => entry.unit !== code),
+      })),
+    changeStatus: (code, status) =>
+      updatePlan((current) => ({
+        ...current,
+        entries: current.entries.map((entry) =>
+          entry.unit === code ? { ...entry, status } : entry,
+        ),
+      })),
+  };
   const onDragStart = (event: DragStartEvent) =>
     setDragged(String(event.active.id));
   const onDragEnd = (event: DragEndEvent) => {
     setDragged(null);
     if (event.over && String(event.over.id).startsWith("term-"))
-      move(
+      actions.move(
         String(event.active.id),
         periodFromOrdinal(Number(String(event.over.id).slice(5))),
       );
@@ -384,270 +551,219 @@ export function PlanPage({
       ],
     }));
     setPreview(null);
-    notify("Scheduling suggestion applied. You can undo once.");
+    notify("Suggestion applied. Use Undo to go back one step.");
   };
-  const confirmedErrors = issues.filter(
-    (issue) => issue.level === "error",
-  ).length;
-  const unverified = issues.filter((issue) => issue.level === "info").length;
+  const errors = issues.filter((issue) => issue.level === "error").length;
+  const warnings = issues.filter((issue) => issue.level === "warning").length;
+  const plannedPoints = plan.entries.reduce(
+    (sum, entry) => sum + (catalog.units[entry.unit]?.creditPoints ?? 0),
+    0,
+  );
+  const draggedUnit = dragged ? catalog.units[dragged] : undefined;
+
   return (
-    <div className="page plan-page">
-      <div className="page-heading plan-heading">
+    <div className="page planner">
+      <PageHead
+        index="02"
+        kicker="Planner"
+        title={
+          <>
+            Your route, <em>term by term.</em>
+          </>
+        }
+        lede="Drag units between terms, or open a card's menu to move it. Problems show up on the card straight away."
+        actions={
+          <>
+            <button
+              className="button ghost"
+              type="button"
+              onClick={undo}
+              disabled={!previousPlan}
+            >
+              <RotateCcw size={15} /> Undo
+            </button>
+            <button className="button primary" type="button" onClick={suggest}>
+              <Sparkles size={15} /> Auto schedule
+            </button>
+          </>
+        }
+      />
+
+      <dl className="ledger-strip">
         <div>
-          <span className="eyebrow">YOUR DEGREE, AT A GLANCE</span>
-          <h1>Term planner</h1>
-          <p>
-            Build a path across semesters. Move any unit freely; confirmed
-            problems appear on its card.
-          </p>
-        </div>
-        <div className="heading-actions">
-          <button
-            className="button secondary"
-            type="button"
-            onClick={undo}
-            disabled={!previousPlan}
-          >
-            <RotateCcw size={16} /> Undo
-          </button>
-          <button className="button primary" type="button" onClick={suggest}>
-            <Sparkles size={17} /> Auto schedule
-          </button>
-        </div>
-      </div>
-      <div className="metrics-strip">
-        <div>
-          <strong>{plan.entries.length}</strong>
-          <span>Units on plan</span>
-        </div>
-        <div>
-          <strong>{confirmedErrors}</strong>
-          <span>Confirmed errors</span>
-        </div>
-        <div>
-          <strong>{unverified}</strong>
-          <span>Data notices</span>
+          <dt>On plan</dt>
+          <dd>
+            {plan.entries.length}
+            <small> units</small>
+          </dd>
         </div>
         <div>
-          <strong>{plan.maxUnitsPerTerm}</strong>
-          <span>Units per term limit</span>
+          <dt>Credit points</dt>
+          <dd>
+            {plannedPoints}
+            <small> / 144</small>
+          </dd>
         </div>
-      </div>
-      <div className="plan-layout">
-        <div className="board-region">
-          <div className="board-intro">
-            <div>
-              <h2>Semester board</h2>
-              <p>
-                Drag cards between terms, or use each card's “Move to” menu.
-              </p>
-            </div>
-            <span className="legend">
-              <span className="legend-dot completed" /> Completed{" "}
-              <span className="legend-dot enrolled" /> Enrolled{" "}
-              <span className="legend-dot planned" /> Planned
-            </span>
-          </div>
+        <div className={errors ? "bad" : ""}>
+          <dt>Errors</dt>
+          <dd>{errors}</dd>
+        </div>
+        <div className={warnings ? "warn" : ""}>
+          <dt>Warnings</dt>
+          <dd>{warnings}</dd>
+        </div>
+        <div>
+          <dt>Term limit</dt>
+          <dd>
+            {plan.maxUnitsPerTerm}
+            <small> units</small>
+          </dd>
+        </div>
+      </dl>
+
+      <div className="planner-layout">
+        <div className="board-wrap">
           <DndContext
             sensors={sensors}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
             onDragCancel={() => setDragged(null)}
           >
-            <div className="term-board">
-              {periods.map((period) => (
+            <div
+              className="board"
+              style={{ ["--terms" as string]: periods.length }}
+            >
+              {periods.map((period, position) => (
                 <TermColumn
                   key={periodOrdinal(period)}
                   period={period}
+                  position={position}
                   entries={plan.entries}
                   issues={issues}
                   periods={periods}
+                  maxUnits={plan.maxUnitsPerTerm}
+                  selected={periodOrdinal(period) === activeOrdinal}
                   dimmed={
-                    !!dragged &&
-                    catalog.units[dragged]?.offerings !== "TODO" &&
-                    !catalog.units[dragged]?.offerings.includes(period.term)
+                    !!draggedUnit &&
+                    draggedUnit.offerings !== "TODO" &&
+                    !draggedUnit.offerings.includes(period.term)
                   }
-                  move={move}
-                  remove={remove}
-                  changeStatus={changeStatus}
-                  openUnit={openUnit}
+                  actions={actions}
                   addHere={(value) => {
                     setSelectedOrdinal(periodOrdinal(value));
-                    document
-                      .getElementById("unit-library")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    searchRef.current?.focus();
+                    document.getElementById("catalogue")?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "nearest",
+                    });
                   }}
                 />
               ))}
             </div>
           </DndContext>
-          <div className="board-note">
-            <Info size={17} />
-            <span>
-              Offering periods and requisites remain unverified. A lack of red
-              errors does not confirm enrolment eligibility.
-            </span>
+          <div className="legend" aria-label="Legend">
+            <StatusMark status="completed" />
+            <StatusMark status="enrolled" />
+            <StatusMark status="planned" />
+            <Flag tone="error">Rule broken</Flag>
+            <Flag tone="warning">Check this</Flag>
           </div>
         </div>
-        <aside id="unit-library" className="library panel">
-          <div className="library-heading">
-            <span className="section-kicker">UNIT LIBRARY</span>
-            <h2>Find a unit</h2>
-            <p>Add one to the selected semester.</p>
-          </div>
-          <label className="search-box">
-            <Search size={17} />
+
+        <aside id="catalogue" className="catalogue" aria-label="Unit catalogue">
+          <header>
+            <p className="kicker">
+              <span>§</span>Catalogue
+            </p>
+            <h2>Add a unit</h2>
+          </header>
+          <label className="search">
+            <Search size={15} aria-hidden="true" />
             <input
+              ref={searchRef}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search code or title"
               aria-label="Search units"
             />
           </label>
-          <label className="library-filter">
-            <input
-              type="checkbox"
-              checked={onlyAvailable}
-              onChange={(event) => setOnlyAvailable(event.target.checked)}
-            />{" "}
-            Available this term
-          </label>
-          <label className="library-term">
-            Add to
-            <select
-              value={
-                selectedOrdinal >= start && selectedOrdinal <= maxUsed
-                  ? selectedOrdinal
-                  : start
-              }
-              onChange={(event) =>
-                setSelectedOrdinal(Number(event.target.value))
-              }
-            >
-              {periods.map((period) => (
-                <option
-                  key={periodOrdinal(period)}
-                  value={periodOrdinal(period)}
+          <div className="catalogue-controls">
+            <label className="field compact">
+              <span>Add to</span>
+              <select
+                value={activeOrdinal}
+                onChange={(event) =>
+                  setSelectedOrdinal(Number(event.target.value))
+                }
+              >
+                {periods.map((period) => (
+                  <option
+                    key={periodOrdinal(period)}
+                    value={periodOrdinal(period)}
+                  >
+                    {termLabel(period)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={onlyAvailable}
+                onChange={(event) => setOnlyAvailable(event.target.checked)}
+              />
+              <span>Only units I can take then</span>
+            </label>
+          </div>
+          <ul className="catalogue-list">
+            {visibleUnits.map((unit) => (
+              <li
+                key={unit.code}
+                className={onPlan.has(unit.code) ? "taken" : ""}
+              >
+                <button
+                  type="button"
+                  className="catalogue-unit"
+                  onClick={() => openUnit(unit.code)}
                 >
-                  {termLabel(period)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="library-list">
-            {visibleUnits.length ? (
-              visibleUnits.map((unit: Unit) => (
-                <div className="library-unit" key={unit.code}>
-                  <button type="button" onClick={() => openUnit(unit.code)}>
-                    <strong>{unit.code}</strong>
-                    <span>{unit.title}</span>
-                  </button>
+                  <span className="code">{unit.code}</span>
+                  <span>{unit.title}</span>
+                </button>
+                {onPlan.has(unit.code) ? (
+                  <span className="mono-label">On plan</span>
+                ) : (
                   <button
                     type="button"
-                    className="icon-button"
+                    className="icon-button add"
                     onClick={() => add(unit.code, selectedPeriod)}
                     aria-label={`Add ${unit.code} to ${termLabel(selectedPeriod)}`}
                   >
-                    <Plus size={17} />
+                    <Plus size={16} />
                   </button>
-                </div>
-              ))
-            ) : (
-              <p className="empty-library">
-                No verified available units match this filter. Try showing all
-                units.
-              </p>
+                )}
+              </li>
+            ))}
+            {visibleUnits.length === 0 && (
+              <li className="empty">
+                {onlyAvailable
+                  ? "Nothing is confirmed available yet — offerings and requisites are still unverified."
+                  : "No unit matches that search."}
+              </li>
             )}
-          </div>
-          <p className="library-bottom">
-            {units.length} units in the catalog · elective list pending
+          </ul>
+          <p className="catalogue-foot mono-label">
+            {units.length} units · elective list coming
           </p>
         </aside>
       </div>
+
       {preview && (
-        <div className="modal-backdrop" onMouseDown={() => setPreview(null)}>
-          <section
-            className="modal schedule-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Auto schedule preview"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="modal-head">
-              <div>
-                <span className="eyebrow">AUTO SCHEDULE</span>
-                <h2>Review the suggestion</h2>
-              </div>
-              <button
-                className="icon-button"
-                type="button"
-                onClick={() => setPreview(null)}
-                aria-label="Close preview"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <p>
-              Current plan: {plan.entries.length} unit
-              {plan.entries.length === 1 ? "" : "s"}. Suggested:{" "}
-              {preview.entries.length} planned units and{" "}
-              {preview.placeholders.length} unselected elective slots.
-            </p>
-            <div className="preview-grid">
-              <div>
-                <h3>Suggested core units</h3>
-                {preview.entries.length ? (
-                  preview.entries.map((entry) => (
-                    <p key={entry.unit}>
-                      {entry.unit} <span>{termLabel(entry.period)}</span>
-                    </p>
-                  ))
-                ) : (
-                  <p className="muted">
-                    None can be safely placed with the current data.
-                  </p>
-                )}
-              </div>
-              <div>
-                <h3>Needs attention</h3>
-                {preview.unscheduled.length ? (
-                  preview.unscheduled.map((item) => (
-                    <p key={item.unit}>
-                      <strong>{item.unit}</strong> — {item.reason}
-                    </p>
-                  ))
-                ) : (
-                  <p>All required units were placed.</p>
-                )}
-              </div>
-            </div>
-            <div className="warning-box">
-              <CalendarClock size={18} />
-              <span>
-                Suggestions are heuristic. Unknown Handbook rules are never
-                treated as satisfied; elective placeholders are not unit
-                enrolments.
-              </span>
-            </div>
-            <div className="modal-actions">
-              <button
-                className="button secondary"
-                type="button"
-                onClick={() => setPreview(null)}
-              >
-                Keep current plan
-              </button>
-              <button
-                className="button primary"
-                type="button"
-                onClick={applySuggestion}
-                disabled={!preview.entries.length}
-              >
-                Apply suggestion
-              </button>
-            </div>
-          </section>
-        </div>
+        <SchedulePreview
+          plan={plan}
+          preview={preview}
+          close={closePreview}
+          apply={applySuggestion}
+        />
       )}
     </div>
   );

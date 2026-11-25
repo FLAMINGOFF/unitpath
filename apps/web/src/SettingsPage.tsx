@@ -1,18 +1,10 @@
 import { useRef, useState } from "react";
 import { compressToEncodedURIComponent } from "lz-string";
-import {
-  Copy,
-  Download,
-  FileJson,
-  RotateCcw,
-  Settings2,
-  ShieldCheck,
-  Upload,
-} from "lucide-react";
+import { Copy, Download, Link2, RotateCcw, Upload } from "lucide-react";
 import { parsePlanJson } from "@unitpath/engine";
 import { catalog } from "./catalog";
-import { disclaimer } from "./App";
 import { usePlanStore, validateImportedPlan } from "./store";
+import { disclaimer, PageHead } from "./ui";
 
 export function SettingsPage({
   notify,
@@ -26,6 +18,14 @@ export function SettingsPage({
   const fileInput = useRef<HTMLInputElement>(null);
   const [shareUrl, setShareUrl] = useState("");
   const [error, setError] = useState("");
+  const course = catalog.courses.find(
+    (item) =>
+      item.code === plan.course.code && item.version === plan.course.version,
+  );
+  const unverified = Object.values(catalog.units).filter(
+    (unit) => !unit.verified,
+  ).length;
+
   const exportPlan = () => {
     const blob = new Blob([`${JSON.stringify(plan, null, 2)}\n`], {
       type: "application/json",
@@ -61,32 +61,28 @@ export function SettingsPage({
     base.hash = `share=${compressToEncodedURIComponent(JSON.stringify(plan))}`;
     setShareUrl(base.toString());
   };
+
   return (
-    <div className="page settings-page">
-      <div className="page-heading">
-        <div>
-          <span className="eyebrow">PREFERENCES & DATA</span>
-          <h1>Your plan stays yours.</h1>
-          <p>
-            Everything is stored in this browser. Export a backup or share a
-            copy when you choose.
-          </p>
-        </div>
-        <div className="heading-illustration">
-          <Settings2 size={42} strokeWidth={1.4} />
-        </div>
-      </div>
-      <div className="settings-grid">
-        <section className="panel settings-panel">
-          <div className="settings-icon">
-            <Settings2 size={20} />
+    <div className="page data">
+      <PageHead
+        index="05"
+        kicker="Data"
+        title={
+          <>
+            Your plan stays <em>on this device.</em>
+          </>
+        }
+        lede="No account and no server. Back it up, move it, or share a copy whenever you like."
+      />
+
+      <div className="data-rows">
+        <section className="data-row">
+          <div className="data-row-label">
+            <h2>Term load</h2>
+            <p>Terms above this limit get a warning. Auto schedule uses it.</p>
           </div>
-          <h2>Planning preferences</h2>
-          <p>
-            Set a suggested limit for each semester. Overloads show a warning.
-          </p>
-          <label className="settings-select">
-            Maximum units per term
+          <label className="field">
+            <span>Maximum units per term</span>
             <select
               value={plan.maxUnitsPerTerm}
               onChange={(event) =>
@@ -104,144 +100,143 @@ export function SettingsPage({
             </select>
           </label>
         </section>
-        <section className="panel settings-panel">
-          <div className="settings-icon">
-            <FileJson size={20} />
-          </div>
-          <h2>Import & export</h2>
-          <p>
-            Save a portable JSON copy. Imports are checked before replacing your
-            current plan.
-          </p>
-          <div className="settings-actions">
-            <button
-              type="button"
-              className="button secondary"
-              onClick={exportPlan}
-            >
-              <Download size={16} /> Export JSON
-            </button>
-            <button
-              type="button"
-              className="button secondary"
-              onClick={() => fileInput.current?.click()}
-            >
-              <Upload size={16} /> Import JSON
-            </button>
-            <input
-              ref={fileInput}
-              className="sr-only"
-              type="file"
-              aria-label="Import plan JSON file"
-              accept=".json,application/json"
-              onChange={(event) => void importPlan(event.target.files?.[0])}
-            />
-          </div>
-          {error && (
-            <p role="alert" className="form-error">
-              Import rejected: {error}
+
+        <section className="data-row">
+          <div className="data-row-label">
+            <h2>Backup</h2>
+            <p>
+              A portable JSON copy. Imports are checked in full and rejected
+              outright if anything is wrong.
             </p>
-          )}
-        </section>
-        <section className="panel settings-panel">
-          <div className="settings-icon">
-            <Copy size={20} />
           </div>
-          <h2>Share a plan</h2>
-          <p>
-            Put a compressed copy in a link. Anyone with the link can see its
-            contents.
-          </p>
-          <button
-            type="button"
-            className="button secondary"
-            onClick={makeShare}
-          >
-            Generate share link
-          </button>
-          {shareUrl && (
-            <div className="share-box">
-              <input
-                aria-label="Share link"
-                readOnly
-                value={shareUrl}
-                onFocus={(event) => event.currentTarget.select()}
-              />
+          <div>
+            <div className="button-row">
               <button
                 type="button"
-                className="icon-button"
-                onClick={() =>
-                  void navigator.clipboard
-                    .writeText(shareUrl)
-                    .then(() => notify("Share link copied."))
-                    .catch(() => notify("Select and copy the link manually."))
-                }
-                aria-label="Copy share link"
+                className="button ghost"
+                onClick={exportPlan}
               >
-                <Copy size={17} />
+                <Download size={15} /> Export JSON
               </button>
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => fileInput.current?.click()}
+              >
+                <Upload size={15} /> Import JSON
+              </button>
+              <input
+                ref={fileInput}
+                className="sr-only"
+                type="file"
+                aria-label="Import plan JSON file"
+                accept=".json,application/json"
+                onChange={(event) => void importPlan(event.target.files?.[0])}
+              />
             </div>
-          )}
-        </section>
-        <section className="panel settings-panel">
-          <div className="settings-icon">
-            <RotateCcw size={20} />
+            {error && (
+              <p role="alert" className="form-error">
+                Import rejected: {error}
+              </p>
+            )}
           </div>
-          <h2>Start over</h2>
-          <p>
-            Clear the plan saved in this browser. Export a backup first if you
-            need one.
-          </p>
-          <button
-            type="button"
-            className="button danger"
-            onClick={() => {
-              clear();
-              setShareUrl("");
-              notify("Local plan cleared.");
-            }}
-          >
-            Clear local plan
-          </button>
+        </section>
+
+        <section className="data-row">
+          <div className="data-row-label">
+            <h2>Share</h2>
+            <p>
+              Packs the whole plan into a link. Anyone with the link can read
+              it.
+            </p>
+          </div>
+          <div>
+            <button type="button" className="button ghost" onClick={makeShare}>
+              <Link2 size={15} /> Generate share link
+            </button>
+            {shareUrl && (
+              <div className="share">
+                <input
+                  aria-label="Share link"
+                  readOnly
+                  value={shareUrl}
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={() =>
+                    void navigator.clipboard
+                      .writeText(shareUrl)
+                      .then(() => notify("Share link copied."))
+                      .catch(() => notify("Select and copy the link manually."))
+                  }
+                  aria-label="Copy share link"
+                >
+                  <Copy size={15} />
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="data-row">
+          <div className="data-row-label">
+            <h2>Start over</h2>
+            <p>
+              Clears the plan saved in this browser. Export first if unsure.
+            </p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="button danger-ghost"
+              onClick={() => {
+                clear();
+                setShareUrl("");
+                notify("Local plan cleared.");
+              }}
+            >
+              <RotateCcw size={15} /> Clear local plan
+            </button>
+          </div>
         </section>
       </div>
-      <section className="panel about-panel">
-        <div className="about-header">
-          <div className="settings-icon">
-            <ShieldCheck size={20} />
+
+      <section className="about" aria-labelledby="about-heading">
+        <h2 id="about-heading">About UnitPath</h2>
+        <p className="about-disclaimer">{disclaimer}</p>
+        <dl className="facts">
+          <div>
+            <dt>Catalogue</dt>
+            <dd>
+              {plan.course.code} / {plan.course.version} ·{" "}
+              {Object.keys(catalog.units).length} unit records
+            </dd>
           </div>
           <div>
-            <span className="section-kicker">ABOUT UNITPATH</span>
-            <h2>Private by design. Independent by nature.</h2>
-          </div>
-        </div>
-        <p>{disclaimer}</p>
-        <div className="about-details">
-          <div>
-            <strong>Catalog</strong>
-            <span>
-              C2000 / 2026 · {Object.keys(catalog.units).length} unit records
-            </span>
+            <dt>Data status</dt>
+            <dd>
+              {unverified
+                ? `${unverified} records awaiting Handbook check`
+                : "All records verified"}
+            </dd>
           </div>
           <div>
-            <strong>Data status</strong>
-            <span>Unit requisites and offerings are not verified</span>
+            <dt>Storage</dt>
+            <dd>This browser only</dd>
           </div>
-          <div>
-            <strong>Storage</strong>
-            <span>Local browser storage; no account or server</span>
-          </div>
-          <div>
-            <strong>Official source</strong>
-            <a
-              href={catalog.courses[0]?.source}
-              target="_blank"
-              rel="noreferrer"
-            >
-              2026 course map
-            </a>
-          </div>
-        </div>
+          {course && (
+            <div>
+              <dt>Official source</dt>
+              <dd>
+                <a href={course.source} target="_blank" rel="noreferrer">
+                  {course.version} course map
+                </a>
+              </dd>
+            </div>
+          )}
+        </dl>
       </section>
     </div>
   );

@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  BookOpen,
-  CheckCircle2,
-  Info,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { ArrowRight, Check, Info, Plus, X } from "lucide-react";
 import { unitLevel, type Plan } from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
+import { compareCodes, Note, PageHead } from "./ui";
 
 export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const plan = usePlanStore((state) => state.plan);
@@ -19,14 +13,22 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const [label, setLabel] = useState("Advanced standing");
   const [level, setLevel] = useState<1 | 2 | 3>(1);
   const [points, setPoints] = useState(6);
+  const course = catalog.courses.find(
+    (item) =>
+      item.code === plan.course.code && item.version === plan.course.version,
+  );
+  const major = course?.majors.find((item) => item.id === plan.course.majorId);
   const units = Object.values(catalog.units).sort((a, b) =>
-    a.code.localeCompare(b.code),
+    compareCodes(a.code, b.code),
   );
   const complete = new Set(
     plan.entries
       .filter((entry) => entry.status === "completed")
       .map((entry) => entry.unit),
   );
+  const completedPoints = units
+    .filter((unit) => complete.has(unit.code))
+    .reduce((sum, unit) => sum + unit.creditPoints, 0);
   const toggle = (code: string) =>
     updatePlan((current) => ({
       ...current,
@@ -45,8 +47,9 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
           startPeriod: { ...current.startPeriod, [field]: value },
         }) as Plan,
     );
+  const validBlock = label.trim() !== "" && points > 0 && points % 6 === 0;
   const addBlock = () => {
-    if (!label.trim() || points <= 0 || points % 6 !== 0) return;
+    if (!validBlock) return;
     updatePlan((current) => ({
       ...current,
       creditBlocks: [
@@ -57,214 +60,216 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
     setLabel("Advanced standing");
     setPoints(6);
   };
+
   return (
-    <div className="page setup-page">
-      <div className="page-heading">
-        <div>
-          <span className="eyebrow">GET STARTED</span>
-          <h1>Make your degree plan yours.</h1>
-          <p>
-            Choose your starting term, add completed units, and see what
-            remains.
-          </p>
-        </div>
-        <div className="heading-illustration">
-          <BookOpen size={42} strokeWidth={1.4} />
-        </div>
-      </div>
-      <div className="step-row">
-        <span className="step active">
-          <span>1</span> Course
-        </span>
-        <span className="step active">
-          <span>2</span> Starting term
-        </span>
-        <span className="step active">
-          <span>3</span> Prior study
-        </span>
-      </div>
-      <section className="panel setup-section">
-        <div className="section-header">
-          <div>
-            <span className="section-kicker">01 / COURSE</span>
-            <h2>Your course</h2>
+    <div className="page setup">
+      <PageHead
+        index="01"
+        kicker="Setup"
+        title={
+          <>
+            Tell us where you <em>are</em>, we’ll show what’s left.
+          </>
+        }
+        lede="Four quick answers. Everything is saved in this browser as you go."
+      />
+
+      <ol className="questions">
+        <li className="question">
+          <div className="question-label">
+            <span className="q-num">01</span>
+            <h2>Which course?</h2>
           </div>
-          <CheckCircle2 size={20} className="success-icon" />
-        </div>
-        <div className="course-card">
-          <div className="course-avatar">IT</div>
-          <div>
-            <strong>Bachelor of Information Technology</strong>
-            <p>C2000 · 2026 Handbook · Applied cybersecurity major</p>
+          <div className="question-body">
+            <div className="course-ticket">
+              <div>
+                <span className="mono-label">
+                  {plan.course.code} · {plan.course.version} Handbook
+                </span>
+                <strong>{course?.title}</strong>
+                <span>{major?.title} major</span>
+              </div>
+              <span className="flag ok">
+                <Check size={13} aria-hidden="true" /> Selected
+              </span>
+            </div>
+            <p className="hint">
+              <Info size={14} aria-hidden="true" /> This is the only course
+              version in the catalogue so far.
+            </p>
           </div>
-          <span className="tag">Available now</span>
-        </div>
-        <p className="inline-note">
-          <Info size={16} />
-          Only the 2026 Applied cybersecurity version is in the current catalog.
-        </p>
-      </section>
-      <section className="panel setup-section">
-        <div className="section-header">
-          <div>
-            <span className="section-kicker">02 / TIMELINE</span>
+        </li>
+
+        <li className="question">
+          <div className="question-label">
+            <span className="q-num">02</span>
             <h2>When did you start?</h2>
           </div>
-        </div>
-        <div className="form-row">
-          <label>
-            Entry year
-            <select
-              value={plan.startPeriod.year}
-              onChange={(event) =>
-                changeStart("year", Number(event.target.value))
-              }
-            >
-              {[2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
-                <option key={year}>{year}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            First teaching period
-            <select
-              value={plan.startPeriod.term}
-              onChange={(event) =>
-                changeStart("term", event.target.value as "S1" | "S2")
-              }
-            >
-              <option value="S1">Semester 1</option>
-              <option value="S2">Semester 2</option>
-            </select>
-          </label>
-        </div>
-      </section>
-      <section className="panel setup-section">
-        <div className="section-header">
-          <div>
-            <span className="section-kicker">03 / PRIOR STUDY</span>
-            <h2>Mark units you've completed</h2>
-            <p>
-              Select any already completed core units. You can adjust their term
-              and status on the planner.
-            </p>
-          </div>
-          <span className="count-tag">{complete.size} selected</span>
-        </div>
-        {[1, 2, 3].map((year) => (
-          <div className="unit-group" key={year}>
-            <h3>Level {year}</h3>
-            <div className="setup-unit-grid">
-              {units
-                .filter((unit) => unitLevel(unit.code) === year)
-                .map((unit) => (
-                  <div
-                    className={`setup-unit${complete.has(unit.code) ? " checked" : ""}`}
-                    key={unit.code}
-                  >
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={complete.has(unit.code)}
-                        onChange={() => toggle(unit.code)}
-                      />
-                      <span className="check-square" aria-hidden="true">
-                        ✓
-                      </span>
-                      <span>
-                        <strong>{unit.code}</strong>
-                        <small>{unit.title}</small>
-                      </span>
-                    </label>
-                    <button
-                      className="text-button"
-                      type="button"
-                      onClick={() => openUnit(unit.code)}
-                      aria-label={`View ${unit.code} details`}
-                    >
-                      Details
-                    </button>
-                  </div>
+          <div className="question-body field-row">
+            <label className="field">
+              <span>Entry year</span>
+              <select
+                value={plan.startPeriod.year}
+                onChange={(event) =>
+                  changeStart("year", Number(event.target.value))
+                }
+              >
+                {[2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
+                  <option key={year}>{year}</option>
                 ))}
-            </div>
+              </select>
+            </label>
+            <label className="field">
+              <span>First teaching period</span>
+              <select
+                value={plan.startPeriod.term}
+                onChange={(event) =>
+                  changeStart("term", event.target.value as "S1" | "S2")
+                }
+              >
+                <option value="S1">Semester 1</option>
+                <option value="S2">Semester 2</option>
+              </select>
+            </label>
           </div>
-        ))}
-      </section>
-      <section className="panel setup-section">
-        <div className="section-header">
-          <div>
-            <span className="section-kicker">04 / ADVANCED STANDING</span>
-            <h2>Credit without a unit code</h2>
+        </li>
+
+        <li className="question">
+          <div className="question-label">
+            <span className="q-num">03</span>
+            <h2>What have you already passed?</h2>
             <p>
-              Add credit granted by the university that does not map to a listed
-              unit.
+              Tick each unit you've completed. You can change its term and
+              status later on the planner.
+            </p>
+            <p className="tally">
+              <strong>{complete.size}</strong> units ·{" "}
+              <strong>{completedPoints}</strong> credit points
             </p>
           </div>
-        </div>
-        {plan.creditBlocks.length > 0 && (
-          <div className="credit-list">
-            {plan.creditBlocks.map((block, index) => (
-              <div key={`${block.label}-${index}`}>
-                <span>
-                  {block.label} · Level {block.level} · {block.points} points
-                </span>
-                <button
-                  type="button"
-                  className="icon-button"
-                  aria-label={`Remove ${block.label}`}
-                  onClick={() =>
-                    updatePlan((current) => ({
-                      ...current,
-                      creditBlocks: current.creditBlocks.filter(
-                        (_, i) => i !== index,
-                      ),
-                    }))
-                  }
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+          <div className="question-body">
+            {[1, 2, 3].map((year) => (
+              <fieldset className="unit-picker" key={year}>
+                <legend>Level {year}</legend>
+                <div className="tile-grid">
+                  {units
+                    .filter((unit) => unitLevel(unit.code) === year)
+                    .map((unit) => (
+                      <div
+                        className={`tile${complete.has(unit.code) ? " on" : ""}`}
+                        key={unit.code}
+                      >
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={complete.has(unit.code)}
+                            onChange={() => toggle(unit.code)}
+                          />
+                          <span className="tile-text">
+                            <span className="code">{unit.code}</span>{" "}
+                            <span className="tile-title">{unit.title}</span>
+                          </span>
+                        </label>
+                        <button
+                          className="link-button"
+                          type="button"
+                          onClick={() => openUnit(unit.code)}
+                          aria-label={`View ${unit.code} details`}
+                        >
+                          Details
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              </fieldset>
             ))}
           </div>
-        )}
-        <div className="form-row credit-form">
-          <label>
-            Label
-            <input
-              value={label}
-              onChange={(event) => setLabel(event.target.value)}
-            />
-          </label>
-          <label>
-            Level
-            <select
-              value={level}
-              onChange={(event) =>
-                setLevel(Number(event.target.value) as 1 | 2 | 3)
-              }
-            >
-              <option value={1}>Level 1</option>
-              <option value={2}>Level 2</option>
-              <option value={3}>Level 3</option>
-            </select>
-          </label>
-          <label>
-            Points
-            <input
-              type="number"
-              min="6"
-              step="6"
-              value={points}
-              onChange={(event) => setPoints(Number(event.target.value))}
-            />
-          </label>
-          <button className="button secondary" type="button" onClick={addBlock}>
-            <Plus size={16} /> Add credit
-          </button>
-        </div>
-      </section>
-      <div className="page-actions">
-        <span>Saved locally in this browser</span>
+        </li>
+
+        <li className="question">
+          <div className="question-label">
+            <span className="q-num">04</span>
+            <h2>Any credit without a unit code?</h2>
+            <p>Advanced standing or transfer credit granted by Monash.</p>
+          </div>
+          <div className="question-body">
+            {plan.creditBlocks.length > 0 && (
+              <ul className="credit-list">
+                {plan.creditBlocks.map((block, index) => (
+                  <li key={`${block.label}-${index}`}>
+                    <span>
+                      <strong>{block.label}</strong>
+                      <span className="mono-label">
+                        Level {block.level} · {block.points} cp
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={`Remove ${block.label}`}
+                      onClick={() =>
+                        updatePlan((current) => ({
+                          ...current,
+                          creditBlocks: current.creditBlocks.filter(
+                            (_, i) => i !== index,
+                          ),
+                        }))
+                      }
+                    >
+                      <X size={15} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="field-row credit-form">
+              <label className="field grow">
+                <span>Label</span>
+                <input
+                  value={label}
+                  onChange={(event) => setLabel(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>Level</span>
+                <select
+                  value={level}
+                  onChange={(event) =>
+                    setLevel(Number(event.target.value) as 1 | 2 | 3)
+                  }
+                >
+                  <option value={1}>Level 1</option>
+                  <option value={2}>Level 2</option>
+                  <option value={3}>Level 3</option>
+                </select>
+              </label>
+              <label className="field narrow">
+                <span>Points</span>
+                <input
+                  type="number"
+                  min="6"
+                  step="6"
+                  value={points}
+                  onChange={(event) => setPoints(Number(event.target.value))}
+                />
+              </label>
+              <button
+                className="button ghost"
+                type="button"
+                onClick={addBlock}
+                disabled={!validBlock}
+              >
+                <Plus size={15} /> Add credit
+              </button>
+            </div>
+          </div>
+        </li>
+      </ol>
+
+      <div className="setup-cta">
+        <Note icon={<Info size={15} />}>
+          Saved automatically in this browser. Nothing is sent anywhere.
+        </Note>
         <button
           className="button primary large"
           type="button"
