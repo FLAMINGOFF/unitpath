@@ -292,10 +292,12 @@ function TermColumn({
             type="button"
             className="slot"
             onClick={() => addHere(period)}
-            aria-label={`Add unit to ${termLabel(period)}`}
           >
             <Plus size={15} aria-hidden="true" />
-            <span>{termEntries.length ? "Add unit" : "Empty term"}</span>
+            <span>
+              Add unit
+              <span className="sr-only"> to {termLabel(period)}</span>
+            </span>
           </button>
         )}
       </div>

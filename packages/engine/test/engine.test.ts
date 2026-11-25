@@ -15,6 +15,8 @@ import {
   teachingTermSchema,
   periodSchema,
   validatePlan,
+  ISSUE_CODES,
+  type IssueCode,
 } from "../src";
 import {
   fixtureCatalog,
@@ -967,4 +969,127 @@ describe("saved elective slots", () => {
       }).success,
     ).toBe(false);
   });
+});
+
+describe("every issue code", () => {
+  type Case = { plan: Plan; catalog?: (catalog: Catalog) => void };
+  const done = [
+    entry("TST1001", s1),
+    entry("TST2001", s2),
+    entry("TST2002", laterS1),
+    entry("TST3001", laterS2),
+    entry("TST3002", laterS2),
+  ];
+  const clean: Case = { plan: fixturePlan({ entries: done }) };
+  const cases: Record<IssueCode, { positive: Case; negative: Case }> = {
+    DUPLICATE_UNIT: {
+      positive: {
+        plan: fixturePlan({
+          entries: [entry("TST1001", s1), entry("TST1001", laterS1)],
+        }),
+      },
+      negative: clean,
+    },
+    UNKNOWN_UNIT: {
+      positive: { plan: fixturePlan({ entries: [entry("TST9999", s1)] }) },
+      negative: clean,
+    },
+    DATA_UNVERIFIED: {
+      positive: {
+        plan: fixturePlan({ entries: [entry("TST1002", s1)] }),
+        catalog: (catalog) => (catalog.units.TST1002!.verified = false),
+      },
+      negative: clean,
+    },
+    OFFERING_UNKNOWN: {
+      positive: {
+        plan: fixturePlan({ entries: [entry("TST1002", s1)] }),
+        catalog: (catalog) => (catalog.units.TST1002!.offerings = "TODO"),
+      },
+      negative: clean,
+    },
+    CAMPUS_UNSELECTED: {
+      positive: {
+        plan: fixturePlan({ campus: null, entries: [entry("TST1002", s1)] }),
+      },
+      negative: clean,
+    },
+    NOT_OFFERED: {
+      positive: { plan: fixturePlan({ entries: [entry("TST1001", s2)] }) },
+      negative: clean,
+    },
+    REPLACED_UNIT: {
+      positive: { plan: fixturePlan({ entries: [entry("TST3004", s1)] }) },
+      negative: {
+        plan: fixturePlan({ entries: [entry("TST3004", s1, "completed")] }),
+      },
+    },
+    PREREQ_UNMET: {
+      positive: { plan: fixturePlan({ entries: [entry("TST2001", s2)] }) },
+      negative: clean,
+    },
+    COREQ_UNMET: {
+      positive: {
+        plan: fixturePlan({
+          entries: done.filter((e) => e.unit !== "TST3002"),
+        }),
+      },
+      negative: clean,
+    },
+    PROHIBITION_CONFLICT: {
+      positive: {
+        plan: fixturePlan({
+          entries: [entry("TST1001", s1), entry("TST1003", s2)],
+        }),
+      },
+      negative: { plan: fixturePlan({ entries: [entry("TST1003", s2)] }) },
+    },
+    PREREQUISITE_UNKNOWN: {
+      positive: {
+        plan: fixturePlan({ entries: [entry("TST1002", s1)] }),
+        catalog: (catalog) =>
+          (catalog.units.TST1002!.requisites.prerequisite = "TODO"),
+      },
+      negative: clean,
+    },
+    COREQUISITE_UNKNOWN: {
+      positive: {
+        plan: fixturePlan({ entries: [entry("TST1002", s1)] }),
+        catalog: (catalog) =>
+          (catalog.units.TST1002!.requisites.corequisite = "TODO"),
+      },
+      negative: clean,
+    },
+    PROHIBITION_UNKNOWN: {
+      positive: {
+        plan: fixturePlan({ entries: [entry("TST1002", s1)] }),
+        catalog: (catalog) =>
+          (catalog.units.TST1002!.requisites.prohibitions = "TODO"),
+      },
+      negative: clean,
+    },
+    TERM_OVERLOAD: {
+      positive: {
+        plan: fixturePlan({
+          maxUnitsPerTerm: 1,
+          entries: [entry("TST1001", s1), entry("TST1002", s1)],
+        }),
+      },
+      negative: clean,
+    },
+  };
+  const run = ({ plan, catalog: change }: Case) => {
+    const catalog = fixtureCatalog();
+    change?.(catalog);
+    return validatePlan(plan, catalog).map((issue) => issue.code);
+  };
+  it("has a case for every exported code", () => {
+    expect(Object.keys(cases).sort()).toEqual([...ISSUE_CODES].sort());
+  });
+  for (const code of ISSUE_CODES) {
+    it(`${code} appears only when its condition holds`, () => {
+      expect(run(cases[code].positive)).toContain(code);
+      expect(run(cases[code].negative)).not.toContain(code);
+    });
+  }
 });

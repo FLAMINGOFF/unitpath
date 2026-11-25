@@ -44,11 +44,29 @@ export type ProgressReport = {
   projectedCredits: number;
 };
 
+export const ISSUE_CODES = [
+  "DUPLICATE_UNIT",
+  "UNKNOWN_UNIT",
+  "DATA_UNVERIFIED",
+  "OFFERING_UNKNOWN",
+  "CAMPUS_UNSELECTED",
+  "NOT_OFFERED",
+  "REPLACED_UNIT",
+  "PREREQ_UNMET",
+  "COREQ_UNMET",
+  "PROHIBITION_CONFLICT",
+  "PREREQUISITE_UNKNOWN",
+  "COREQUISITE_UNKNOWN",
+  "PROHIBITION_UNKNOWN",
+  "TERM_OVERLOAD",
+] as const;
+export type IssueCode = (typeof ISSUE_CODES)[number];
+
 export type Issue = {
   level: "error" | "warning" | "info";
   unit?: string;
   period?: Period;
-  code: string;
+  code: IssueCode;
   message: string;
 };
 
@@ -698,17 +716,27 @@ export function validatePlan(plan: Plan, catalog: Catalog): Issue[] {
       });
     }
     const report = evaluateRequisites(unit, entry.period, plan, catalog);
-    for (const [key, node, code] of [
-      ["Prerequisite", report.prerequisite, "PREREQ_UNMET"],
-      ["Corequisite", report.corequisite, "COREQ_UNMET"],
-      ["Prohibition", report.prohibition, "PROHIBITION_CONFLICT"],
+    for (const [key, node, code, unknownCode] of [
+      [
+        "Prerequisite",
+        report.prerequisite,
+        "PREREQ_UNMET",
+        "PREREQUISITE_UNKNOWN",
+      ],
+      ["Corequisite", report.corequisite, "COREQ_UNMET", "COREQUISITE_UNKNOWN"],
+      [
+        "Prohibition",
+        report.prohibition,
+        "PROHIBITION_CONFLICT",
+        "PROHIBITION_UNKNOWN",
+      ],
     ] as const) {
       if (node.ok) continue;
       issues.push({
         level: node.unknown ? "info" : "error",
         unit: entry.unit,
         period: entry.period,
-        code: node.unknown ? `${key.toUpperCase()}_UNKNOWN` : code,
+        code: node.unknown ? unknownCode : code,
         message: `${key}: ${node.message}`,
       });
     }

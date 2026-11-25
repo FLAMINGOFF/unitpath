@@ -55,7 +55,7 @@ export function SetupPage({
         .sort((a, b) => a.version - b.version)
         .map((item) => [item.code, item]),
     ).values(),
-  ].sort((a, b) => a.code.localeCompare(b.code));
+  ].sort((a, b) => compareCodes(a.code, b.code));
   const matches = courseOptions.filter((item) =>
     (item.code + " " + item.title)
       .toLowerCase()

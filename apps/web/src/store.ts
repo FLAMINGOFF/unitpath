@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import {
+  compareOrdinal,
   latestHandbookVersion,
   migratePlan,
   type Plan,
@@ -9,7 +10,7 @@ import { catalog } from "./catalog";
 
 const entryYear = new Date().getFullYear();
 const defaultCode = [...catalog.courses].sort((a, b) =>
-  a.code.localeCompare(b.code),
+  compareOrdinal(a.code, b.code),
 )[0]!.code;
 const availableVersions = catalog.courses
   .filter((course) => course.code === defaultCode)
