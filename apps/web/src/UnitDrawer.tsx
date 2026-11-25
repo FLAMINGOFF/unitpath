@@ -92,7 +92,9 @@ export function UnitDrawer({
             <dd>
               {unit.offerings === "TODO"
                 ? "Unverified"
-                : unit.offerings.join(" · ")}
+                : unit.offerings
+                    .map((offering) => `${offering.term} · ${offering.campus}`)
+                    .join(" / ")}
             </dd>
           </div>
           <div>

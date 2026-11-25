@@ -2,6 +2,7 @@ import type { Catalog, Expr, Period, Plan } from "./schema";
 import {
   courseAndComponents,
   evaluateRequisites,
+  offeredAt,
   periodFromOrdinal,
   periodOrdinal,
   satisfiesUnit,
@@ -93,6 +94,7 @@ function reasonFor(
   if (!unit) return "Unit is missing from the catalog.";
   if (unit.offerings === "TODO")
     return "Teaching periods have not been verified.";
+  if (!plan.campus) return "Select a campus before scheduling this unit.";
   const report = evaluateRequisites(unit, period, plan, catalog);
   return (
     [report.prerequisite, report.corequisite, report.prohibition]
@@ -209,12 +211,7 @@ export function autoSchedule(
     for (const code of candidates) {
       if (!remaining.has(code) || slots <= 0) continue;
       const unit = catalog.units[code];
-      if (
-        !unit ||
-        unit.offerings === "TODO" ||
-        !unit.offerings.includes(period.term)
-      )
-        continue;
+      if (!unit || offeredAt(unit, period, plan.campus) !== true) continue;
       const basePlan = { ...plan, entries: current };
       const prereq = evaluateRequisites(
         unit,
@@ -232,9 +229,7 @@ export function autoSchedule(
         bundle.some((item) => {
           const candidate = catalog.units[item];
           return (
-            !candidate ||
-            candidate.offerings === "TODO" ||
-            !candidate.offerings.includes(period.term)
+            !candidate || offeredAt(candidate, period, plan.campus) !== true
           );
         })
       )

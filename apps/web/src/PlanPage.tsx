@@ -25,6 +25,7 @@ import {
 import {
   autoSchedule,
   evaluateRequisites,
+  offeredAt,
   periodFromOrdinal,
   periodOrdinal,
   validatePlan,
@@ -487,8 +488,7 @@ export function PlanPage({
       return false;
     if (!onlyAvailable) return true;
     return (
-      unit.offerings !== "TODO" &&
-      unit.offerings.includes(selectedPeriod.term) &&
+      offeredAt(unit, selectedPeriod, plan.campus) === true &&
       evaluateRequisites(unit, selectedPeriod, plan, catalog).ok
     );
   });
@@ -656,8 +656,7 @@ export function PlanPage({
                   selected={periodOrdinal(period) === activeOrdinal}
                   dimmed={
                     !!draggedUnit &&
-                    draggedUnit.offerings !== "TODO" &&
-                    !draggedUnit.offerings.includes(period.term)
+                    offeredAt(draggedUnit, period, plan.campus) === false
                   }
                   actions={actions}
                   addHere={(value) => {

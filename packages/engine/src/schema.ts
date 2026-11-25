@@ -2,6 +2,21 @@ import { z } from "zod";
 
 export const termSchema = z.enum(["S1", "S2"]);
 export type Term = z.infer<typeof termSchema>;
+export const teachingTermSchema = z.enum(["S1", "S2", "Summer", "Winter"]);
+export type TeachingTerm = z.infer<typeof teachingTermSchema>;
+export const campusSchema = z.enum([
+  "Clayton",
+  "Caulfield",
+  "Peninsula",
+  "Malaysia",
+  "Online",
+]);
+export type Campus = z.infer<typeof campusSchema>;
+export const offeringSchema = z.strictObject({
+  term: teachingTermSchema,
+  campus: campusSchema,
+});
+export type Offering = z.infer<typeof offeringSchema>;
 
 export const periodSchema = z.strictObject({
   year: z.number().int().min(2020).max(2100),
@@ -45,7 +60,7 @@ export const unitSchema = z.strictObject({
   title: z.string().min(1),
   creditPoints: z.number().int().positive(),
   level: level.optional(),
-  offerings: z.union([z.array(termSchema).min(1), z.literal("TODO")]),
+  offerings: z.union([z.array(offeringSchema).min(1), z.literal("TODO")]),
   requisites: z.strictObject({
     prerequisite: z.union([exprSchema, z.null(), z.literal("TODO")]),
     corequisite: z.union([exprSchema, z.null(), z.literal("TODO")]),
@@ -133,6 +148,7 @@ export const planSchema = z.strictObject({
     minorIds: z.array(z.string()).optional(),
     specialisationIds: z.array(z.string()).optional(),
   }),
+  campus: campusSchema.optional(),
   startPeriod: periodSchema,
   entries: z.array(
     z.strictObject({

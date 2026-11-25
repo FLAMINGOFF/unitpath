@@ -8,6 +8,8 @@ import {
   unitLevel,
   unitSchema,
   planSchema,
+  teachingTermSchema,
+  periodSchema,
   validatePlan,
 } from "../src";
 import {
@@ -140,6 +142,43 @@ describe("course component combinations", () => {
     expect(
       report.actual.find((rule) => rule.id === "minor-credits")?.status,
     ).toBe("met");
+  });
+});
+
+describe("campus offerings", () => {
+  it("filters by both semester and campus while reserving seasonal terms", () => {
+    const catalog = fixtureCatalog();
+    catalog.units.TST4001 = unit("TST4001", {
+      offerings: [
+        { term: "S1", campus: "Clayton" },
+        { term: "S2", campus: "Malaysia" },
+        { term: "Summer", campus: "Online" },
+      ],
+    });
+    expect(teachingTermSchema.safeParse("Summer").success).toBe(true);
+    expect(teachingTermSchema.safeParse("Winter").success).toBe(true);
+    expect(periodSchema.safeParse({ year: 2026, term: "Summer" }).success).toBe(
+      false,
+    );
+    const wrongCampus = validatePlan(
+      fixturePlan({ campus: "Malaysia", entries: [entry("TST4001", s1)] }),
+      catalog,
+    );
+    expect(wrongCampus.some((issue) => issue.code === "NOT_OFFERED")).toBe(
+      true,
+    );
+    const valid = validatePlan(
+      fixturePlan({ campus: "Malaysia", entries: [entry("TST4001", s2)] }),
+      catalog,
+    );
+    expect(valid.some((issue) => issue.code === "NOT_OFFERED")).toBe(false);
+    const unknown = validatePlan(
+      fixturePlan({ campus: undefined, entries: [entry("TST4001", s1)] }),
+      catalog,
+    );
+    expect(unknown.some((issue) => issue.code === "CAMPUS_UNSELECTED")).toBe(
+      true,
+    );
   });
 });
 

@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Info, Plus, X } from "lucide-react";
-import { unitLevel, type Plan } from "@unitpath/engine";
+import {
+  campusSchema,
+  unitLevel,
+  type Campus,
+  type Plan,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
 import { compareCodes, Note, PageHead } from "./ui";
@@ -140,6 +145,27 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
               >
                 <option value="S1">Semester 1</option>
                 <option value="S2">Semester 2</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Campus</span>
+              <select
+                value={plan.campus ?? ""}
+                onChange={(event) =>
+                  updatePlan((current) => ({
+                    ...current,
+                    campus: event.target.value
+                      ? (event.target.value as Campus)
+                      : undefined,
+                  }))
+                }
+              >
+                <option value="">Select campus</option>
+                {campusSchema.options.map((campus) => (
+                  <option key={campus} value={campus}>
+                    {campus}
+                  </option>
+                ))}
               </select>
             </label>
           </div>

@@ -5,7 +5,10 @@ export function unit(code: string, changes: Partial<Unit> = {}): Unit {
     code,
     title: code,
     creditPoints: 6,
-    offerings: ["S1", "S2"],
+    offerings: [
+      { term: "S1", campus: "Clayton" },
+      { term: "S2", campus: "Clayton" },
+    ],
     requisites: { prerequisite: null, corequisite: null, prohibitions: [] },
     replacedBy: null,
     source: `https://example.com/${code}`,
@@ -16,7 +19,7 @@ export function unit(code: string, changes: Partial<Unit> = {}): Unit {
 
 export function fixtureCatalog(): Catalog {
   const units = [
-    unit("TST1001", { offerings: ["S1"] }),
+    unit("TST1001", { offerings: [{ term: "S1", campus: "Clayton" }] }),
     unit("TST1002"),
     unit("TST1003", {
       requisites: {
@@ -26,7 +29,7 @@ export function fixtureCatalog(): Catalog {
       },
     }),
     unit("TST2001", {
-      offerings: ["S2"],
+      offerings: [{ term: "S2", campus: "Clayton" }],
       requisites: {
         prerequisite: { unit: "TST1001" },
         corequisite: null,
@@ -34,7 +37,7 @@ export function fixtureCatalog(): Catalog {
       },
     }),
     unit("TST2002", {
-      offerings: ["S1"],
+      offerings: [{ term: "S1", campus: "Clayton" }],
       requisites: {
         prerequisite: { unit: "TST2001" },
         corequisite: null,
@@ -42,14 +45,14 @@ export function fixtureCatalog(): Catalog {
       },
     }),
     unit("TST3001", {
-      offerings: ["S2"],
+      offerings: [{ term: "S2", campus: "Clayton" }],
       requisites: {
         prerequisite: { unit: "TST2002" },
         corequisite: { unit: "TST3002" },
         prohibitions: [],
       },
     }),
-    unit("TST3002", { offerings: ["S2"] }),
+    unit("TST3002", { offerings: [{ term: "S2", campus: "Clayton" }] }),
     unit("TST3003"),
     unit("TST3004", { replacedBy: "TST3005" }),
     unit("TST3005"),
@@ -103,6 +106,7 @@ export function fixturePlan(changes: Partial<Plan> = {}): Plan {
   return {
     schemaVersion: 1,
     course: { code: "C2000", version: 2026, majorId: "test-major" },
+    campus: "Clayton",
     startPeriod: { year: 2026, term: "S1" },
     entries: [],
     creditBlocks: [],

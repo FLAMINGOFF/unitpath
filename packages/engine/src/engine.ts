@@ -1,4 +1,5 @@
 import type {
+  Campus,
   Catalog,
   Course,
   Expr,
@@ -67,6 +68,17 @@ export function unitLevel(unit: Unit | string): number {
   return typeof unit === "string"
     ? Number(digit)
     : (unit.level ?? Number(digit));
+}
+
+export function offeredAt(
+  unit: Unit,
+  period: Period,
+  campus?: Campus | null,
+): boolean | "unknown" {
+  if (unit.offerings === "TODO" || !campus) return "unknown";
+  return unit.offerings.some(
+    (offering) => offering.term === period.term && offering.campus === campus,
+  );
 }
 
 export function courseAndComponents(
@@ -551,21 +563,32 @@ export function validatePlan(plan: Plan, catalog: Catalog): Issue[] {
         message: `${entry.unit} data has not been verified against the Handbook.`,
       });
     }
-    if (unit.offerings === "TODO") {
+    const offered = offeredAt(unit, entry.period, plan.campus);
+    if (offered === "unknown") {
       issues.push({
         level: "info",
         unit: entry.unit,
         period: entry.period,
-        code: "OFFERING_UNKNOWN",
-        message: `${entry.unit} offerings are not verified.`,
+        code:
+          unit.offerings === "TODO" ? "OFFERING_UNKNOWN" : "CAMPUS_UNSELECTED",
+        message:
+          unit.offerings === "TODO"
+            ? entry.unit + " offerings are not verified."
+            : "Choose a campus to check " + entry.unit + " offerings.",
       });
-    } else if (!unit.offerings.includes(entry.period.term)) {
+    } else if (!offered) {
       issues.push({
         level: "error",
         unit: entry.unit,
         period: entry.period,
         code: "NOT_OFFERED",
-        message: `${entry.unit} is not offered in ${entry.period.term}.`,
+        message:
+          entry.unit +
+          " is not offered in " +
+          entry.period.term +
+          " at " +
+          plan.campus +
+          ".",
       });
     }
     if (
