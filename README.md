@@ -1,10 +1,13 @@
 # UnitPath
 
-UnitPath is an unofficial, local-first degree planner for Monash IT students.
-It turns course rules into clear progress checks, prerequisite explanations, and term-by-term suggestions.
-**Demo:** run locally for now. The [source repository](https://github.com/FLAMINGOFF/unitpath) is private; public publication is pending verification of unit data.
+An unofficial degree planner for Monash students: it checks course rules, explains prerequisites, and suggests a term-by-term route.
+**Live demo:** [flamingoff.github.io/unitpath](https://flamingoff.github.io/unitpath/) · no account, no tracking, your plan stays in your browser.
 
-> **Data status:** The 2026 C2000 Applied cybersecurity course structure is seeded from the [official course map](https://www.monash.edu/__data/assets/pdf_file/0014/4150220/2026-C2000-BInfoTech-AppCyber.pdf). All 17 unit records are marked unverified. Their offerings, requisites, prohibitions, and replacement fields are `TODO`. UnitPath will not treat these unknown rules as satisfied. The elective list is also pending.
+[![CI](https://github.com/FLAMINGOFF/unitpath/actions/workflows/ci.yml/badge.svg)](https://github.com/FLAMINGOFF/unitpath/actions/workflows/ci.yml) ![Engine coverage](https://img.shields.io/badge/engine%20coverage-%E2%89%A590%25-2e7a4c) ![Accessibility](https://img.shields.io/badge/Lighthouse%20a11y-100-2e7a4c)
+
+![Setup, auto schedule and an error on a unit moved to a term it is not offered](docs/media/demo.gif)
+
+> **Data status:** The C2000 Bachelor of Information Technology (2026), Applied cybersecurity major, and eleven FIT electives were read from their [Monash Handbook 2026](https://handbook.monash.edu/) pages. Every record links its source and is still marked unverified until a person checks it ([checklist](docs/VERIFY.md)). FIT3045 IBL teaching periods and two prerequisites remain unknown, and unknown rules are never treated as met.
 
 ## Features
 
@@ -13,6 +16,10 @@ It turns course rules into clear progress checks, prerequisite explanations, and
 - Explore a unit's full prerequisite result tree and its official Handbook source.
 - Preview deterministic, constraint-aware scheduling suggestions before applying them.
 - Keep plans in local storage, with validated JSON import/export and compressed share links.
+
+## Deployment
+
+Pushing to `main` runs CI; when CI passes and the repository is public, the Deploy Pages workflow publishes `apps/web/dist` to GitHub Pages. The workflow can also be run by hand.
 
 ## Run locally
 
@@ -35,9 +42,9 @@ pnpm test:coverage
 pnpm test:e2e
 ```
 
-Playwright needs a browser: run `pnpm exec playwright install chromium` once, or use an existing Chrome installation with `UNITPATH_SYSTEM_CHROME=1 pnpm test:e2e`. Local Lighthouse accessibility audits on 25 November 2026 scored 100 for Setup, 96 for Plan, 96 for Progress, 96 for Graph, and 100 for Settings.
+Playwright needs a browser: run `pnpm exec playwright install chromium` once, use an installed Chrome with `UNITPATH_SYSTEM_CHROME=1 pnpm test:e2e`, or point `UNITPATH_CHROMIUM_PATH` at a Chromium binary. Lighthouse accessibility audits of the production build on 25 November 2026 scored 100 on Setup, Planner, Progress, Graph and Data.
 
-The engine has no React, DOM, or network dependency. Its unit tests use fictional `TST` units and currently exceed 90% statement coverage. The real course catalog also passes a build-time smoke check.
+The engine has no React, DOM, or network dependency. Its unit tests use fictional `TST` units and exceed 90% statement coverage. A separate test runs the real catalogue and locks in the six-term, zero-error schedule.
 
 ## How it works
 
@@ -46,16 +53,24 @@ The engine has no React, DOM, or network dependency. Its unit tests use fictiona
 Each unit is YAML, and each course year has its own YAML rules. The build validates schema, references, file names, prerequisite cycles, and replacement cycles before producing `catalog.json`. Adding a new course version does not require changing engine code.
 
 ```yaml
-code: FIT2173
-title: Software security
+code: FIT3168
+title: IT forensics
 creditPoints: 6
-offerings: TODO
+offerings:
+  - term: S2
+    campus: Clayton
 requisites:
-  prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
-source: https://handbook.monash.edu/2026/units/FIT2173
+  prerequisite:
+    all:
+      - unit: FIT1057
+      - any:
+          - unit: FIT2173
+          - unit: FIT3173
+  corequisite: null
+  prohibitions:
+    - FIT5223
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3168
 verified: false
 ```
 
@@ -63,11 +78,11 @@ verified: false
 
 ### Explanations, not just a red badge
 
-The pure TypeScript engine evaluates recursive `all`, `any`, `atLeast`, unit, credit, level-credit, and enrolled-course expressions. It returns a tree with a result and message at every node. A missing prerequisite, a same-term prerequisite, and an unverified requisite are distinct states. The interface can show every unmet branch without short-circuiting.
+The pure TypeScript engine evaluates recursive `all`, `any`, `atLeast`, unit, credit, level-credit, prefix-credit ("12 points of FIT units") and enrolled-course expressions. It returns a tree with a result and message at every node. A missing prerequisite, a same-term prerequisite, and an unverified requisite are distinct states. The interface can show every unmet branch without short-circuiting.
 
 ### Scheduling is a suggestion
 
-The scheduler builds a dependency graph, prioritises long prerequisite chains, and greedily fills eligible terms. It checks offerings, prerequisites, corequisites, prohibitions, and the term limit. It adds explicit elective placeholders and reports units it could not place. The algorithm is deterministic but heuristic: it does not guarantee the shortest or best plan. With the current unverified unit catalog, automatic core placement is intentionally blocked.
+The scheduler builds a dependency graph, prioritises long prerequisite chains, and greedily fills eligible terms. It checks offerings, prerequisites, corequisites, prohibitions, and the term limit. It reserves elective slots, which count toward later credit thresholds ("90 points before FIT3047") but never toward degree progress, and it reports units it could not place with a reason. The algorithm is deterministic but heuristic: it does not guarantee the shortest or best plan. On the real 2026 data, an empty applied cybersecurity plan fills six terms with no errors.
 
 ## Architecture
 
@@ -92,11 +107,10 @@ Choose the correct Handbook year and unit page. Add one YAML file per unit under
 
 ## Current limitations
 
-- The unit-level catalog requires Handbook verification, including campus-specific teaching periods. See [verification checklist](docs/VERIFY.md).
-- No elective unit list has been chosen. Electives remain labelled slots rather than fabricated unit codes.
-- No public GitHub Pages URL or demo GIF is available yet.
-- The Pages workflow requires a manual trigger; a push to `main` cannot publish the site.
-- The v1 model covers single degrees and Semester 1/2 only. It does not model IBL placement load, summer/winter units, doubles, or Honours.
+- Unit records are read from the Handbook but not yet checked by a person. See the [verification checklist](docs/VERIFY.md).
+- Only C2000 (2026) applied cybersecurity is published so far. Other courses can be added as YAML; see [contributing data](#contributing-data).
+- Teaching periods other than S1, S2 and summer, attendance modes, double degrees and Honours are not modelled.
+- Industry Based Learning is shown as a pathway, but its placement terms are not scheduled automatically.
 
 ## Disclaimer
 

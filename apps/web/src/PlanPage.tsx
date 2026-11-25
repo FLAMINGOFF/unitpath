@@ -837,7 +837,7 @@ export function PlanPage({
             )}
           </ul>
           <p className="catalogue-foot mono-label">
-            {units.length} units · elective list coming
+            {units.length} units · Handbook 2026
           </p>
         </aside>
       </div>
