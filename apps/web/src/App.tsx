@@ -156,11 +156,12 @@ export function App() {
         <div className="data-banner">
           <AlertTriangle size={14} aria-hidden="true" />
           <span>
-            <strong>Data under review.</strong> {unverified} of{" "}
-            {metrics?.referencedUnits ?? 0} referenced unit records still need
-            checking against the Handbook.{" "}
+            <strong>Unofficial, unverified data.</strong> Unit rules were read
+            from the Monash Handbook, but {unverified} of{" "}
+            {metrics?.referencedUnits ?? 0} records have not been checked by a
+            person yet.{" "}
             <span className="more">
-              Unknown rules are never treated as met.
+              Confirm every unit on its Handbook page before you enrol.
             </span>
           </span>
         </div>

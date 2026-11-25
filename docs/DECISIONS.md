@@ -80,3 +80,7 @@ The IBL description on the course page says the placement replaces the applied s
 ### Elective slots are saved with the plan
 
 Real rules such as "90 credit points before FIT3047" depend on electives a student has not chosen yet. Applying an automatic schedule now saves its elective slots in the plan as `electiveSlots` (optional, so older files still load). A slot counts toward generic credit thresholds in later terms and toward the term load, but never toward a prefixed rule and never toward degree progress, which counts only real units. Adding a unit to a full term replaces one of its slots. Without this, an applied schedule would immediately show a false error on FIT3047.
+
+## 2026-11-25: Public deployment
+
+This supersedes "Private source repository, no public deployment". The owner chose to make the repository public so GitHub Pages can host the site for free. The full history was scanned for credentials before that step and none were found. Deploy Pages now runs after CI succeeds on a push to `main` and skips itself while the repository is private, so it never fails noisily. Unit data stays marked unverified on the site until a person checks it, and every page shows that warning.

@@ -13,21 +13,21 @@
   --card: #fffdf8;
   --ink: #17171a;
   --ink-2: #4a4740;
-  --ink-3: #7f7a6f;
+  --ink-3: #66625a;
   --rule: #ddd6c7;
   --rule-strong: #c4bba8;
   --mark: #d4f05a;
   --mark-ink: #17171a;
 
-  --done: #2e7a4c;
+  --done: #266840;
   --done-bg: #e1efe3;
   --avail: #2a56c0;
   --avail-bg: #e2e9fa;
-  --locked: #7f7a6f;
+  --locked: #66625a;
   --locked-bg: #ebe6da;
   --err: #b8341f;
   --err-bg: #f8e0da;
-  --warn: #9a6410;
+  --warn: #7f520b;
   --warn-bg: #f8ecd0;
 
   --serif: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
@@ -232,7 +232,7 @@ a:hover {
 .tab-index {
   font-family: var(--mono);
   font-size: 10.5px;
-  opacity: 0.6;
+  opacity: 0.85;
 }
 .masthead-meta {
   display: flex;
