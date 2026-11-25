@@ -8,7 +8,7 @@ The requested elective list has not yet been supplied, so the catalog contains o
 
 ## 2026-11-25: Pathway preference in the plan
 
-Version 1 plans stored an optional `selectedPathway` for the Standard or IBL choice. Version 2 retains that value during migration and adds `selectedPathways` for rule-specific choices. When neither identifies a branch, the first branch remains the default for stable scheduling and progress displays.
+Version 1 plans stored an optional `selectedPathway` for a single choice. Version 2 stores only `selectedPathways`, keyed by scoped rule id such as `course/total` or `major:applied-cybersecurity/path`. Migration uses the exact course version and legacy major to map the old label to matching `oneOf` rules; an unknown label is rejected rather than guessed. When no choice is stored, the first branch remains the stable default for progress and scheduling.
 
 ## 2026-11-25: Static routing and CSP
 
@@ -30,7 +30,11 @@ The engine derives a unit's level from the first digit in its code; a YAML `leve
 
 ### Course versions and component choices
 
-Each course record is identified by course code and entry-year version. A record can define multiple majors, minors and specialisations; a version 2 Plan stores arrays of the selected ids. The engine evaluates the course's rules and all selected components together. `creditsFromList` counts each completed eligible unit once at its actual credit value and requires at least the declared point threshold. Automatic scheduling leaves an unmet list rule visible for manual choice; it does not invent a unit selection.
+Each course record is identified by course code and Handbook year. Entry year is independent and may differ from the Handbook version: setup initially selects the newest available version no later than entry year, permits a manual version choice, and warns when exact-year data is absent. The caller supplies the current year; the engine does not read the clock. A record can define multiple majors, minors and specialisations; a version 2 Plan stores arrays of the selected ids. The engine evaluates the course rules and all selected components together. Raw rule ids must be unique within a course version across course and component rules; evaluated ids add `course/`, `major:<id>/`, `minor:<id>/` or `specialisation:<id>/` so selections cannot collide.
+
+### List credits and rule overlap
+
+`creditsFromList` counts each completed eligible unit once within that rule, using its actual credit value. It never adds units to automatic schedules: the student must choose eligible units manually. By default, the same unit may satisfy more than one separate rule, including overlapping list and major requirements; there is no implicit exclusive allocation or double-count prohibition.
 
 ### Campus and teaching terms
 
@@ -38,11 +42,11 @@ Offerings are explicit term and campus pairs for Clayton, Caulfield, Peninsula, 
 
 ### Scheduling estimates
 
-Elective placeholders are estimates, never catalog units. Their nominal point size uses the lower median of known required units from the selected course and components. If there is no such unit, the scheduler reports that it cannot estimate a slot instead of borrowing a credit value from another course. Graduation remains unknown while a required list rule or elective points are unresolved.
+Elective placeholders are estimates, never catalog units. Their nominal point size uses the lower median of known required units from the selected course and components. If there is no such unit, the scheduler reports that it cannot estimate a slot instead of borrowing a credit value from another course. Graduation remains unknown while a required list rule or elective points are unresolved. When selected components suggest units in the same term, their arrays merge in component order with duplicate unit codes removed.
 
 ### Setup and existing web design
 
-The PR #9 route-ledger design remains the basis for every changed screen. Setup searches course codes and titles, then exposes available entry-year versions and major/minor/specialisation choices. An absent course shows “暂无数据，欢迎贡献”. The planner graph and default completed-unit picker focus on the selected course; the picker can search the full catalog for an external unit. No degree or subject prefix is singled out in engine or web logic.
+The PR #9 route-ledger design remains the basis for every changed screen. Setup searches course codes and titles, then exposes available entry-year versions and major/minor/specialisation choices. An absent course shows an English contribution prompt. The planner graph and default completed-unit picker focus on the selected course; the picker can search the full catalog for an external unit. No degree or subject prefix is singled out in engine or web logic.
 
 ### Data contribution and quality signals
 
@@ -50,7 +54,7 @@ Course YAML and unit YAML remain hand-curated. The issue and PR templates ask fo
 
 ### Plan migration
 
-Schema version 2 is canonical. Import and persisted-store hydration migrate valid v1 plans: the old major id becomes a one-element array, known arrays are retained, and an absent campus becomes null rather than a guessed campus. Legacy pathway choice is retained, and the existing browser storage key remains in place so older saved plans can be read. Invalid plans still fail validation.
+Schema version 2 is canonical. Import and persisted-store hydration migrate valid v1 plans: the old major id becomes a one-element array and campus becomes null rather than a guessed campus. The strict v1 parser rejects new v2 fields such as campus or component arrays when a file claims to be v1. Legacy pathway choice is converted to scoped `selectedPathways` keys, and the existing browser storage key remains in place so older saved plans can be read. Invalid plans still fail validation.
 
 ### Test data and release boundary
 
