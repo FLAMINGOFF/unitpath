@@ -611,6 +611,29 @@ describe("plan v1 migration", () => {
     expect(migratePlan(migrated, fixtureCatalog())).toEqual(migrated);
   });
 
+  it("rejects v2-only fields in files labelled v1", () => {
+    const legacy = {
+      schemaVersion: 1,
+      course: { code: "C2000", version: 2026, majorId: "test-major" },
+      startPeriod: s1,
+      entries: [],
+      creditBlocks: [],
+      maxUnitsPerTerm: 4,
+    };
+    const additions = [
+      { ...legacy, campus: "Clayton" },
+      { ...legacy, selectedPathways: {} },
+      { ...legacy, course: { ...legacy.course, majorIds: ["test-major"] } },
+      { ...legacy, course: { ...legacy.course, minorIds: [] } },
+      { ...legacy, course: { ...legacy.course, specialisationIds: [] } },
+    ];
+    for (const input of additions) {
+      expect(() =>
+        parsePlanJson(JSON.stringify(input), fixtureCatalog()),
+      ).toThrow();
+    }
+  });
+
   it("rejects the removed pathway field in v2 plans", () => {
     const oldField = { ...fixturePlan(), selectedPathway: "Standard pathway" };
     expect(planSchema.safeParse(oldField).success).toBe(false);

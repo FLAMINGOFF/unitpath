@@ -161,11 +161,7 @@ export const planV1Schema = z.strictObject({
     code: z.string(),
     version: z.number().int(),
     majorId: z.string(),
-    majorIds: z.array(z.string()).optional(),
-    minorIds: z.array(z.string()).optional(),
-    specialisationIds: z.array(z.string()).optional(),
   }),
-  campus: campusSchema.optional(),
   selectedPathway: z.string().optional(),
   ...planFields,
 });
@@ -250,13 +246,11 @@ export function migratePlan(input: unknown, catalog: Catalog): Plan {
       course: {
         code: old.course.code,
         version: old.course.version,
-        majorIds:
-          old.course.majorIds ??
-          (old.course.majorId ? [old.course.majorId] : []),
-        minorIds: old.course.minorIds ?? [],
-        specialisationIds: old.course.specialisationIds ?? [],
+        majorIds: [old.course.majorId],
+        minorIds: [],
+        specialisationIds: [],
       },
-      campus: old.campus ?? null,
+      campus: null,
       startPeriod: old.startPeriod,
       entries: old.entries,
       creditBlocks: old.creditBlocks,
