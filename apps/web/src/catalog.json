@@ -1,72 +1,219 @@
 {
   "units": {
+    "FIT1043": {
+      "code": "FIT1043",
+      "title": "Introduction to data science",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": null,
+        "prohibitions": [
+          "FIT5145"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT1043",
+      "verified": false,
+      "notes": [
+        "Handbook prerequisite: MTH1010 or VCE Mathematical Methods or Specialist Mathematics units 3 & 4 with a study score of 25 or equivalent. School results cannot be modelled, so the prerequisite stays TODO."
+      ]
+    },
     "FIT1045": {
       "code": "FIT1045",
       "title": "Introduction to programming",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": null,
+        "corequisite": null,
+        "prohibitions": [
+          "FIT1053"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT1045",
-      "verified": false
+      "verified": false,
+      "notes": [
+        "Also offered in the Malaysia October intake, the Clayton November teaching period and Monash Indonesia semester 2; UnitPath models only S1, S2 and summer."
+      ]
     },
     "FIT1047": {
       "code": "FIT1047",
       "title": "Introduction to computer systems, networks and security",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": null,
+        "corequisite": null,
+        "prohibitions": []
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT1047",
-      "verified": false
+      "verified": false,
+      "notes": [
+        "Also offered in the Malaysia October intake, the Clayton November teaching period and Monash Indonesia semester 2; UnitPath models only S1, S2 and summer."
+      ]
     },
     "FIT1049": {
       "code": "FIT1049",
       "title": "IT professional practice",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "minCreditsFrom": {
+            "points": 12,
+            "prefix": "FIT"
+          }
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT1055",
+          "ITI1049"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT1049",
-      "verified": false
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: completion of 12 credit points of FIT units."
+      ]
     },
     "FIT1057": {
       "code": "FIT1057",
       "title": "Introduction to cybersecurity",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": null,
+        "corequisite": null,
+        "prohibitions": []
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT1057",
+      "verified": false
+    },
+    "FIT1059": {
+      "code": "FIT1059",
+      "title": "AI for everyone",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": null,
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT1059",
+      "verified": false,
+      "notes": [
+        "Also offered in the Clayton November teaching period."
+      ]
+    },
+    "FIT1060": {
+      "code": "FIT1060",
+      "title": "Pervasive computing",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": null,
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT1060",
       "verified": false
     },
     "FIT1093": {
       "code": "FIT1093",
       "title": "Cybersecurity tools and techniques",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": null,
+        "corequisite": null,
+        "prohibitions": [
+          "FIT2093"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT1093",
       "verified": false
     },
@@ -74,55 +221,283 @@
       "code": "FIT2001",
       "title": "Systems development",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "minCreditsFrom": {
+            "points": 24,
+            "prefix": "FIT"
+          }
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FZA2001",
+          "ITI2001"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2001",
-      "verified": false
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: 24 credit points of FIT units."
+      ]
     },
     "FIT2002": {
       "code": "FIT2002",
       "title": "IT project management",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "Summer",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1045"
+                },
+                {
+                  "unit": "FIT1048"
+                },
+                {
+                  "unit": "FIT1051"
+                },
+                {
+                  "unit": "FIT1053"
+                },
+                {
+                  "unit": "ENG1003"
+                },
+                {
+                  "unit": "ENG1013"
+                }
+              ]
+            },
+            {
+              "minCredits": 36
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FZA2002",
+          "ITI2002"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2002",
+      "verified": false,
+      "notes": [
+        "Summer offering is Summer semester B.",
+        "Handbook enrolment rule: as well as completion of at least 36 credit points of study."
+      ]
+    },
+    "FIT2081": {
+      "code": "FIT2081",
+      "title": "Mobile application development",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1045"
+            },
+            {
+              "unit": "FIT1048"
+            },
+            {
+              "unit": "FIT1051"
+            },
+            {
+              "unit": "FIT1053"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "ITI2081"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2081",
+      "verified": false
+    },
+    "FIT2086": {
+      "code": "FIT2086",
+      "title": "Modelling for data analysis",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1045"
+                },
+                {
+                  "unit": "FIT1053"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "MAT1841"
+                },
+                {
+                  "unit": "MTH1030"
+                },
+                {
+                  "unit": "MTH1035"
+                },
+                {
+                  "unit": "ENG1005"
+                },
+                {
+                  "unit": "FIT1058"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2086",
       "verified": false
     },
     "FIT2094": {
       "code": "FIT2094",
       "title": "Databases",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "Summer",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1045"
+            },
+            {
+              "unit": "FIT1048"
+            },
+            {
+              "unit": "FIT1051"
+            },
+            {
+              "unit": "FIT1053"
+            },
+            {
+              "all": [
+                {
+                  "unit": "ENG1013"
+                },
+                {
+                  "unit": "ENG1014"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3171",
+          "ITI2094"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2094",
-      "verified": false
+      "verified": false,
+      "notes": [
+        "Summer offering is Summer semester B."
+      ]
     },
     "FIT2100": {
       "code": "FIT2100",
       "title": "Operating systems",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1047"
+            },
+            {
+              "unit": "ENG1013"
+            },
+            {
+              "unit": "ENG1003"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2100",
       "verified": false
     },
@@ -130,13 +505,22 @@
       "code": "FIT2165",
       "title": "Computer networks",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "unit": "FIT1047"
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3165"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2165",
       "verified": false
     },
@@ -144,99 +528,573 @@
       "code": "FIT2173",
       "title": "Software security",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "any": [
+            {
+              "all": [
+                {
+                  "unit": "ENG1014"
+                },
+                {
+                  "unit": "ENG1013"
+                }
+              ]
+            },
+            {
+              "unit": "FIT1053"
+            },
+            {
+              "unit": "FIT1045"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3173"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2173",
+      "verified": false
+    },
+    "FIT2175": {
+      "code": "FIT2175",
+      "title": "Usability",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "Summer",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT1045"
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "ITI2175",
+          "FIT3175"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2175",
+      "verified": false,
+      "notes": [
+        "Summer offering is Summer semester B."
+      ]
+    },
+    "FIT2179": {
+      "code": "FIT2179",
+      "title": "Data visualisation",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1045"
+            },
+            {
+              "unit": "FIT1054"
+            },
+            {
+              "unit": "FIT1053"
+            },
+            {
+              "unit": "FIT1008"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3179"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2179",
       "verified": false
     },
     "FIT3031": {
       "code": "FIT3031",
       "title": "Network security",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1047"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT3165"
+                },
+                {
+                  "unit": "FIT2093"
+                },
+                {
+                  "unit": "FIT1093"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT3031",
       "verified": false
     },
     "FIT3045": {
       "code": "FIT3045",
-      "title": "Industry based learning",
+      "title": "Industry-based learning",
       "creditPoints": 18,
       "offerings": "TODO",
       "requisites": {
         "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "corequisite": null,
+        "prohibitions": []
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT3045",
-      "verified": false
+      "verified": false,
+      "notes": [
+        "Handbook lists IBL-specific teaching periods (Term 2 and Term 4, Clayton and Malaysia, immersive). Their mapping to S1/S2 is not stated, so offerings stay TODO.",
+        "Permission required. Available to students accepted into the Industry Based Learning program with at least 72 credit points including 60 FIT or MAT credit points. The Handbook also lists FIT3201 or FIT3202 (0-point onboarding units) as prerequisites; the prerequisite stays TODO because entry is by selection.",
+        "IBL students also complete FIT2108 Industry based learning seminar (0 credit points), which UnitPath does not model."
+      ]
     },
     "FIT3047": {
       "code": "FIT3047",
       "title": "Industry experience studio project 1",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1045"
+                },
+                {
+                  "unit": "FIT1048"
+                },
+                {
+                  "unit": "FIT1051"
+                },
+                {
+                  "unit": "FIT1053"
+                }
+              ]
+            },
+            {
+              "unit": "FIT1047"
+            },
+            {
+              "unit": "FIT1049"
+            },
+            {
+              "unit": "FIT2002"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT2099"
+                },
+                {
+                  "unit": "FIT2001"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT2094"
+                },
+                {
+                  "unit": "FIT3171"
+                }
+              ]
+            },
+            {
+              "minCreditsFrom": {
+                "points": 30,
+                "prefix": "FIT",
+                "levels": [
+                  1
+                ]
+              }
+            },
+            {
+              "minCreditsFrom": {
+                "points": 30,
+                "prefix": "FIT",
+                "levels": [
+                  2,
+                  3
+                ]
+              }
+            },
+            {
+              "minCredits": 90
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT2032",
+          "FIT3039",
+          "FIT3040",
+          "FIT3045",
+          "ITI3047"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT3047",
-      "verified": false
+      "verified": false,
+      "notes": [
+        "Handbook rule: the named units plus an additional 12 credit points of FIT units at level 1 and 12 at level 2 or 3, and 90 credit points in total. UnitPath reads 'additional' as 30 FIT level 1 points (18 named + 12) and 30 FIT level 2/3 points (18 named + 12).",
+        "Handbook rule: the unit must be core in your degree program. UnitPath does not check this."
+      ]
     },
     "FIT3048": {
       "code": "FIT3048",
       "title": "Industry experience studio project 2",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "unit": "FIT3047"
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT2032",
+          "FIT3039",
+          "FIT3040",
+          "FIT3045",
+          "ITI3048"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT3048",
+      "verified": false
+    },
+    "FIT3146": {
+      "code": "FIT3146",
+      "title": "Maker lab",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1051"
+                },
+                {
+                  "unit": "FIT1045"
+                },
+                {
+                  "unit": "FIT1053"
+                },
+                {
+                  "unit": "FIT1048"
+                },
+                {
+                  "unit": "ENG1013"
+                },
+                {
+                  "unit": "ENG1003"
+                }
+              ]
+            },
+            {
+              "minCredits": 90
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3146",
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: plus 90 credit points of any units. UnitPath reads this as 90 credit points in total."
+      ]
+    },
+    "FIT3152": {
+      "code": "FIT3152",
+      "title": "Data analytics",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "ETW1000"
+                },
+                {
+                  "unit": "ETF1100"
+                },
+                {
+                  "unit": "ETW1010"
+                },
+                {
+                  "unit": "FIT2086"
+                },
+                {
+                  "unit": "ETW2111"
+                },
+                {
+                  "unit": "ETC1010"
+                },
+                {
+                  "unit": "STA1010"
+                },
+                {
+                  "unit": "FIT1006"
+                },
+                {
+                  "unit": "ETC1000"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT2094"
+                },
+                {
+                  "unit": "FIT3171"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "ETX2250"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3152",
       "verified": false
     },
     "FIT3168": {
       "code": "FIT3168",
       "title": "IT forensics",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1057"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT2173"
+                },
+                {
+                  "unit": "FIT3173"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT5223"
+        ]
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT3168",
       "verified": false
+    },
+    "FIT3178": {
+      "code": "FIT3178",
+      "title": "iOS app development",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1045"
+                },
+                {
+                  "unit": "FIT1048"
+                },
+                {
+                  "unit": "FIT1051"
+                },
+                {
+                  "unit": "FIT1053"
+                },
+                {
+                  "unit": "FIT2085"
+                }
+              ]
+            },
+            {
+              "minCreditsFrom": {
+                "points": 24,
+                "prefix": "FIT",
+                "levels": [
+                  2,
+                  3
+                ]
+              }
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "ITI3178"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3178",
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: and must have passed 24 credit points of FIT level 2 or 3 units."
+      ]
     },
     "FIT3186": {
       "code": "FIT3186",
       "title": "Vulnerability analysis, response and mitigation",
       "creditPoints": 6,
-      "offerings": "TODO",
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
       "requisites": {
-        "prerequisite": "TODO",
-        "corequisite": "TODO",
-        "prohibitions": "TODO"
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT2173"
+            },
+            {
+              "unit": "FIT3173"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
       },
-      "replacedBy": "TODO",
+      "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT3186",
       "verified": false
+    },
+    "FIT3195": {
+      "code": "FIT3195",
+      "title": "Deep tech entrepreneurship",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "minCredits": 96
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3134"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3195",
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: available to students in BIT, BCS and BSE degrees who have completed 96 credit points. UnitPath checks only the 96 points."
+      ]
     }
   },
   "courses": [

@@ -140,14 +140,22 @@ async function main(): Promise<void> {
       ...(unit.requisites.prohibitions === "TODO"
         ? []
         : unit.requisites.prohibitions),
-      ...(unit.replacedBy && unit.replacedBy !== "TODO"
-        ? [unit.replacedBy]
-        : []),
     ];
+    if (
+      unit.replacedBy &&
+      unit.replacedBy !== "TODO" &&
+      !units[unit.replacedBy]
+    )
+      errors.push(
+        `data/units/${unit.code}.yaml: missing referenced unit ${unit.replacedBy}`,
+      );
+    // Handbook requisites often name alternatives outside this catalogue
+    // (other faculties, retired codes). They stay as unmet references, which is
+    // the honest reading, and are reported as warnings rather than errors.
     for (const reference of references)
       if (!units[reference])
-        errors.push(
-          `data/units/${unit.code}.yaml: missing referenced unit ${reference}`,
+        warnings.push(
+          `${unit.code}: references ${reference}, which is not in the catalogue`,
         );
     prereqEdges.set(unit.code, unitRefs(unit.requisites.prerequisite));
     replacementEdges.set(

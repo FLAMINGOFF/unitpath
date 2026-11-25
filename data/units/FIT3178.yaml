@@ -1,0 +1,30 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT3178
+title: iOS app development
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+requisites:
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1045
+          - unit: FIT1048
+          - unit: FIT1051
+          - unit: FIT1053
+          - unit: FIT2085
+      - minCreditsFrom:
+          points: 24
+          prefix: FIT
+          levels:
+            - 2
+            - 3
+  corequisite: null
+  prohibitions:
+    - ITI3178
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3178
+verified: false
+notes:
+  - "Handbook enrolment rule: and must have passed 24 credit points of FIT level 2 or 3 units."

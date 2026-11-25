@@ -1,11 +1,23 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
 code: FIT1049
 title: IT professional practice
 creditPoints: 6
-offerings: TODO
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S2
+    campus: Clayton
 requisites:
-  prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
+  prerequisite:
+    minCreditsFrom:
+      points: 12
+      prefix: FIT
+  corequisite: null
+  prohibitions:
+    - FIT1055
+    - ITI1049
+replacedBy: null
 source: https://handbook.monash.edu/2026/units/FIT1049
 verified: false
+notes:
+  - "Handbook enrolment rule: completion of 12 credit points of FIT units."

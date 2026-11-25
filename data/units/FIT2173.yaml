@@ -1,11 +1,21 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
 code: FIT2173
 title: Software security
 creditPoints: 6
-offerings: TODO
+offerings:
+  - term: S1
+    campus: Clayton
 requisites:
-  prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
+  prerequisite:
+    any:
+      - all:
+          - unit: ENG1014
+          - unit: ENG1013
+      - unit: FIT1053
+      - unit: FIT1045
+  corequisite: null
+  prohibitions:
+    - FIT3173
+replacedBy: null
 source: https://handbook.monash.edu/2026/units/FIT2173
 verified: false

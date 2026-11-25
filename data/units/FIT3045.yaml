@@ -1,11 +1,20 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
 code: FIT3045
-title: Industry based learning
+title: Industry-based learning
 creditPoints: 18
 offerings: TODO
 requisites:
   prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
+  corequisite: null
+  prohibitions: []
+replacedBy: null
 source: https://handbook.monash.edu/2026/units/FIT3045
 verified: false
+notes:
+  - Handbook lists IBL-specific teaching periods (Term 2 and Term 4, Clayton and Malaysia, immersive). Their
+    mapping to S1/S2 is not stated, so offerings stay TODO.
+  - Permission required. Available to students accepted into the Industry Based Learning program with at
+    least 72 credit points including 60 FIT or MAT credit points. The Handbook also lists FIT3201 or FIT3202
+    (0-point onboarding units) as prerequisites; the prerequisite stays TODO because entry is by selection.
+  - IBL students also complete FIT2108 Industry based learning seminar (0 credit points), which UnitPath
+    does not model.

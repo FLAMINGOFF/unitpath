@@ -1,11 +1,30 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
 code: FIT2002
 title: IT project management
 creditPoints: 6
-offerings: TODO
+offerings:
+  - term: S2
+    campus: Clayton
+  - term: Summer
+    campus: Clayton
 requisites:
-  prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1045
+          - unit: FIT1048
+          - unit: FIT1051
+          - unit: FIT1053
+          - unit: ENG1003
+          - unit: ENG1013
+      - minCredits: 36
+  corequisite: null
+  prohibitions:
+    - FZA2002
+    - ITI2002
+replacedBy: null
 source: https://handbook.monash.edu/2026/units/FIT2002
 verified: false
+notes:
+  - Summer offering is Summer semester B.
+  - "Handbook enrolment rule: as well as completion of at least 36 credit points of study."

@@ -59,3 +59,24 @@ Schema version 2 is canonical. Import and persisted-store hydration migrate vali
 ### Test data and release boundary
 
 The second course is fictional and lives only under the test fixture directory. Its 4- and 8-point units, minor list rule and two campuses test the generic model without presenting invented Monash facts to users. The statement and line coverage gate remains at least 90%. The repository and Codespace preview are private; the Pages workflow remains manual and no public deployment is part of this change.
+
+## 2026-11-25: Handbook 2026 unit data
+
+### Source and status
+
+The 17 C2000 applied cybersecurity units and eleven electives were read from their Monash Handbook 2026 pages, one page at a time, in a normal browser session. There is still no crawler: adding a unit means reading its page. Each record links to its page and stays `verified: false` until a person checks it (see `docs/VERIFY.md`). Two fields stay `TODO` because the Handbook does not state them in a form the model can hold: FIT3045 offerings (IBL-specific Term 2 and Term 4) and prerequisite (entry by selection), and the FIT1043 prerequisite (it accepts a VCE result).
+
+The eleven electives are the free elective options listed on the C2000 2026 course page that are not already in the major: FIT1059 and FIT3195, plus the data science, mobile apps development and human computer interaction minor units. Four are level 3.
+
+The IBL description on the course page says the placement replaces the applied studies project units and the nominated level 3 unit in the major, which matches the course map's `oneOf` between FIT3047, FIT3048 and FIT3031 and FIT3045 alone. The course rules were not changed.
+
+### What is approximated
+
+- Teaching periods other than S1, S2 and summer semester B are left out and listed in the unit's `notes`. Summer semester B is stored as `Summer`.
+- Requisites that name units outside the catalogue, such as ENG1013, keep those codes. `data:check` reports them as warnings instead of errors, and the engine explains them as "not in the UnitPath catalogue". A missing `replacedBy` target is still an error.
+- Text rules such as "12 credit points of FIT units" use the new `minCreditsFrom` node. FIT3047's "additional 12 points of FIT level 1 and 12 of level 2 or 3" is read as 30 and 30 points including the named units. The interpretation is written in each unit's `notes`.
+- Course restrictions ("must be core in your degree", "available to BIT, BCS and BSE students") are not checked and are written in `notes`.
+
+### Elective slots are saved with the plan
+
+Real rules such as "90 credit points before FIT3047" depend on electives a student has not chosen yet. Applying an automatic schedule now saves its elective slots in the plan as `electiveSlots` (optional, so older files still load). A slot counts toward generic credit thresholds in later terms and toward the term load, but never toward a prefixed rule and never toward degree progress, which counts only real units. Adding a unit to a full term replaces one of its slots. Without this, an applied schedule would immediately show a false error on FIT3047.

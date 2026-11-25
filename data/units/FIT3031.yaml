@@ -1,11 +1,20 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
 code: FIT3031
 title: Network security
 creditPoints: 6
-offerings: TODO
+offerings:
+  - term: S1
+    campus: Clayton
 requisites:
-  prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
+  prerequisite:
+    all:
+      - unit: FIT1047
+      - any:
+          - unit: FIT3165
+          - unit: FIT2093
+          - unit: FIT1093
+  corequisite: null
+  prohibitions: []
+replacedBy: null
 source: https://handbook.monash.edu/2026/units/FIT3031
 verified: false

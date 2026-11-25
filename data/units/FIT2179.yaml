@@ -1,0 +1,22 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT2179
+title: Data visualisation
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+requisites:
+  prerequisite:
+    any:
+      - unit: FIT1045
+      - unit: FIT1054
+      - unit: FIT1053
+      - unit: FIT1008
+  corequisite: null
+  prohibitions:
+    - FIT3179
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT2179
+verified: false

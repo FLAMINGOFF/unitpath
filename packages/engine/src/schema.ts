@@ -31,6 +31,7 @@ export type Expr =
   | { atLeast: { n: number; of: Expr[] } }
   | { minCredits: number }
   | { minCreditsAtLevel: { level: number; points: number } }
+  | { minCreditsFrom: { points: number; prefix?: string; levels?: number[] } }
   | { enrolledIn: string };
 
 const unitCode = z.string().regex(/^[A-Z]{2,5}\d{4}$/);
@@ -51,6 +52,16 @@ export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
     }),
     z.strictObject({ minCredits: points }),
     z.strictObject({ minCreditsAtLevel: z.strictObject({ level, points }) }),
+    z.strictObject({
+      minCreditsFrom: z.strictObject({
+        points,
+        prefix: z
+          .string()
+          .regex(/^[A-Z]{2,5}$/)
+          .optional(),
+        levels: z.array(level).min(1).optional(),
+      }),
+    }),
     z.strictObject({ enrolledIn: z.string().regex(/^[A-Z]\d{4}$/) }),
   ]),
 );
@@ -69,6 +80,7 @@ export const unitSchema = z.strictObject({
   replacedBy: z.union([unitCode, z.null(), z.literal("TODO")]),
   source: z.url(),
   verified: z.boolean(),
+  notes: z.array(z.string().min(1)).optional(),
 });
 export type Unit = z.infer<typeof unitSchema>;
 
@@ -148,6 +160,12 @@ const creditBlockSchema = z.strictObject({
   level,
   points: z.number().int().positive(),
 });
+export const electiveSlotSchema = z.strictObject({
+  period: periodSchema,
+  points: z.number().int().positive(),
+  level: level.optional(),
+});
+export type PlanElectiveSlot = z.infer<typeof electiveSlotSchema>;
 const planFields = {
   startPeriod: periodSchema,
   entries: z.array(entrySchema),
@@ -178,6 +196,7 @@ export const planSchema = z.strictObject({
   }),
   campus: campusSchema.nullable(),
   selectedPathways: z.record(z.string(), z.string()).default({}),
+  electiveSlots: z.array(electiveSlotSchema).max(64).optional(),
   ...planFields,
 });
 export type Plan = z.infer<typeof planSchema>;

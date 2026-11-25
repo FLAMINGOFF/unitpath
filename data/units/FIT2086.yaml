@@ -1,0 +1,26 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT2086
+title: Modelling for data analysis
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1045
+          - unit: FIT1053
+      - any:
+          - unit: MAT1841
+          - unit: MTH1030
+          - unit: MTH1035
+          - unit: ENG1005
+          - unit: FIT1058
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT2086
+verified: false

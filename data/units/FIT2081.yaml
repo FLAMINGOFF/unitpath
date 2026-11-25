@@ -1,0 +1,22 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT2081
+title: Mobile application development
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+requisites:
+  prerequisite:
+    any:
+      - unit: FIT1045
+      - unit: FIT1048
+      - unit: FIT1051
+      - unit: FIT1053
+  corequisite: null
+  prohibitions:
+    - ITI2081
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT2081
+verified: false

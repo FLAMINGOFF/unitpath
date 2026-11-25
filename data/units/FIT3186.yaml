@@ -1,11 +1,17 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
 code: FIT3186
 title: Vulnerability analysis, response and mitigation
 creditPoints: 6
-offerings: TODO
+offerings:
+  - term: S2
+    campus: Clayton
 requisites:
-  prerequisite: TODO
-  corequisite: TODO
-  prohibitions: TODO
-replacedBy: TODO
+  prerequisite:
+    any:
+      - unit: FIT2173
+      - unit: FIT3173
+  corequisite: null
+  prohibitions: []
+replacedBy: null
 source: https://handbook.monash.edu/2026/units/FIT3186
 verified: false

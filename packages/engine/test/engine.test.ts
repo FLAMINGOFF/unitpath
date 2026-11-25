@@ -890,3 +890,81 @@ describe("plan import", () => {
     ).toThrow("1 MB");
   });
 });
+
+describe("prefix and level credit requirements", () => {
+  it("counts only units with the prefix and listed levels", () => {
+    const plan = fixturePlan({
+      entries: [entry("TST1001", s1), entry("TST1002", s1)],
+      creditBlocks: [{ label: "Transfer", level: 1, points: 12 }],
+    });
+    const prefixed = reportFor(
+      { minCreditsFrom: { points: 12, prefix: "TST", levels: [1] } },
+      plan,
+    );
+    expect(prefixed.ok).toBe(true);
+    expect(prefixed.message).toBe(
+      "12 of 12 level 1 TST unit credit points earned before this term.",
+    );
+    expect(
+      reportFor({ minCreditsFrom: { points: 18, prefix: "TST" } }, plan).ok,
+    ).toBe(false);
+    expect(
+      reportFor({ minCreditsFrom: { points: 6, prefix: "ABC" } }, plan).ok,
+    ).toBe(false);
+    expect(
+      reportFor({ minCreditsFrom: { points: 24, levels: [1] } }, plan).ok,
+    ).toBe(true);
+    expect(
+      reportFor({ minCreditsFrom: { points: 6, levels: [2, 3] } }, plan).ok,
+    ).toBe(false);
+  });
+});
+
+describe("saved elective slots", () => {
+  it("count toward earlier generic credit rules but not prefix rules or progress", () => {
+    const plan = fixturePlan({
+      electiveSlots: [
+        { period: s1, points: 6 },
+        { period: s1, points: 6, level: 2 },
+        { period: s2, points: 6 },
+      ],
+    });
+    expect(reportFor({ minCredits: 12 }, plan, s2).ok).toBe(true);
+    expect(reportFor({ minCredits: 18 }, plan, s2).ok).toBe(false);
+    expect(
+      reportFor({ minCreditsAtLevel: { level: 2, points: 6 } }, plan, s2).ok,
+    ).toBe(true);
+    expect(
+      reportFor({ minCreditsFrom: { points: 6, prefix: "TST" } }, plan, s2).ok,
+    ).toBe(false);
+    const progress = checkProgress(plan, fixtureCatalog());
+    expect(progress.projectedCredits).toBe(0);
+  });
+
+  it("count toward the term load", () => {
+    const plan = fixturePlan({
+      maxUnitsPerTerm: 1,
+      entries: [entry("TST1001", s1)],
+      electiveSlots: [{ period: s1, points: 6 }],
+    });
+    expect(
+      validatePlan(plan, fixtureCatalog()).some(
+        (issue) => issue.code === "TERM_OVERLOAD",
+      ),
+    ).toBe(true);
+  });
+
+  it("are accepted by the plan schema and rejected when malformed", () => {
+    expect(
+      planSchema.safeParse(
+        fixturePlan({ electiveSlots: [{ period: s1, points: 6, level: 3 }] }),
+      ).success,
+    ).toBe(true);
+    expect(
+      planSchema.safeParse({
+        ...fixturePlan(),
+        electiveSlots: [{ period: s1, points: 0 }],
+      }).success,
+    ).toBe(false);
+  });
+});

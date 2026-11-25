@@ -1,0 +1,19 @@
+# Read from the Monash Handbook 2026 page on 2026-11-25. Not yet checked by a person.
+code: FIT3195
+title: Deep tech entrepreneurship
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+requisites:
+  prerequisite:
+    minCredits: 96
+  corequisite: null
+  prohibitions:
+    - FIT3134
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3195
+verified: false
+notes:
+  - "Handbook enrolment rule: available to students in BIT, BCS and BSE degrees who have completed 96 credit
+    points. UnitPath checks only the 96 points."
