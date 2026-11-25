@@ -275,14 +275,15 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                   ))
                 ) : (
                   <p className="hint">
-                    暂无数据，欢迎贡献。
+                    No data for this course yet. Contributions welcome —{" "}
                     <a
                       href="https://github.com/FLAMINGOFF/unitpath/issues/new/choose"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      提交课程数据建议
+                      suggest course data
                     </a>
+                    .
                   </p>
                 )}
               </div>
