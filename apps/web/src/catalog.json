@@ -1,0 +1,345 @@
+{
+  "units": {
+    "FIT1045": {
+      "code": "FIT1045",
+      "title": "Introduction to programming",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT1045",
+      "verified": false
+    },
+    "FIT1047": {
+      "code": "FIT1047",
+      "title": "Introduction to computer systems, networks and security",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT1047",
+      "verified": false
+    },
+    "FIT1049": {
+      "code": "FIT1049",
+      "title": "IT professional practice",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT1049",
+      "verified": false
+    },
+    "FIT1057": {
+      "code": "FIT1057",
+      "title": "Introduction to cybersecurity",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT1057",
+      "verified": false
+    },
+    "FIT1093": {
+      "code": "FIT1093",
+      "title": "Cybersecurity tools and techniques",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT1093",
+      "verified": false
+    },
+    "FIT2001": {
+      "code": "FIT2001",
+      "title": "Systems development",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT2001",
+      "verified": false
+    },
+    "FIT2002": {
+      "code": "FIT2002",
+      "title": "IT project management",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT2002",
+      "verified": false
+    },
+    "FIT2094": {
+      "code": "FIT2094",
+      "title": "Databases",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT2094",
+      "verified": false
+    },
+    "FIT2100": {
+      "code": "FIT2100",
+      "title": "Operating systems",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT2100",
+      "verified": false
+    },
+    "FIT2165": {
+      "code": "FIT2165",
+      "title": "Computer networks",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT2165",
+      "verified": false
+    },
+    "FIT2173": {
+      "code": "FIT2173",
+      "title": "Software security",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT2173",
+      "verified": false
+    },
+    "FIT3031": {
+      "code": "FIT3031",
+      "title": "Network security",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT3031",
+      "verified": false
+    },
+    "FIT3045": {
+      "code": "FIT3045",
+      "title": "Industry based learning",
+      "creditPoints": 18,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT3045",
+      "verified": false
+    },
+    "FIT3047": {
+      "code": "FIT3047",
+      "title": "Industry experience studio project 1",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT3047",
+      "verified": false
+    },
+    "FIT3048": {
+      "code": "FIT3048",
+      "title": "Industry experience studio project 2",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT3048",
+      "verified": false
+    },
+    "FIT3168": {
+      "code": "FIT3168",
+      "title": "IT forensics",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT3168",
+      "verified": false
+    },
+    "FIT3186": {
+      "code": "FIT3186",
+      "title": "Vulnerability analysis, response and mitigation",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": "TODO",
+        "corequisite": "TODO",
+        "prohibitions": "TODO"
+      },
+      "replacedBy": "TODO",
+      "source": "https://handbook.monash.edu/2026/units/FIT3186",
+      "verified": false
+    }
+  },
+  "courses": [
+    {
+      "code": "C2000",
+      "version": 2026,
+      "title": "Bachelor of Information Technology",
+      "source": "https://www.monash.edu/__data/assets/pdf_file/0014/4150220/2026-C2000-BInfoTech-AppCyber.pdf",
+      "rules": [
+        {
+          "id": "total",
+          "totalCredits": 144
+        },
+        {
+          "id": "level1-cap",
+          "maxCreditsAtLevel": {
+            "level": 1,
+            "points": 60
+          }
+        },
+        {
+          "id": "level3-min",
+          "minCreditsAtLevel": {
+            "level": 3,
+            "points": 36
+          }
+        }
+      ],
+      "majors": [
+        {
+          "id": "applied-cybersecurity",
+          "title": "Applied cybersecurity",
+          "rules": [
+            {
+              "id": "core",
+              "requiredUnits": [
+                "FIT1045",
+                "FIT1047",
+                "FIT1057",
+                "FIT1049",
+                "FIT1093",
+                "FIT2001",
+                "FIT2165",
+                "FIT2173",
+                "FIT2002",
+                "FIT2094",
+                "FIT2100",
+                "FIT3168",
+                "FIT3186"
+              ]
+            },
+            {
+              "id": "studio-or-ibl",
+              "oneOf": [
+                {
+                  "label": "Standard pathway",
+                  "requiredUnits": [
+                    "FIT3047",
+                    "FIT3048",
+                    "FIT3031"
+                  ]
+                },
+                {
+                  "label": "Industry Based Learning",
+                  "requiredUnits": [
+                    "FIT3045"
+                  ]
+                }
+              ]
+            }
+          ],
+          "suggestedSequence": {
+            "Y1S1": [
+              "FIT1045",
+              "FIT1047",
+              "FIT1057"
+            ],
+            "Y1S2": [
+              "FIT1049",
+              "FIT1093"
+            ],
+            "Y2S1": [
+              "FIT2001",
+              "FIT2165",
+              "FIT2173"
+            ],
+            "Y2S2": [
+              "FIT2002",
+              "FIT2094",
+              "FIT2100"
+            ],
+            "Y3S1": [
+              "FIT3047",
+              "FIT3031"
+            ],
+            "Y3S2": [
+              "FIT3048",
+              "FIT3168",
+              "FIT3186"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
