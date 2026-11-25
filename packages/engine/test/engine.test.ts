@@ -83,6 +83,66 @@ describe("credit points", () => {
   });
 });
 
+describe("course component combinations", () => {
+  it("evaluates multiple majors, a minor, a specialisation, and list credits", () => {
+    const catalog = fixtureCatalog();
+    const course = catalog.courses[0]!;
+    course.majors.push({
+      id: "second-major",
+      title: "Second major",
+      rules: [{ id: "second-core", requiredUnits: ["TST1002"] }],
+      suggestedSequence: {},
+    });
+    course.minors.push({
+      id: "test-minor",
+      title: "Test minor",
+      rules: [
+        {
+          id: "minor-credits",
+          creditsFromList: { units: ["TST1002", "TST1003"], points: 12 },
+        },
+      ],
+      suggestedSequence: {},
+    });
+    course.specialisations.push({
+      id: "test-specialisation",
+      title: "Test specialisation",
+      rules: [{ id: "specialisation-core", requiredUnits: ["TST1003"] }],
+      suggestedSequence: {},
+    });
+    catalog.units.TST1002!.creditPoints = 5;
+    catalog.units.TST1003!.creditPoints = 7;
+    const plan = fixturePlan({
+      course: {
+        code: "C2000",
+        version: 2026,
+        majorId: "test-major",
+        majorIds: ["test-major", "second-major"],
+        minorIds: ["test-minor"],
+        specialisationIds: ["test-specialisation"],
+      },
+      entries: [
+        entry("TST1002", s1, "completed"),
+        entry("TST1003", s1, "completed"),
+      ],
+    });
+    expect(planSchema.safeParse(plan).success).toBe(true);
+    const report = checkProgress(plan, catalog);
+    expect(
+      report.actual.find((rule) => rule.id === "second-core")?.status,
+    ).toBe("met");
+    expect(
+      report.actual.find((rule) => rule.id === "specialisation-core")?.status,
+    ).toBe("met");
+    expect(
+      report.actual.find((rule) => rule.id === "minor-credits")?.current,
+    ).toBe(12);
+    expect(
+      report.actual.find((rule) => rule.id === "minor-credits")?.status,
+    ).toBe("met");
+  });
+});
+
 describe("replacement equivalence", () => {
   it("accepts the original unit and a direct replacement", () => {
     const catalog = fixtureCatalog();

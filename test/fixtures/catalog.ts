@@ -67,6 +67,8 @@ export function fixtureCatalog(): Catalog {
           { id: "level1-cap", maxCreditsAtLevel: { level: 1, points: 24 } },
           { id: "level3-min", minCreditsAtLevel: { level: 3, points: 6 } },
         ],
+        minors: [],
+        specialisations: [],
         majors: [
           {
             id: "test-major",

@@ -127,25 +127,32 @@ async function main(): Promise<void> {
     );
   }
   for (const course of courses) {
-    for (const major of course.majors) {
-      for (const codes of Object.values(major.suggestedSequence)) {
+    const components = [
+      ...course.majors,
+      ...course.minors,
+      ...course.specialisations,
+    ];
+    for (const component of components) {
+      for (const codes of Object.values(component.suggestedSequence)) {
         for (const code of codes)
           if (!units[code])
             errors.push(
-              `${course.code}/${major.id}: missing sequence unit ${code}`,
+              `${course.code}/${component.id}: missing sequence unit ${code}`,
             );
       }
     }
     for (const rule of [
       ...course.rules,
-      ...course.majors.flatMap((major) => major.rules),
+      ...components.flatMap((component) => component.rules),
     ]) {
       const refs =
         "requiredUnits" in rule
           ? rule.requiredUnits
           : "oneOf" in rule
             ? rule.oneOf.flatMap((branch) => branch.requiredUnits)
-            : [];
+            : "creditsFromList" in rule
+              ? rule.creditsFromList.units
+              : [];
       for (const code of refs)
         if (!units[code])
           errors.push(

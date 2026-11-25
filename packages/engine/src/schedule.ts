@@ -1,6 +1,6 @@
 import type { Catalog, Expr, Period, Plan } from "./schema";
 import {
-  courseAndMajor,
+  courseAndComponents,
   evaluateRequisites,
   periodFromOrdinal,
   periodOrdinal,
@@ -107,19 +107,23 @@ export function autoSchedule(
   catalog: Catalog,
   options: ScheduleOptions,
 ): ScheduleResult {
-  const { course, major } = courseAndMajor(plan, catalog);
+  const { course, components } = courseAndComponents(plan, catalog);
+  const allRules = [
+    ...course.rules,
+    ...components.flatMap((component) => component.rules),
+  ];
   const selectedPathway = options.selectedPathway ?? plan.selectedPathway;
   const totalRule = course.rules.find((rule) => "totalCredits" in rule);
   const targetCredits =
     totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 0;
   const levelMinimums = new Map<number, number>();
-  for (const rule of [...course.rules, ...major.rules]) {
+  for (const rule of allRules) {
     if ("minCreditsAtLevel" in rule) {
       const { level, points } = rule.minCreditsAtLevel;
       levelMinimums.set(level, Math.max(levelMinimums.get(level) ?? 0, points));
     }
   }
-  const required = [...course.rules, ...major.rules].flatMap((rule) => {
+  const required = allRules.flatMap((rule) => {
     if ("requiredUnits" in rule) return rule.requiredUnits;
     if ("oneOf" in rule)
       return (
@@ -134,7 +138,11 @@ export function autoSchedule(
   const needed = [...new Set(required)].filter(
     (code) => !fixed.some((entry) => satisfiesUnit(code, entry.unit, catalog)),
   );
-  const order = priority(needed, catalog, major.suggestedSequence);
+  const sequence = Object.assign(
+    {},
+    ...components.map((component) => component.suggestedSequence),
+  );
+  const order = priority(needed, catalog, sequence);
   const remaining = new Set(needed);
   const newEntries: Plan["entries"] = [];
   const placeholders: ElectiveSlot[] = [];

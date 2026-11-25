@@ -339,7 +339,9 @@
             ]
           }
         }
-      ]
+      ],
+      "minors": [],
+      "specialisations": []
     }
   ]
 }

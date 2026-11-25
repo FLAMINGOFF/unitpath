@@ -2,7 +2,7 @@ import type {
   Catalog,
   Course,
   Expr,
-  Major,
+  Component,
   Period,
   Plan,
   Rule,
@@ -69,22 +69,45 @@ export function unitLevel(unit: Unit | string): number {
     : (unit.level ?? Number(digit));
 }
 
-export function courseAndMajor(
+export function courseAndComponents(
   plan: Plan,
   catalog: Catalog,
-): { course: Course; major: Major } {
+): { course: Course; components: Component[] } {
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
   if (!course)
     throw new Error(
-      `Course ${plan.course.code}/${plan.course.version} is not in the catalog.`,
+      "Course " +
+        plan.course.code +
+        "/" +
+        plan.course.version +
+        " is not in the catalog.",
     );
-  const major = course.majors.find((item) => item.id === plan.course.majorId);
-  if (!major)
-    throw new Error(`Major ${plan.course.majorId} is not in the catalog.`);
-  return { course, major };
+  const resolve = (
+    kind: string,
+    ids: string[],
+    options: Component[],
+  ): Component[] =>
+    ids.map((id) => {
+      const component = options.find((item) => item.id === id);
+      if (!component)
+        throw new Error(kind + " " + id + " is not in the catalog.");
+      return component;
+    });
+  const majorIds =
+    plan.course.majorIds ?? (plan.course.majorId ? [plan.course.majorId] : []);
+  const components = [
+    ...resolve("Major", majorIds, course.majors),
+    ...resolve("Minor", plan.course.minorIds ?? [], course.minors),
+    ...resolve(
+      "Specialisation",
+      plan.course.specialisationIds ?? [],
+      course.specialisations,
+    ),
+  ];
+  return { course, components };
 }
 
 export function satisfiesUnit(
@@ -382,6 +405,27 @@ function progressForRule(
       message: `${current}/${points} level ${level} points.`,
     };
   }
+  if ("creditsFromList" in rule) {
+    const eligible = new Set(rule.creditsFromList.units);
+    const current = entries.reduce((sum, entry) => {
+      const unit = catalog.units[entry.unit];
+      return unit &&
+        [...eligible].some((code) => satisfiesUnit(code, entry.unit, catalog))
+        ? sum + unit.creditPoints
+        : sum;
+    }, 0);
+    return {
+      id: rule.id,
+      status: status(current, rule.creditsFromList.points),
+      current,
+      target: rule.creditsFromList.points,
+      message:
+        current +
+        "/" +
+        rule.creditsFromList.points +
+        " credit points from the selected unit list.",
+    };
+  }
   if ("requiredUnits" in rule) {
     const missingUnits = rule.requiredUnits.filter(
       (code) =>
@@ -432,8 +476,11 @@ function progressForRule(
 }
 
 export function checkProgress(plan: Plan, catalog: Catalog): ProgressReport {
-  const { course, major } = courseAndMajor(plan, catalog);
-  const rules = [...course.rules, ...major.rules];
+  const { course, components } = courseAndComponents(plan, catalog);
+  const rules = [
+    ...course.rules,
+    ...components.flatMap((component) => component.rules),
+  ];
   const caps = new Map<number, number>();
   for (const rule of rules) {
     if ("maxCreditsAtLevel" in rule) {

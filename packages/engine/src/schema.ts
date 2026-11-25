@@ -81,6 +81,13 @@ const oneOfRuleSchema = z.strictObject({
   id: z.string().min(1),
   oneOf: z.array(pathwaySchema).min(2),
 });
+const creditsFromListRuleSchema = z.strictObject({
+  id: z.string().min(1),
+  creditsFromList: z.strictObject({
+    units: z.array(unitCode).min(1),
+    points: z.number().int().positive(),
+  }),
+});
 
 export const ruleSchema = z.union([
   requiredUnitsRuleSchema,
@@ -88,19 +95,21 @@ export const ruleSchema = z.union([
   maxCreditsAtLevelRuleSchema,
   minCreditsAtLevelRuleSchema,
   oneOfRuleSchema,
+  creditsFromListRuleSchema,
 ]);
 export type Rule = z.infer<typeof ruleSchema>;
 
-export const majorSchema = z.strictObject({
+export const componentSchema = z.strictObject({
   id: z.string().min(1),
   title: z.string().min(1),
   rules: z.array(ruleSchema),
-  suggestedSequence: z.record(
-    z.string().regex(/^Y\d+S[12]$/),
-    z.array(unitCode),
-  ),
+  suggestedSequence: z
+    .record(z.string().regex(/^Y\d+S[12]$/), z.array(unitCode))
+    .default({}),
 });
-export type Major = z.infer<typeof majorSchema>;
+export const majorSchema = componentSchema;
+export type Component = z.infer<typeof componentSchema>;
+export type Major = Component;
 
 export const courseSchema = z.strictObject({
   code: z.string().regex(/^[A-Z]\d{4}$/),
@@ -108,7 +117,9 @@ export const courseSchema = z.strictObject({
   title: z.string().min(1),
   source: z.url(),
   rules: z.array(ruleSchema),
-  majors: z.array(majorSchema).min(1),
+  majors: z.array(componentSchema).default([]),
+  minors: z.array(componentSchema).default([]),
+  specialisations: z.array(componentSchema).default([]),
 });
 export type Course = z.infer<typeof courseSchema>;
 
@@ -118,6 +129,9 @@ export const planSchema = z.strictObject({
     code: z.string(),
     version: z.number().int(),
     majorId: z.string(),
+    majorIds: z.array(z.string()).optional(),
+    minorIds: z.array(z.string()).optional(),
+    specialisationIds: z.array(z.string()).optional(),
   }),
   startPeriod: periodSchema,
   entries: z.array(
