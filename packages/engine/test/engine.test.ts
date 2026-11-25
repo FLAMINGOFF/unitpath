@@ -1,0 +1,363 @@
+import { describe, expect, it } from "vitest";
+import {
+  autoSchedule,
+  checkProgress,
+  evaluateRequisites,
+  parsePlanJson,
+  satisfiesUnit,
+  validatePlan,
+} from "../src";
+import {
+  fixtureCatalog,
+  fixturePlan,
+  unit,
+} from "../../../test/fixtures/catalog";
+import type { Catalog, Expr, Period, Plan } from "../src";
+
+const s1: Period = { year: 2026, term: "S1" };
+const s2: Period = { year: 2026, term: "S2" };
+const laterS1: Period = { year: 2027, term: "S1" };
+const laterS2: Period = { year: 2027, term: "S2" };
+const entry = (
+  code: string,
+  period: Period,
+  status: "completed" | "enrolled" | "planned" = "planned",
+) => ({ unit: code, period, status });
+
+function reportFor(
+  expr: Expr | null | "TODO",
+  plan: Plan,
+  period: Period = s2,
+) {
+  const catalog = fixtureCatalog();
+  const subject = unit("TST3999", {
+    requisites: { prerequisite: expr, corequisite: null, prohibitions: [] },
+  });
+  catalog.units[subject.code] = subject;
+  return evaluateRequisites(subject, period, plan, catalog).prerequisite;
+}
+
+describe("replacement equivalence", () => {
+  it("accepts the original unit and a direct replacement", () => {
+    const catalog = fixtureCatalog();
+    expect(satisfiesUnit("TST3004", "TST3004", catalog)).toBe(true);
+    expect(satisfiesUnit("TST3004", "TST3005", catalog)).toBe(true);
+  });
+  it("walks two replacements and rejects unrelated units", () => {
+    const catalog = fixtureCatalog();
+    catalog.units.TST3005!.replacedBy = "TST3003";
+    expect(satisfiesUnit("TST3004", "TST3003", catalog)).toBe(true);
+    expect(satisfiesUnit("TST3004", "TST1001", catalog)).toBe(false);
+  });
+});
+
+describe("requisite evaluation", () => {
+  it("returns every all child, including missing conditions", () => {
+    const expr: Expr = { all: [{ unit: "TST1001" }, { unit: "TST1002" }] };
+    const good = reportFor(
+      expr,
+      fixturePlan({ entries: [entry("TST1001", s1), entry("TST1002", s1)] }),
+    );
+    const partial = reportFor(
+      expr,
+      fixturePlan({ entries: [entry("TST1001", s1)] }),
+    );
+    expect(good.ok).toBe(true);
+    expect(partial.ok).toBe(false);
+    expect(partial.children).toHaveLength(2);
+    expect(partial.children?.map((child) => child.ok)).toEqual([true, false]);
+  });
+  it("reports all unsuccessful any branches", () => {
+    const node = reportFor(
+      { any: [{ unit: "TST1001" }, { unit: "TST1002" }] },
+      fixturePlan(),
+    );
+    expect(node.ok).toBe(false);
+    expect(node.children?.map((child) => child.ok)).toEqual([false, false]);
+  });
+  it("supports atLeast and exact credit thresholds", () => {
+    const plan = fixturePlan({
+      entries: [entry("TST1001", s1), entry("TST1002", s1)],
+    });
+    expect(
+      reportFor(
+        {
+          atLeast: {
+            n: 2,
+            of: [{ unit: "TST1001" }, { unit: "TST1002" }, { unit: "TST1003" }],
+          },
+        },
+        plan,
+      ).ok,
+    ).toBe(true);
+    expect(
+      reportFor(
+        {
+          atLeast: {
+            n: 3,
+            of: [{ unit: "TST1001" }, { unit: "TST1002" }, { unit: "TST1003" }],
+          },
+        },
+        plan,
+      ).ok,
+    ).toBe(false);
+    expect(reportFor({ minCredits: 12 }, plan).ok).toBe(true);
+    expect(reportFor({ minCredits: 18 }, plan).ok).toBe(false);
+  });
+  it("counts advanced standing and level-specific credits", () => {
+    const plan = fixturePlan({
+      entries: [entry("TST2001", s1)],
+      creditBlocks: [{ label: "Transfer", level: 2, points: 6 }],
+    });
+    expect(reportFor({ minCredits: 12 }, plan).ok).toBe(true);
+    expect(
+      reportFor({ minCreditsAtLevel: { level: 2, points: 12 } }, plan).ok,
+    ).toBe(true);
+    expect(reportFor({ enrolledIn: "C2000" }, plan).ok).toBe(true);
+    expect(reportFor({ enrolledIn: "C9999" }, plan).ok).toBe(false);
+  });
+  it("does not count a same-term prerequisite but does count a corequisite", () => {
+    const catalog = fixtureCatalog();
+    const subject = unit("TST3999", {
+      requisites: {
+        prerequisite: { unit: "TST1001" },
+        corequisite: { unit: "TST1001" },
+        prohibitions: [],
+      },
+    });
+    catalog.units[subject.code] = subject;
+    const report = evaluateRequisites(
+      subject,
+      s1,
+      fixturePlan({ entries: [entry("TST1001", s1)] }),
+      catalog,
+    );
+    expect(report.prerequisite.ok).toBe(false);
+    expect(report.corequisite.ok).toBe(true);
+  });
+  it("treats a prohibition as bidirectional and flags unknown rules", () => {
+    const catalog = fixtureCatalog();
+    const plan = fixturePlan({ entries: [entry("TST1003", s1)] });
+    expect(
+      evaluateRequisites(catalog.units.TST1001!, s2, plan, catalog).prohibition
+        .ok,
+    ).toBe(false);
+    expect(
+      evaluateRequisites(
+        catalog.units.TST1003!,
+        s2,
+        fixturePlan({ entries: [entry("TST1001", s1)] }),
+        catalog,
+      ).prohibition.ok,
+    ).toBe(false);
+    catalog.units.TST1001!.requisites.prerequisite = "TODO";
+    expect(
+      evaluateRequisites(catalog.units.TST1001!, s2, fixturePlan(), catalog)
+        .prerequisite.unknown,
+    ).toBe(true);
+  });
+});
+
+describe("progress", () => {
+  it("caps 66 level-one points at 60", () => {
+    const catalog = fixtureCatalog();
+    catalog.courses[0]!.rules = [
+      { id: "total", totalCredits: 144 },
+      { id: "level1-cap", maxCreditsAtLevel: { level: 1, points: 60 } },
+      { id: "level3-min", minCreditsAtLevel: { level: 3, points: 36 } },
+    ];
+    const entries = Array.from({ length: 11 }, (_, index) => {
+      const code = `TST1${String(index + 100).padStart(3, "0")}`;
+      catalog.units[code] = unit(code);
+      return entry(code, s1, "completed");
+    });
+    const report = checkProgress(fixturePlan({ entries }), catalog);
+    expect(report.actualCredits).toBe(60);
+    expect(
+      report.actual.find((rule) => rule.id === "total")?.message,
+    ).toContain("6 level 1 points exceed the cap");
+  });
+  it("reports partial level-three progress at 30 of 36 points", () => {
+    const catalog = fixtureCatalog();
+    catalog.courses[0]!.rules[2] = {
+      id: "level3-min",
+      minCreditsAtLevel: { level: 3, points: 36 },
+    };
+    const plan = fixturePlan({
+      creditBlocks: [{ label: "Transfer", level: 3, points: 30 }],
+    });
+    expect(
+      checkProgress(plan, catalog).actual.find(
+        (rule) => rule.id === "level3-min",
+      )?.status,
+    ).toBe("partial");
+  });
+  it("accepts either pathway and excludes planned units from the actual view", () => {
+    const catalog = fixtureCatalog();
+    const standard = fixturePlan({
+      entries: [entry("TST3002", s2, "completed")],
+    });
+    const alternative = fixturePlan({
+      entries: [entry("TST3003", s2, "completed")],
+    });
+    expect(
+      checkProgress(standard, catalog).actual.find((rule) => rule.id === "path")
+        ?.status,
+    ).toBe("met");
+    expect(
+      checkProgress(alternative, catalog).actual.find(
+        (rule) => rule.id === "path",
+      )?.status,
+    ).toBe("met");
+    const planned = fixturePlan({ entries: [entry("TST1001", s1, "planned")] });
+    expect(checkProgress(planned, catalog).actualCredits).toBe(0);
+    expect(checkProgress(planned, catalog).projectedCredits).toBe(6);
+  });
+});
+
+describe("plan validation", () => {
+  const codes = (plan: Plan, catalog: Catalog = fixtureCatalog()) =>
+    validatePlan(plan, catalog).map((issue) => issue.code);
+  it("detects missing prerequisites and corequisites", () => {
+    expect(codes(fixturePlan({ entries: [entry("TST2001", s2)] }))).toContain(
+      "PREREQ_UNMET",
+    );
+    expect(
+      codes(fixturePlan({ entries: [entry("TST3001", laterS2)] })),
+    ).toContain("COREQ_UNMET");
+    expect(
+      codes(
+        fixturePlan({
+          entries: [
+            entry("TST1001", s1),
+            entry("TST2001", s2),
+            entry("TST2002", laterS1),
+            entry("TST3001", laterS2),
+            entry("TST3002", laterS2),
+          ],
+        }),
+      ),
+    ).not.toContain("PREREQ_UNMET");
+  });
+  it("detects offerings, duplicates, prohibitions and unknown units", () => {
+    expect(codes(fixturePlan({ entries: [entry("TST2001", s1)] }))).toContain(
+      "NOT_OFFERED",
+    );
+    expect(
+      codes(
+        fixturePlan({ entries: [entry("TST1001", s1), entry("TST1001", s2)] }),
+      ),
+    ).toContain("DUPLICATE_UNIT");
+    expect(
+      codes(
+        fixturePlan({ entries: [entry("TST1001", s1), entry("TST1003", s2)] }),
+      ),
+    ).toContain("PROHIBITION_CONFLICT");
+    expect(codes(fixturePlan({ entries: [entry("TST9999", s1)] }))).toContain(
+      "UNKNOWN_UNIT",
+    );
+    expect(
+      codes(fixturePlan({ entries: [entry("TST1001", s1)] })),
+    ).not.toContain("PROHIBITION_CONFLICT");
+  });
+  it("reports replaced units, overloads and unverified data", () => {
+    const catalog = fixtureCatalog();
+    catalog.units.TST1001!.verified = false;
+    expect(
+      codes(fixturePlan({ entries: [entry("TST1001", s1)] }), catalog),
+    ).toContain("DATA_UNVERIFIED");
+    expect(codes(fixturePlan({ entries: [entry("TST3004", s1)] }))).toContain(
+      "REPLACED_UNIT",
+    );
+    expect(
+      codes(
+        fixturePlan({
+          entries: [entry("TST1001", s1), entry("TST1002", s1)],
+          maxUnitsPerTerm: 1,
+        }),
+      ),
+    ).toContain("TERM_OVERLOAD");
+    expect(
+      codes(
+        fixturePlan({ entries: [entry("TST1002", s1)], maxUnitsPerTerm: 1 }),
+      ),
+    ).not.toContain("TERM_OVERLOAD");
+  });
+  it("uses information notices when catalog rules are unknown", () => {
+    const catalog = fixtureCatalog();
+    catalog.units.TST1001!.offerings = "TODO";
+    catalog.units.TST1001!.requisites.prerequisite = "TODO";
+    expect(
+      codes(fixturePlan({ entries: [entry("TST1001", s1)] }), catalog),
+    ).toEqual(
+      expect.arrayContaining(["OFFERING_UNKNOWN", "PREREQUISITE_UNKNOWN"]),
+    );
+    expect(
+      codes(fixturePlan({ entries: [entry("TST1001", s1)] }), catalog),
+    ).not.toContain("NOT_OFFERED");
+  });
+});
+
+describe("automatic scheduling", () => {
+  const options = { currentPeriod: { year: 2025, term: "S2" } as Period };
+  it("schedules an empty plan deterministically and keeps S2-only units out of S1", () => {
+    const catalog = fixtureCatalog();
+    const first = autoSchedule(fixturePlan(), catalog, options);
+    const second = autoSchedule(fixturePlan(), catalog, options);
+    expect(first).toEqual(second);
+    expect(first.unscheduled).toEqual([]);
+    expect(first.expectedGraduation).not.toBeNull();
+    expect(
+      first.entries.find((item) => item.unit === "TST2001")?.period.term,
+    ).toBe("S2");
+    expect(
+      first.entries.findIndex((item) => item.unit === "TST1001"),
+    ).toBeLessThan(first.entries.findIndex((item) => item.unit === "TST2001"));
+    expect(first.issues.filter((issue) => issue.level === "error")).toEqual([]);
+  });
+  it("prioritises the critical chain and places corequisites together", () => {
+    const catalog = fixtureCatalog();
+    catalog.units.TST3002!.requisites.prerequisite = { unit: "TST2002" };
+    const core = catalog.courses[0]!.majors[0]!.rules[0]!;
+    if ("requiredUnits" in core) core.requiredUnits.push("TST1002");
+    const result = autoSchedule(fixturePlan(), catalog, options);
+    expect(result.entries[0]?.unit).toBe("TST1001");
+    expect(
+      result.entries.find((item) => item.unit === "TST3001")?.period,
+    ).toEqual(result.entries.find((item) => item.unit === "TST3002")?.period);
+  });
+  it("reports an impossible unit with a reason and keeps fixed entries", () => {
+    const catalog = fixtureCatalog();
+    catalog.units.TST2001!.requisites.prerequisite = { enrolledIn: "C9999" };
+    const result = autoSchedule(
+      fixturePlan({ entries: [entry("TST1001", s1, "completed")] }),
+      catalog,
+      options,
+    );
+    expect(
+      result.unscheduled.find((item) => item.unit === "TST2001")?.reason,
+    ).toContain("C9999");
+    expect(result.entries.some((item) => item.unit === "TST1001")).toBe(false);
+    expect(result.expectedGraduation).toBeNull();
+  });
+});
+
+describe("plan import", () => {
+  it("round-trips valid JSON and rejects malformed or unsupported versions", () => {
+    const plan = fixturePlan();
+    expect(parsePlanJson(JSON.stringify(plan))).toEqual(plan);
+    expect(() => parsePlanJson("{")).toThrow("not valid JSON");
+    expect(() =>
+      parsePlanJson(JSON.stringify({ ...plan, entries: undefined })),
+    ).toThrow();
+    expect(() =>
+      parsePlanJson(JSON.stringify({ ...plan, maxUnitsPerTerm: "four" })),
+    ).toThrow();
+    expect(() =>
+      parsePlanJson(JSON.stringify({ ...plan, schemaVersion: 2 })),
+    ).toThrow();
+    expect(() =>
+      parsePlanJson(`${JSON.stringify(plan)}${" ".repeat(1_000_001)}`),
+    ).toThrow("1 MB");
+  });
+});
