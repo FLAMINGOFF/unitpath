@@ -18,7 +18,9 @@ test("setup persists a completed unit and updates progress", async ({
       .getByRole("button", { name: "FIT1045", exact: true }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Progress" }).click();
-  await expect(page.getByText("6 / 144", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Credit point summary" }),
+  ).toContainText("6/ 144");
 });
 
 test("JSON export and import round-trip, while malformed files are rejected", async ({
@@ -26,7 +28,7 @@ test("JSON export and import round-trip, while malformed files are rejected", as
 }) => {
   await page.goto("/setup");
   await page.getByRole("checkbox", { name: /FIT1045 Introduction/ }).check();
-  await page.getByRole("link", { name: "Settings & data" }).click();
+  await page.getByRole("link", { name: "Data", exact: true }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export JSON" }).click();
   const download = await downloadPromise;
@@ -35,11 +37,11 @@ test("JSON export and import round-trip, while malformed files are rejected", as
   await expect(page.getByRole("status")).toContainText(
     "Plan imported successfully",
   );
-  await page.getByRole("link", { name: "Term planner" }).click();
+  await page.getByRole("link", { name: "Planner", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "FIT1045", exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Settings & data" }).click();
+  await page.getByRole("link", { name: "Data", exact: true }).click();
   await page.locator("input[type=file]").setInputFiles({
     name: "bad.json",
     mimeType: "application/json",
@@ -54,7 +56,7 @@ test("share link restores a plan in a separate browser context", async ({
 }) => {
   await page.goto("/setup");
   await page.getByRole("checkbox", { name: /FIT1045 Introduction/ }).check();
-  await page.getByRole("link", { name: "Settings & data" }).click();
+  await page.getByRole("link", { name: "Data", exact: true }).click();
   await page.getByRole("button", { name: "Generate share link" }).click();
   const url = await page
     .getByRole("textbox", { name: "Share link" })
@@ -78,4 +80,15 @@ test("unverified Handbook rules block automatic placement", async ({
   await expect(
     dialog.getByRole("button", { name: "Apply suggestion" }),
   ).toBeDisabled();
+});
+
+test("a term above the unit limit shows a warning badge", async ({ page }) => {
+  await page.goto("/plan");
+  for (const code of ["FIT1045", "FIT1047", "FIT1049", "FIT1057", "FIT1093"])
+    await page
+      .getByRole("button", { name: `Add ${code} to 2026 · Semester 1` })
+      .click();
+  const term = page.getByRole("region", { name: "2026 · Semester 1" });
+  await expect(term).toContainText("5/4");
+  await expect(term).toContainText("Above your 4-unit limit");
 });

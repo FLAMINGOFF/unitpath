@@ -1,17 +1,22 @@
 import { useMemo, useState } from "react";
 import {
-  ReactFlow,
   Background,
   Controls,
   Position,
+  ReactFlow,
   type Edge,
   type Node,
 } from "@xyflow/react";
 import dagre from "dagre";
-import { GitBranch, Info } from "lucide-react";
+import { ArrowRight, Info } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import { unitLevel, type Expr } from "@unitpath/engine";
 import { catalog } from "./catalog";
+import { compareCodes, Note, PageHead } from "./ui";
+
+const NODE_WIDTH = 200;
+const COLUMN_GAP = 290;
+const ROW_GAP = 82;
 
 function refs(expr: Expr | null | "TODO"): string[] {
   if (!expr || expr === "TODO") return [];
@@ -27,19 +32,13 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
   const { nodes, edges } = useMemo(() => {
     const all = Object.values(catalog.units);
     const graph = new dagre.graphlib.Graph();
-    graph.setGraph({
-      rankdir: "LR",
-      ranksep: 80,
-      nodesep: 22,
-      marginx: 30,
-      marginy: 30,
-    });
+    graph.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 22 });
     graph.setDefaultEdgeLabel(() => ({}));
     for (const unit of all)
-      graph.setNode(unit.code, { width: 185, height: 64 });
+      graph.setNode(unit.code, { width: NODE_WIDTH, height: 60 });
     const connections: Edge[] = [];
     for (const unit of all)
-      for (const source of refs(unit.requisites.prerequisite)) {
+      for (const source of [...new Set(refs(unit.requisites.prerequisite))]) {
         if (!catalog.units[source]) continue;
         graph.setEdge(source, unit.code);
         connections.push({
@@ -47,143 +46,189 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
           source,
           target: unit.code,
           type: "smoothstep",
-          animated: false,
         });
       }
     dagre.layout(graph);
+    const labels: Node[] = [1, 2, 3].map((level) => ({
+      id: `level-${level}`,
+      position: { x: (level - 1) * COLUMN_GAP, y: 0 },
+      data: { label: `Level ${level}` },
+      className: "level-label",
+      selectable: false,
+      draggable: false,
+      connectable: false,
+      focusable: false,
+    }));
     const positioned: Node[] = [1, 2, 3].flatMap((level) =>
       all
         .filter((unit) => unitLevel(unit.code) === level)
         .sort(
           (a, b) =>
             graph.node(a.code).y - graph.node(b.code).y ||
-            a.code.localeCompare(b.code),
+            compareCodes(a.code, b.code),
         )
         .map((unit, index) => ({
           id: unit.code,
-          position: { x: (level - 1) * 250 + 30, y: index * 87 + 30 },
+          position: { x: (level - 1) * COLUMN_GAP, y: 56 + index * ROW_GAP },
           data: {
             label: (
-              <div className="graph-node-label">
-                <strong>{unit.code}</strong>
+              <div className="node-label">
+                <span className="code">{unit.code}</span>
                 <span>{unit.title}</span>
               </div>
             ),
           },
+          className: `unit-node${unit.verified ? "" : " unverified"}`,
           draggable: false,
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
-          style: {
-            width: 185,
-            borderRadius: 12,
-            border: "1px solid #dce4e8",
-            boxShadow: "0 4px 14px #15212e0a",
-            background: "#fff",
-          },
+          style: { width: NODE_WIDTH },
         })),
     );
-    return { nodes: positioned, edges: connections };
+    return { nodes: [...labels, ...positioned], edges: connections };
   }, []);
-  const highlighted = useMemo(() => {
-    const set = new Set<string>();
-    if (!selected) return set;
-    const visit = (code: string, direction: "up" | "down") => {
-      if (set.has(code)) return;
-      set.add(code);
+
+  const related = useMemo(() => {
+    const up = new Set<string>();
+    const down = new Set<string>();
+    if (!selected) return { up, down };
+    const walk = (code: string, set: Set<string>, forward: boolean) => {
       for (const edge of edges) {
-        if (direction === "down" && edge.source === code)
-          visit(edge.target, direction);
-        if (direction === "up" && edge.target === code)
-          visit(edge.source, direction);
+        const [from, to] = forward
+          ? [edge.source, edge.target]
+          : [edge.target, edge.source];
+        if (from === code && !set.has(to)) {
+          set.add(to);
+          walk(to, set, forward);
+        }
       }
     };
-    visit(selected, "up");
-    const descendants = new Set<string>();
-    const visitDown = (code: string) => {
-      if (descendants.has(code)) return;
-      descendants.add(code);
-      for (const edge of edges)
-        if (edge.source === code) visitDown(edge.target);
-    };
-    visitDown(selected);
-    for (const code of descendants) set.add(code);
-    return set;
+    walk(selected, up, false);
+    walk(selected, down, true);
+    return { up, down };
   }, [edges, selected]);
-  const shownNodes = nodes.map((node) => ({
-    ...node,
-    style: {
-      ...node.style,
-      opacity: selected && !highlighted.has(node.id) ? 0.35 : 1,
-      borderColor: selected === node.id ? "#348a80" : "#dce4e8",
-    },
-  }));
+
+  const lit = (code: string) =>
+    code === selected || related.up.has(code) || related.down.has(code);
+  const shownNodes = nodes.map((node) =>
+    node.id.startsWith("level-")
+      ? node
+      : {
+          ...node,
+          className: `${node.className ?? ""}${selected === node.id ? " picked" : ""}${related.up.has(node.id) ? " before" : ""}${related.down.has(node.id) ? " after" : ""}${selected && !lit(node.id) ? " faded" : ""}`,
+        },
+  );
   const shownEdges = edges.map((edge) => ({
     ...edge,
-    style: {
-      opacity:
-        selected &&
-        (!highlighted.has(edge.source) || !highlighted.has(edge.target))
-          ? 0.2
-          : 1,
-      stroke: "#529488",
-      strokeWidth: 2,
-    },
+    className:
+      selected && !(lit(edge.source) && lit(edge.target)) ? "faded" : "",
   }));
+  const selectedUnit = selected ? catalog.units[selected] : undefined;
+  const list = (set: Set<string>) => [...set].sort(compareCodes);
+
   return (
-    <div className="page graph-page">
-      <div className="page-heading">
-        <div>
-          <span className="eyebrow">DEPENDENCIES</span>
-          <h1>Prerequisite graph</h1>
-          <p>
-            Explore how units connect. Select a node to highlight its confirmed
-            dependencies.
-          </p>
-        </div>
-        <div className="heading-illustration">
-          <GitBranch size={42} strokeWidth={1.4} />
-        </div>
-      </div>
-      <div className="warning-box">
-        <Info size={19} />
-        <span>
-          All prerequisite fields are awaiting Handbook verification. The graph
-          currently has no confirmed edges; it must not be read as “no
-          prerequisites.”
-        </span>
-      </div>
-      <div className="graph-card">
-        <div className="graph-toolbar">
-          <strong>Applied cybersecurity · 2026</strong>
-          <span>
-            {nodes.length} units · {edges.length} confirmed links
-          </span>
-          {selected && (
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => {
-                openUnit(selected);
-              }}
-            >
-              View {selected}
-            </button>
-          )}
-        </div>
-        <div className="graph-canvas">
+    <div className="page graph">
+      <PageHead
+        index="04"
+        kicker="Graph"
+        title={
+          <>
+            What unlocks <em>what.</em>
+          </>
+        }
+        lede="Units laid out by year level. Select one to light up everything it needs and everything it opens."
+      />
+      {edges.length === 0 && (
+        <Note tone="warn" icon={<Info size={15} />}>
+          No prerequisite has been verified yet, so the graph has no links. An
+          empty graph does <strong>not</strong> mean these units have no
+          prerequisites.
+        </Note>
+      )}
+      <div className="graph-layout">
+        <div className="canvas" aria-label="Prerequisite graph">
           <ReactFlow
             nodes={shownNodes}
             edges={shownEdges}
             fitView
+            fitViewOptions={{ padding: 0.15 }}
             nodesConnectable={false}
             nodesDraggable={false}
-            onNodeClick={(_, node) => setSelected(node.id)}
+            onNodeClick={(_, node) =>
+              node.id.startsWith("level-") ? undefined : setSelected(node.id)
+            }
             onPaneClick={() => setSelected(null)}
           >
-            <Background color="#edf2f3" gap={24} />
+            <Background gap={24} size={1.2} color="var(--rule-strong)" />
             <Controls showInteractive={false} />
           </ReactFlow>
         </div>
+        <aside className="graph-side" aria-live="polite">
+          {selectedUnit ? (
+            <>
+              <p className="kicker">
+                <span>●</span>Selected
+              </p>
+              <h2>
+                <span className="code">{selectedUnit.code}</span>
+                {selectedUnit.title}
+              </h2>
+              <dl className="relations">
+                <div>
+                  <dt>Needs first</dt>
+                  <dd>
+                    {related.up.size
+                      ? list(related.up).join(", ")
+                      : "Nothing confirmed"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Opens up</dt>
+                  <dd>
+                    {related.down.size
+                      ? list(related.down).join(", ")
+                      : "Nothing confirmed"}
+                  </dd>
+                </div>
+              </dl>
+              <button
+                type="button"
+                className="button ghost"
+                onClick={() => openUnit(selectedUnit.code)}
+              >
+                Unit details <ArrowRight size={15} />
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="kicker">
+                <span>○</span>Nothing selected
+              </p>
+              <p className="muted">
+                Click a unit in the graph, or pick one here.
+              </p>
+            </>
+          )}
+          <label className="field compact">
+            <span>Jump to unit</span>
+            <select
+              value={selected ?? ""}
+              onChange={(event) => setSelected(event.target.value || null)}
+            >
+              <option value="">Choose a unit…</option>
+              {Object.keys(catalog.units)
+                .sort(compareCodes)
+                .map((code) => (
+                  <option key={code} value={code}>
+                    {code} — {catalog.units[code]!.title}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <p className="mono-label">
+            {nodes.length - 3} units · {edges.length} verified links
+          </p>
+        </aside>
       </div>
     </div>
   );

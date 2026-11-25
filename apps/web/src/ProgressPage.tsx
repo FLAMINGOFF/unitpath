@@ -1,23 +1,21 @@
 import { useState } from "react";
-import {
-  BookOpenCheck,
-  CircleHelp,
-  GraduationCap,
-  ShieldAlert,
-} from "lucide-react";
+import { CheckCircle2, CircleDashed, ExternalLink, Info } from "lucide-react";
 import { checkProgress, type RuleProgress } from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { usePlanStore } from "./store";
+import { Note, PageHead } from "./ui";
 
 const names: Record<string, string> = {
   total: "Degree credit points",
   "level1-cap": "Level 1 credit cap",
   "level3-min": "Level 3 minimum",
   core: "Core units",
-  "studio-or-ibl": "Industry pathway",
+  "studio-or-ibl": "Studio or IBL pathway",
 };
 
-function RuleRow({
+const unitRules = new Set(["core", "studio-or-ibl"]);
+
+function RuleLine({
   rule,
   openUnit,
 }: {
@@ -28,51 +26,62 @@ function RuleRow({
     100,
     Math.round((rule.current / Math.max(rule.target, 1)) * 100),
   );
-  const cap = rule.id === "level1-cap";
+  const name = names[rule.id] ?? rule.id;
+  const statusText =
+    rule.status === "met"
+      ? "Met"
+      : rule.status === "partial"
+        ? "In progress"
+        : "Not met";
   return (
-    <div className="rule-row">
-      <div className="rule-row-top">
-        <div>
-          <span className={`rule-status ${rule.status}`}>
-            {rule.status === "met"
-              ? "✓ Met"
-              : rule.status === "partial"
-                ? "◐ In progress"
-                : "○ Not met"}
-          </span>
-          <h3>{names[rule.id] ?? rule.id}</h3>
-        </div>
-        <strong>
-          {rule.current}{" "}
-          <span>
+    <li className={`rule ${rule.status}`}>
+      <div className="rule-head">
+        <span className={`rule-status ${rule.status}`}>
+          {rule.status === "met" ? (
+            <CheckCircle2 size={14} aria-hidden="true" />
+          ) : (
+            <CircleDashed size={14} aria-hidden="true" />
+          )}
+          {statusText}
+        </span>
+        <h3>{name}</h3>
+        <span className="leader" aria-hidden="true" />
+        <span className="rule-figure">
+          {rule.current}
+          <small>
+            {" "}
             / {rule.target}
-            {rule.id === "core" || rule.id === "studio-or-ibl"
-              ? " units"
-              : " pts"}
-          </span>
-        </strong>
+            {unitRules.has(rule.id) ? " units" : " cp"}
+          </small>
+        </span>
       </div>
       <div
-        className={`progress-track ${rule.status}`}
+        className="meter"
         role="progressbar"
         aria-valuenow={Math.min(rule.current, rule.target)}
         aria-valuemin={0}
         aria-valuemax={rule.target}
-        aria-label={names[rule.id] ?? rule.id}
+        aria-label={name}
       >
-        <div style={{ width: `${cap ? Math.min(100, percent) : percent}%` }} />
+        <span style={{ width: `${percent}%` }} />
       </div>
-      <p>{rule.message}</p>
+      <p className="rule-message">{rule.message}</p>
       {rule.missingUnits && rule.missingUnits.length > 0 && (
-        <div className="missing-units">
+        <div className="chips">
+          <span className="mono-label">Still needed</span>
           {rule.missingUnits.map((code) => (
-            <button type="button" key={code} onClick={() => openUnit(code)}>
+            <button
+              type="button"
+              className="chip"
+              key={code}
+              onClick={() => openUnit(code)}
+            >
               {code}
             </button>
           ))}
         </div>
       )}
-    </div>
+    </li>
   );
 }
 
@@ -86,126 +95,165 @@ export function ProgressPage({
   const [projected, setProjected] = useState(false);
   const report = checkProgress(plan, catalog);
   const rules = projected ? report.projected : report.actual;
-  const credits = projected ? report.projectedCredits : report.actualCredits;
-  const pathwayRule = catalog.courses[0]?.majors[0]?.rules.find(
-    (rule) => "oneOf" in rule,
+  const course = catalog.courses.find(
+    (item) =>
+      item.code === plan.course.code && item.version === plan.course.version,
   );
+  const totalRule = course?.rules.find((rule) => "totalCredits" in rule);
+  const target =
+    totalRule && "totalCredits" in totalRule ? totalRule.totalCredits : 144;
+  const cells = Math.ceil(target / 6);
+  const earned = Math.min(cells, Math.floor(report.actualCredits / 6));
+  const planned = Math.min(
+    cells - earned,
+    Math.floor((report.projectedCredits - report.actualCredits) / 6),
+  );
+  const major = course?.majors.find((item) => item.id === plan.course.majorId);
+  const pathwayRule = major?.rules.find((rule) => "oneOf" in rule);
+
   return (
-    <div className="page progress-page">
-      <div className="page-heading">
-        <div>
-          <span className="eyebrow">DEGREE PROGRESS</span>
-          <h1>See the whole picture.</h1>
-          <p>Track your course requirements and the units still ahead.</p>
-        </div>
-        <div className="heading-illustration">
-          <GraduationCap size={43} strokeWidth={1.4} />
-        </div>
-      </div>
-      <div className="progress-summary">
-        <div className="summary-icon">
-          <BookOpenCheck size={27} />
-        </div>
-        <div>
-          <span>Credit points counted</span>
-          <strong>
-            {credits} <small>/ 144</small>
-          </strong>
-          <p>
-            {Math.round((credits / 144) * 100)}% of the degree credit target
+    <div className="page progress">
+      <PageHead
+        index="03"
+        kicker="Progress"
+        title={
+          <>
+            How far along <em>the path</em> you are.
+          </>
+        }
+        lede="Every requirement from the course map, measured against the units you've recorded."
+      />
+
+      <section className="scoreboard" aria-label="Credit point summary">
+        <div className="score">
+          <span className="mono-label">Credit points counted</span>
+          <p className="score-figure">
+            <span>{report.actualCredits}</span>
+            <small>/ {target}</small>
+          </p>
+          <p className="score-sub">
+            {report.projectedCredits > report.actualCredits
+              ? `${report.projectedCredits} once your planned units pass.`
+              : "Add planned units on the planner to see a forecast."}
           </p>
         </div>
-        <div
-          className="summary-chart"
-          style={{
-            background: `conic-gradient(#398e82 ${Math.min(100, (credits / 144) * 100)}%, #e5eae9 0)`,
-          }}
-        >
-          <div>{Math.round((credits / 144) * 100)}%</div>
+        <div className="cells-wrap">
+          <div
+            className="cells"
+            role="img"
+            aria-label={`${earned} of ${cells} unit-sized blocks earned, ${planned} planned`}
+          >
+            {Array.from({ length: cells }, (_, index) => (
+              <span
+                key={index}
+                className={
+                  index < earned
+                    ? "cell earned"
+                    : index < earned + planned
+                      ? "cell planned"
+                      : "cell"
+                }
+              />
+            ))}
+          </div>
+          <div className="cells-legend">
+            <span>
+              <i className="cell earned" aria-hidden="true" /> Completed &
+              enrolled
+            </span>
+            <span>
+              <i className="cell planned" aria-hidden="true" /> Planned
+            </span>
+            <span>
+              <i className="cell" aria-hidden="true" /> Remaining · one block =
+              6 cp
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="content-toolbar">
-        <div>
-          <h2>Requirements</h2>
-          <p>Each rule comes from the C2000 2026 course map.</p>
-        </div>
+      </section>
+
+      <div className="section-bar">
+        <h2>Requirements</h2>
         <div className="segmented" role="group" aria-label="Progress view">
           <button
             type="button"
-            className={!projected ? "selected" : ""}
+            aria-pressed={!projected}
             onClick={() => setProjected(false)}
           >
             Completed & enrolled
           </button>
           <button
             type="button"
-            className={projected ? "selected" : ""}
+            aria-pressed={projected}
             onClick={() => setProjected(true)}
           >
             Including planned
           </button>
         </div>
       </div>
-      <div className="rules-list">
+      <ol className="rules">
         {rules.map((rule) => (
-          <RuleRow key={rule.id} rule={rule} openUnit={openUnit} />
+          <RuleLine key={rule.id} rule={rule} openUnit={openUnit} />
         ))}
-      </div>
+      </ol>
+
       {pathwayRule && "oneOf" in pathwayRule && (
-        <section className="panel pathway-panel">
+        <section className="pathways" aria-labelledby="pathway-heading">
           <div>
-            <span className="section-kicker">PATHWAY PREFERENCE</span>
-            <h2>Choose your industry pathway</h2>
+            <h2 id="pathway-heading">Which final-year pathway?</h2>
             <p>
-              This guides progress detail and auto scheduling. The IBL program
-              requires separate university acceptance.
+              Guides the progress detail above and auto scheduling. Industry
+              Based Learning needs separate acceptance by the faculty.
             </p>
           </div>
           <div className="pathway-options">
-            {pathwayRule.oneOf.map((branch) => (
-              <label
-                key={branch.label}
-                className={
-                  plan.selectedPathway === branch.label ? "selected" : ""
-                }
-              >
-                <input
-                  type="radio"
-                  name="pathway"
-                  checked={
-                    (plan.selectedPathway ?? pathwayRule.oneOf[0]?.label) ===
-                    branch.label
-                  }
-                  onChange={() =>
-                    updatePlan((current) => ({
-                      ...current,
-                      selectedPathway: branch.label,
-                    }))
-                  }
-                />
-                <span>
-                  <strong>{branch.label}</strong>
-                  <small>{branch.requiredUnits.join(" · ")}</small>
-                </span>
-              </label>
-            ))}
+            {pathwayRule.oneOf.map((branch) => {
+              const checked =
+                (plan.selectedPathway ?? pathwayRule.oneOf[0]?.label) ===
+                branch.label;
+              return (
+                <label
+                  key={branch.label}
+                  className={`pathway${checked ? " on" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="pathway"
+                    checked={checked}
+                    onChange={() =>
+                      updatePlan((current) => ({
+                        ...current,
+                        selectedPathway: branch.label,
+                      }))
+                    }
+                  />
+                  <span className="pathway-text">
+                    <strong>{branch.label}</strong>
+                    <span className="mono-label">
+                      {branch.requiredUnits.join(" · ")}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </section>
       )}
-      <div className="warning-box">
-        <ShieldAlert size={19} />
-        <span>
-          Progress uses the course map, but the 17 unit records are unverified.{" "}
-          <a href={catalog.courses[0]?.source} target="_blank" rel="noreferrer">
-            Check the official course map
-          </a>{" "}
-          and each unit's Handbook page before enrolling.
-        </span>
-      </div>
-      <div className="inline-note">
-        <CircleHelp size={17} />
-        Level 1 points above 60 are excluded from the counted total. Advanced
-        standing is included at its recorded level.
+
+      <div className="notes">
+        <Note tone="warn" icon={<Info size={15} />}>
+          Level 1 points above the cap are left out of the counted total.
+          Advanced standing counts at the level you recorded.
+        </Note>
+        {course && (
+          <Note icon={<ExternalLink size={15} />}>
+            Rules come from the{" "}
+            <a href={course.source} target="_blank" rel="noreferrer">
+              official {course.version} course map
+            </a>
+            . Check it, and each unit's Handbook page, before enrolling.
+          </Note>
+        )}
       </div>
     </div>
   );

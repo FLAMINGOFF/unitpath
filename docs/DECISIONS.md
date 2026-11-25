@@ -17,3 +17,7 @@ The app uses client routing with a generated `404.html` copy for direct GitHub P
 ## 2026-11-25: Private source repository, no public deployment
 
 The source repository is private. The Pages workflow has a manual trigger only, so pushing or passing CI does not publish the site. Public deployment remains deferred until the user explicitly authorizes it and the data status is reviewed.
+
+## 2026-11-25: Web interface redesign
+
+The web app was redesigned around a "route ledger" look: warm paper background, ink rules, one highlighter accent, Fraunces for headings, Instrument Sans for text and JetBrains Mono for unit codes. Fonts are bundled from `@fontsource-variable` packages (OFL) so the site still loads nothing from third parties and the same-origin CSP holds. Light and dark themes follow the system setting. Status colours keep the spec mapping (completed green, enrolled/available blue, unknown grey, error red, warning amber) and always come with an icon and a word. On phones the board becomes a vertical list of terms and each card's menu offers "Move to" instead of dragging. The engine, store and data were not changed.
