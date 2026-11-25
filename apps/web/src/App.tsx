@@ -15,7 +15,11 @@ import {
 } from "react-router-dom";
 import { AlertTriangle, X } from "lucide-react";
 import { decompressFromEncodedURIComponent } from "lz-string";
-import { parsePlanJson, validatePlan } from "@unitpath/engine";
+import {
+  courseDataMetrics,
+  parsePlanJson,
+  validatePlan,
+} from "@unitpath/engine";
 import { catalog } from "./catalog";
 import { SetupPage } from "./SetupPage";
 import { PlanPage } from "./PlanPage";
@@ -47,13 +51,14 @@ export function App() {
   const closeUnit = useCallback(() => setSelectedUnit(null), []);
   const issues = validatePlan(plan, catalog);
   const errors = issues.filter((issue) => issue.level === "error").length;
-  const unverified = Object.values(catalog.units).filter(
-    (unit) => !unit.verified,
-  ).length;
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
+  const metrics = course ? courseDataMetrics(course, catalog) : null;
+  const unverified = metrics
+    ? metrics.referencedUnits - metrics.verifiedUnits
+    : 0;
   const selectedComponents = course
     ? [
         ...course.majors.filter((item) =>
@@ -151,8 +156,8 @@ export function App() {
           <AlertTriangle size={14} aria-hidden="true" />
           <span>
             <strong>Data under review.</strong> {unverified} of{" "}
-            {Object.keys(catalog.units).length} unit records still need checking
-            against the Handbook.{" "}
+            {metrics?.referencedUnits ?? 0} referenced unit records still need
+            checking against the Handbook.{" "}
             <span className="more">
               Unknown rules are never treated as met.
             </span>

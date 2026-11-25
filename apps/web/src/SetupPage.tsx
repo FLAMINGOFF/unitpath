@@ -4,6 +4,7 @@ import { ArrowRight, Check, Info, Plus, Search, X } from "lucide-react";
 import {
   campusSchema,
   courseDataMetrics,
+  courseUnitCodes,
   unitLevel,
   type Campus,
   type Plan,
@@ -21,6 +22,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const updatePlan = usePlanStore((state) => state.updatePlan);
   const navigate = useNavigate();
   const [courseQuery, setCourseQuery] = useState("");
+  const [completedQuery, setCompletedQuery] = useState("");
   const [label, setLabel] = useState("Advanced standing");
   const [level, setLevel] = useState<number>(1);
   const [points, setPoints] = useState(1);
@@ -140,21 +142,29 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const units = Object.values(catalog.units).sort((a, b) =>
     compareCodes(a.code, b.code),
   );
-  const unitLevels = [...new Set(units.map((unit) => unitLevel(unit)))].sort(
-    (a, b) => a - b,
-  );
-  const creditLevels = [
-    ...new Set([
-      level,
-      ...unitLevels,
-      ...plan.creditBlocks.map((block) => block.level),
-    ]),
-  ].sort((a, b) => a - b);
   const complete = new Set(
     plan.entries
       .filter((entry) => entry.status === "completed")
       .map((entry) => entry.unit),
   );
+  const referenced = new Set(course ? courseUnitCodes(course) : []);
+  const visibleUnits = units.filter((unit) =>
+    completedQuery.trim()
+      ? (unit.code + " " + unit.title)
+          .toLowerCase()
+          .includes(completedQuery.trim().toLowerCase())
+      : referenced.has(unit.code) || complete.has(unit.code),
+  );
+  const unitLevels = [
+    ...new Set(visibleUnits.map((unit) => unitLevel(unit))),
+  ].sort((a, b) => a - b);
+  const creditLevels = [
+    ...new Set([
+      level,
+      ...units.map((unit) => unitLevel(unit)),
+      ...plan.creditBlocks.map((block) => block.level),
+    ]),
+  ].sort((a, b) => a - b);
   const completedPoints = units
     .filter((unit) => complete.has(unit.code))
     .reduce((sum, unit) => sum + unit.creditPoints, 0);
@@ -392,11 +402,27 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
             </p>
           </div>
           <div className="question-body">
+            <label className="search">
+              <Search size={15} aria-hidden="true" />
+              <input
+                value={completedQuery}
+                onChange={(event) => setCompletedQuery(event.target.value)}
+                placeholder="Search all catalogue units"
+                aria-label="Search completed units"
+              />
+            </label>
+            <p className="hint">
+              Showing units referenced by this course. Search to find other
+              units or prior study.
+            </p>
+            {visibleUnits.length === 0 && (
+              <p className="hint">No matching unit data yet.</p>
+            )}
             {unitLevels.map((year) => (
               <fieldset className="unit-picker" key={year}>
                 <legend>Level {year}</legend>
                 <div className="tile-grid">
-                  {units
+                  {visibleUnits
                     .filter((unit) => unitLevel(unit) === year)
                     .map((unit) => (
                       <div

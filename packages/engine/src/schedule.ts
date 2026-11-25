@@ -168,10 +168,13 @@ export function autoSchedule(
     0,
     targetCredits - fixedCredit - blockCredit - neededCredit,
   );
-  const knownPoints = Object.values(catalog.units).map(
-    (unit) => unit.creditPoints,
-  );
-  const nominalPoints = Math.min(...(knownPoints.length ? knownPoints : [1]));
+  const knownPoints = [...new Set(required)]
+    .map((code) => catalog.units[code]?.creditPoints)
+    .filter((points): points is number => points !== undefined)
+    .sort((a, b) => a - b);
+  const nominalPoints = knownPoints.length
+    ? knownPoints[Math.floor((knownPoints.length - 1) / 2)]!
+    : 0;
   const levelCredits = new Map<number, number>();
   for (const code of [...fixed.map((entry) => entry.unit), ...needed]) {
     const unit = catalog.units[code];
@@ -271,7 +274,7 @@ export function autoSchedule(
     }
     if (corePlaced === 0 && remaining.size > 0) noCoreProgress++;
     else noCoreProgress = 0;
-    while (slots > 0 && electivePointsRemaining > 0) {
+    while (slots > 0 && electivePointsRemaining > 0 && nominalPoints > 0) {
       const availableLevel = [...levelDeficits].find(
         ([level, deficit]) =>
           deficit > 0 &&
@@ -339,7 +342,10 @@ export function autoSchedule(
   if (electivePointsRemaining > 0)
     unscheduled.push({
       unit: "ELECTIVE",
-      reason: `${electivePointsRemaining} elective credit points could not fit within 16 semesters.`,
+      reason:
+        nominalPoints === 0
+          ? "No required unit credit points are available to estimate elective slots."
+          : `${electivePointsRemaining} elective credit points could not fit within 16 semesters.`,
     });
   const allScheduled = unscheduled.length === 0;
   return {

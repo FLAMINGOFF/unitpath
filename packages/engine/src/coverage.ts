@@ -26,22 +26,28 @@ function complete(unit: Unit): boolean {
   );
 }
 
-export function courseDataMetrics(
-  course: Course,
-  catalog: Catalog,
-): CourseDataMetrics {
+export function courseUnitCodes(course: Course): string[] {
   const components = [
     ...course.majors,
     ...course.minors,
     ...course.specialisations,
   ];
-  const referenced = new Set([
-    ...course.rules.flatMap(ruleUnits),
-    ...components.flatMap((component) => component.rules.flatMap(ruleUnits)),
-    ...components.flatMap((component) =>
-      Object.values(component.suggestedSequence).flat(),
-    ),
-  ]);
+  return [
+    ...new Set([
+      ...course.rules.flatMap(ruleUnits),
+      ...components.flatMap((component) => component.rules.flatMap(ruleUnits)),
+      ...components.flatMap((component) =>
+        Object.values(component.suggestedSequence).flat(),
+      ),
+    ]),
+  ].sort();
+}
+
+export function courseDataMetrics(
+  course: Course,
+  catalog: Catalog,
+): CourseDataMetrics {
+  const referenced = new Set(courseUnitCodes(course));
   const records = [...referenced]
     .map((code) => catalog.units[code])
     .filter((unit): unit is Unit => unit !== undefined);

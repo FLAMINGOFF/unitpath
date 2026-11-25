@@ -4,6 +4,7 @@ import {
   catalogSchema,
   checkProgress,
   courseDataMetrics,
+  courseUnitCodes,
   validatePlan,
 } from "../src";
 import {
@@ -46,6 +47,12 @@ describe("fictional second course", () => {
     expect(
       courseDataMetrics(catalog.courses[0]!, catalog).coveragePercent,
     ).toBe(100);
+    expect(courseUnitCodes(catalog.courses[0]!)).toEqual([
+      "SYN1001",
+      "SYN1002",
+      "SYN2001",
+      "SYN2002",
+    ]);
   });
 
   it("validates both campus and teaching period", () => {
@@ -82,5 +89,39 @@ describe("fictional second course", () => {
       ),
     ).toBe(true);
     expect(result.expectedGraduation).toBeNull();
+  });
+  it("uses only the selected course to size elective placeholders", () => {
+    const catalog = secondCourseCatalog();
+    catalog.units.SYN9999 = {
+      ...catalog.units.SYN1001!,
+      code: "SYN9999",
+      creditPoints: 1,
+    };
+    const result = autoSchedule(secondCoursePlan(), catalog, {
+      currentPeriod: { year: 2027, term: "S2" },
+    });
+    expect(
+      result.placeholders.every((placeholder) => placeholder.points > 1),
+    ).toBe(true);
+
+    catalog.courses[0]!.majors = [];
+    catalog.courses[0]!.minors = [];
+    const emptySelection = secondCoursePlan({
+      course: {
+        code: "Z9999",
+        version: 2028,
+        majorIds: [],
+        minorIds: [],
+        specialisationIds: [],
+      },
+    });
+    const withoutBasis = autoSchedule(emptySelection, catalog, {
+      currentPeriod: { year: 2027, term: "S2" },
+    });
+    expect(withoutBasis.placeholders).toEqual([]);
+    expect(
+      withoutBasis.unscheduled.find((item) => item.unit === "ELECTIVE")?.reason,
+    ).toContain("No required unit");
+    expect(withoutBasis.expectedGraduation).toBeNull();
   });
 });

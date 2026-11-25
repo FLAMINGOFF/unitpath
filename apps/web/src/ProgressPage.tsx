@@ -122,10 +122,14 @@ export function ProgressPage({
         ),
       ]
     : [];
-  const pathwayRules = [
+  const selectedRules = [
     ...(course?.rules ?? []),
     ...selectedComponents.flatMap((item) => item.rules),
-  ].filter((rule) => "oneOf" in rule);
+  ];
+  const pathwayRules = selectedRules.filter((rule) => "oneOf" in rule);
+  const hasLevelCaps = selectedRules.some(
+    (rule) => "maxCreditsAtLevel" in rule,
+  );
 
   return (
     <div className="page progress">
@@ -268,8 +272,13 @@ export function ProgressPage({
       ))}
 
       <div className="notes">
-        <Note tone="warn" icon={<Info size={15} />}>
-          Level 1 points above the cap are left out of the counted total.
+        {hasLevelCaps && (
+          <Note tone="warn" icon={<Info size={15} />}>
+            Credit points above a level cap do not count toward the course
+            total.
+          </Note>
+        )}
+        <Note icon={<Info size={15} />}>
           Advanced standing counts at the level you recorded.
         </Note>
         {course && (

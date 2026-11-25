@@ -243,7 +243,7 @@ export function SettingsPage({
             </dd>
           </div>
           <div>
-            <dt>Data status</dt>
+            <dt>Catalog-wide data status</dt>
             <dd>
               {unverified
                 ? `${unverified} records awaiting Handbook check`
