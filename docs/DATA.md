@@ -10,7 +10,7 @@ UnitPath keeps rules in hand-reviewed YAML. Do not scrape the Handbook, infer mi
 
 ## Unit records
 
-Every unit needs its official code, title, positive integer `creditPoints`, versioned Handbook `source`, `verified` flag, offerings, requisites and replacement status. Credit points do not have to be multiples of six. The first digit in a unit code determines its level; set `level` only when an official source shows a different level.
+Every unit needs its official code, title, versioned Handbook `source`, `verified` flag, offerings, requisites and replacement status. `creditPoints` may be omitted, in which case it defaults to 6; if supplied, it must be a positive integer. Credit points do not have to be multiples of six. The first digit in a unit code determines its level; set `level` only when an official source shows a different level.
 
 Each known offering is an object with `term` and `campus`. Campuses are Clayton, Caulfield, Peninsula, Malaysia and Online. Data accepts S1, S2, Summer and Winter; the planner currently offers only S1 and S2. Record each confirmed campus and term pair separately. If offerings are not checked, use `TODO`.
 

@@ -50,6 +50,19 @@ describe("catalog builder", () => {
     );
     expect(output.units.TST1001.code).toBe("TST1001");
   });
+  it("defaults omitted unit credit points to six", async () => {
+    const root = await seed();
+    const path = join(root, "data/units/TST1001.yaml");
+    const record = YAML.parse(await readFile(path, "utf8"));
+    delete record.creditPoints;
+    await writeFile(path, YAML.stringify(record));
+    const result = run(root);
+    expect(result.status).toBe(0);
+    const output = JSON.parse(
+      await readFile(join(root, "apps/web/src/catalog.json"), "utf8"),
+    );
+    expect(output.units.TST1001.creditPoints).toBe(6);
+  });
   it("points contributors to the invalid YAML field", async () => {
     const root = await seed();
     const file = join(root, "data/units/TST1001.yaml");

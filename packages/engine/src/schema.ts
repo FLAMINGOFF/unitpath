@@ -58,7 +58,7 @@ export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
 export const unitSchema = z.strictObject({
   code: unitCode,
   title: z.string().min(1),
-  creditPoints: z.number().int().positive(),
+  creditPoints: z.number().int().positive().default(6),
   level: level.optional(),
   offerings: z.union([z.array(offeringSchema).min(1), z.literal("TODO")]),
   requisites: z.strictObject({

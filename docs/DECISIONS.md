@@ -26,7 +26,7 @@ The web app was redesigned around a "route ledger" look: warm paper background, 
 
 ### Unit identity and credit points
 
-The engine derives a unit's level from the first digit in its code; a YAML `level` value overrides it. This is independent of the unit prefix or degree. Units, credit blocks and credit rules accept positive integer credit points, and progress and validation add their actual values. The 24-cell progress graphic is proportional to the selected course's credit target, not a claim that every unit has six points.
+The engine derives a unit's level from the first digit in its code; a YAML `level` value overrides it. This is independent of the unit prefix or degree. Unit `creditPoints` defaults to 6 when omitted from YAML and otherwise accepts any positive integer; credit blocks and credit rules use positive integer points. Progress and validation add actual parsed values. The 24-cell progress graphic is proportional to the selected course's credit target, not a claim that every unit has six points.
 
 ### Course versions and component choices
 
