@@ -1,35 +1,37 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { planSchema, type Plan } from "@unitpath/engine";
+import { migratePlan, type Plan } from "@unitpath/engine";
 import { catalog } from "./catalog";
 
 const defaultCourse = [...catalog.courses].sort((a, b) =>
   a.code < b.code ? -1 : a.code > b.code ? 1 : b.version - a.version,
 )[0]!;
 const defaultMajor = defaultCourse.majors[0];
-const defaultPathway = defaultMajor?.rules.flatMap((rule) =>
-  "oneOf" in rule ? rule.oneOf.slice(0, 1).map((branch) => branch.label) : [],
-)[0];
+const defaultPathways = Object.fromEntries(
+  [...defaultCourse.rules, ...(defaultMajor?.rules ?? [])].flatMap((rule) =>
+    "oneOf" in rule && rule.oneOf[0] ? [[rule.id, rule.oneOf[0].label]] : [],
+  ),
+);
 
 export const initialPlan: Plan = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   course: {
     code: defaultCourse.code,
     version: defaultCourse.version,
-    majorId: defaultMajor?.id ?? "",
     majorIds: defaultMajor ? [defaultMajor.id] : [],
     minorIds: [],
     specialisationIds: [],
   },
+  campus: null,
   startPeriod: { year: defaultCourse.version, term: "S1" },
   entries: [],
   creditBlocks: [],
   maxUnitsPerTerm: 4,
-  selectedPathway: defaultPathway,
+  selectedPathways: defaultPathways,
 };
 
 export function validateImportedPlan(value: unknown): Plan {
-  const plan = planSchema.parse(value);
+  const plan = migratePlan(value);
   const course = catalog.courses.find(
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
@@ -39,11 +41,7 @@ export function validateImportedPlan(value: unknown): Plan {
       "The selected course version is not available in this catalog.",
     );
   const selections = [
-    [
-      plan.course.majorIds ??
-        (plan.course.majorId ? [plan.course.majorId] : []),
-      course.majors,
-    ],
+    [plan.course.majorIds, course.majors],
     [plan.course.minorIds ?? [], course.minors],
     [plan.course.specialisationIds ?? [], course.specialisations],
   ] as const;

@@ -104,14 +104,20 @@ export function fixtureCatalog(): Catalog {
 
 export function fixturePlan(changes: Partial<Plan> = {}): Plan {
   return {
-    schemaVersion: 1,
-    course: { code: "C2000", version: 2026, majorId: "test-major" },
+    schemaVersion: 2,
+    course: {
+      code: "C2000",
+      version: 2026,
+      majorIds: ["test-major"],
+      minorIds: [],
+      specialisationIds: [],
+    },
     campus: "Clayton",
     startPeriod: { year: 2026, term: "S1" },
     entries: [],
     creditBlocks: [],
     maxUnitsPerTerm: 4,
-    selectedPathway: "Standard pathway",
+    selectedPathways: { path: "Standard pathway" },
     ...changes,
   };
 }

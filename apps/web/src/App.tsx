@@ -54,7 +54,19 @@ export function App() {
     (item) =>
       item.code === plan.course.code && item.version === plan.course.version,
   );
-  const major = course?.majors.find((item) => item.id === plan.course.majorId);
+  const selectedComponents = course
+    ? [
+        ...course.majors.filter((item) =>
+          plan.course.majorIds.includes(item.id),
+        ),
+        ...course.minors.filter((item) =>
+          plan.course.minorIds.includes(item.id),
+        ),
+        ...course.specialisations.filter((item) =>
+          plan.course.specialisationIds.includes(item.id),
+        ),
+      ]
+    : [];
 
   useEffect(() => {
     if (processedShare.current || !window.location.hash.startsWith("#share="))
@@ -115,7 +127,9 @@ export function App() {
         <div className="masthead-meta">
           <span className="ticket" title={course?.title}>
             {plan.course.code} · {plan.course.version}
-            {major ? ` · ${major.title}` : ""}
+            {selectedComponents.length
+              ? " · " + selectedComponents.map((item) => item.title).join(" · ")
+              : ""}
           </span>
           <span
             className={`health${errors ? " bad" : ""}`}

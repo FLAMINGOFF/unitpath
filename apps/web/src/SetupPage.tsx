@@ -31,7 +31,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
   const metrics = course ? courseDataMetrics(course, catalog) : null;
   const selectedComponents = [
     ...(course?.majors ?? []).filter((item) =>
-      (plan.course.majorIds ?? [plan.course.majorId]).includes(item.id),
+      plan.course.majorIds.includes(item.id),
     ),
     ...(course?.minors ?? []).filter((item) =>
       (plan.course.minorIds ?? []).includes(item.id),
@@ -83,13 +83,13 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
       course: {
         code: next.code,
         version: next.version,
-        majorId: defaultMajor?.id ?? "",
         majorIds: defaultMajor ? [defaultMajor.id] : [],
         minorIds: [],
         specialisationIds: [],
       },
       startPeriod: { ...current.startPeriod, year: next.version },
       selectedPathway: undefined,
+      selectedPathways: {},
     }));
     setCourseQuery("");
   };
@@ -99,9 +99,9 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
     );
     if (!next) return;
     updatePlan((current) => {
-      const majors = (
-        current.course.majorIds ?? [current.course.majorId]
-      ).filter((id) => next.majors.some((item) => item.id === id));
+      const majors = current.course.majorIds.filter((id) =>
+        next.majors.some((item) => item.id === id),
+      );
       const majorIds = majors.length
         ? majors
         : next.majors[0]
@@ -112,7 +112,6 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
         course: {
           ...current.course,
           version,
-          majorId: majorIds[0] ?? "",
           majorIds,
           minorIds: (current.course.minorIds ?? []).filter((id) =>
             next.minors.some((item) => item.id === id),
@@ -122,6 +121,8 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
           ),
         },
         startPeriod: { ...current.startPeriod, year: version },
+        selectedPathway: undefined,
+        selectedPathways: {},
       };
     });
   };
@@ -134,14 +135,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
       const ids = previous.includes(id)
         ? previous.filter((item) => item !== id)
         : [...previous, id];
-      return {
-        ...current,
-        course: {
-          ...current.course,
-          [key]: ids,
-          majorId: key === "majorIds" ? (ids[0] ?? "") : current.course.majorId,
-        },
-      };
+      return { ...current, course: { ...current.course, [key]: ids } };
     });
   const units = Object.values(catalog.units).sort((a, b) =>
     compareCodes(a.code, b.code),
@@ -369,7 +363,7 @@ export function SetupPage({ openUnit }: { openUnit: (code: string) => void }) {
                     ...current,
                     campus: event.target.value
                       ? (event.target.value as Campus)
-                      : undefined,
+                      : null,
                   }))
                 }
               >

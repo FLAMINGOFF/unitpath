@@ -3,6 +3,7 @@ import {
   autoSchedule,
   checkProgress,
   courseDataMetrics,
+  migratePlan,
   evaluateRequisites,
   parsePlanJson,
   satisfiesUnit,
@@ -119,7 +120,6 @@ describe("course component combinations", () => {
       course: {
         code: "C2000",
         version: 2026,
-        majorId: "test-major",
         majorIds: ["test-major", "second-major"],
         minorIds: ["test-minor"],
         specialisationIds: ["test-specialisation"],
@@ -507,6 +507,35 @@ describe("automatic scheduling", () => {
   });
 });
 
+describe("plan v1 migration", () => {
+  it("migrates original v1 files without guessing a campus", () => {
+    const old = {
+      schemaVersion: 1,
+      course: { code: "C2000", version: 2026, majorId: "test-major" },
+      startPeriod: s1,
+      entries: [entry("TST1001", s1, "completed")],
+      creditBlocks: [{ label: "Advanced standing", level: 1, points: 3 }],
+      maxUnitsPerTerm: 4,
+      selectedPathway: "Standard pathway",
+    };
+    const migrated = parsePlanJson(JSON.stringify(old));
+    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.course).toEqual({
+      code: "C2000",
+      version: 2026,
+      majorIds: ["test-major"],
+      minorIds: [],
+      specialisationIds: [],
+    });
+    expect(migrated.campus).toBeNull();
+    expect(migrated.entries).toEqual(old.entries);
+    expect(migrated.creditBlocks).toEqual(old.creditBlocks);
+    expect(migrated.selectedPathway).toBe("Standard pathway");
+    expect(migrated.selectedPathways).toEqual({});
+    expect(migratePlan(migrated)).toEqual(migrated);
+  });
+});
+
 describe("plan import", () => {
   it("round-trips valid JSON and rejects malformed or unsupported versions", () => {
     const plan = fixturePlan();
@@ -519,7 +548,7 @@ describe("plan import", () => {
       parsePlanJson(JSON.stringify({ ...plan, maxUnitsPerTerm: "four" })),
     ).toThrow();
     expect(() =>
-      parsePlanJson(JSON.stringify({ ...plan, schemaVersion: 2 })),
+      parsePlanJson(JSON.stringify({ ...plan, schemaVersion: 3 })),
     ).toThrow();
     expect(() =>
       parsePlanJson(`${JSON.stringify(plan)}${" ".repeat(1_000_001)}`),

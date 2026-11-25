@@ -109,8 +109,23 @@ export function ProgressPage({
       ? Math.min(cells, Math.floor((report.projectedCredits / target) * cells))
       : 0;
   const planned = projectedCells - earned;
-  const major = course?.majors.find((item) => item.id === plan.course.majorId);
-  const pathwayRule = major?.rules.find((rule) => "oneOf" in rule);
+  const selectedComponents = course
+    ? [
+        ...course.majors.filter((item) =>
+          plan.course.majorIds.includes(item.id),
+        ),
+        ...course.minors.filter((item) =>
+          plan.course.minorIds.includes(item.id),
+        ),
+        ...course.specialisations.filter((item) =>
+          plan.course.specialisationIds.includes(item.id),
+        ),
+      ]
+    : [];
+  const pathwayRules = [
+    ...(course?.rules ?? []),
+    ...selectedComponents.flatMap((item) => item.rules),
+  ].filter((rule) => "oneOf" in rule);
 
   return (
     <div className="page progress">
@@ -198,33 +213,44 @@ export function ProgressPage({
         ))}
       </ol>
 
-      {pathwayRule && "oneOf" in pathwayRule && (
-        <section className="pathways" aria-labelledby="pathway-heading">
+      {pathwayRules.map((pathwayRule) => (
+        <section
+          className="pathways"
+          aria-labelledby={"pathway-" + pathwayRule.id}
+          key={pathwayRule.id}
+        >
           <div>
-            <h2 id="pathway-heading">Choose a pathway</h2>
+            <h2 id={"pathway-" + pathwayRule.id}>
+              {ruleName(pathwayRule.id)} pathway
+            </h2>
             <p>
-              Guides the progress detail above and auto scheduling. Check the
-              official course rules before making a selection.
+              Guides progress and auto scheduling. Check the official course
+              rules before making a selection.
             </p>
           </div>
           <div className="pathway-options">
             {pathwayRule.oneOf.map((branch) => {
               const checked =
-                (plan.selectedPathway ?? pathwayRule.oneOf[0]?.label) ===
-                branch.label;
+                (plan.selectedPathways[pathwayRule.id] ??
+                  plan.selectedPathway ??
+                  pathwayRule.oneOf[0]?.label) === branch.label;
               return (
                 <label
                   key={branch.label}
-                  className={`pathway${checked ? " on" : ""}`}
+                  className={checked ? "pathway on" : "pathway"}
                 >
                   <input
                     type="radio"
-                    name="pathway"
+                    name={"pathway-" + pathwayRule.id}
                     checked={checked}
                     onChange={() =>
                       updatePlan((current) => ({
                         ...current,
-                        selectedPathway: branch.label,
+                        selectedPathway: undefined,
+                        selectedPathways: {
+                          ...current.selectedPathways,
+                          [pathwayRule.id]: branch.label,
+                        },
                       }))
                     }
                   />
@@ -239,7 +265,7 @@ export function ProgressPage({
             })}
           </div>
         </section>
-      )}
+      ))}
 
       <div className="notes">
         <Note tone="warn" icon={<Info size={15} />}>

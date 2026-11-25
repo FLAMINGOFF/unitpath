@@ -138,7 +138,25 @@ export const courseSchema = z.strictObject({
 });
 export type Course = z.infer<typeof courseSchema>;
 
-export const planSchema = z.strictObject({
+const entrySchema = z.strictObject({
+  unit: unitCode,
+  period: periodSchema,
+  status: z.enum(["completed", "enrolled", "planned"]),
+});
+const creditBlockSchema = z.strictObject({
+  label: z.string().min(1),
+  level,
+  points: z.number().int().positive(),
+});
+const planFields = {
+  startPeriod: periodSchema,
+  entries: z.array(entrySchema),
+  creditBlocks: z.array(creditBlockSchema),
+  maxUnitsPerTerm: z.number().int().min(1).max(8),
+  selectedPathway: z.string().optional(),
+};
+
+export const planV1Schema = z.strictObject({
   schemaVersion: z.literal(1),
   course: z.strictObject({
     code: z.string(),
@@ -149,23 +167,22 @@ export const planSchema = z.strictObject({
     specialisationIds: z.array(z.string()).optional(),
   }),
   campus: campusSchema.optional(),
-  startPeriod: periodSchema,
-  entries: z.array(
-    z.strictObject({
-      unit: unitCode,
-      period: periodSchema,
-      status: z.enum(["completed", "enrolled", "planned"]),
-    }),
-  ),
-  creditBlocks: z.array(
-    z.strictObject({
-      label: z.string().min(1),
-      level,
-      points: z.number().int().positive(),
-    }),
-  ),
-  maxUnitsPerTerm: z.number().int().min(1).max(8),
-  selectedPathway: z.string().optional(),
+  ...planFields,
+});
+export type PlanV1 = z.infer<typeof planV1Schema>;
+
+export const planSchema = z.strictObject({
+  schemaVersion: z.literal(2),
+  course: z.strictObject({
+    code: z.string().regex(/^[A-Z]\d{4}$/),
+    version: z.number().int().min(2020).max(2100),
+    majorIds: z.array(z.string().min(1)),
+    minorIds: z.array(z.string().min(1)),
+    specialisationIds: z.array(z.string().min(1)),
+  }),
+  campus: campusSchema.nullable(),
+  selectedPathways: z.record(z.string(), z.string()).default({}),
+  ...planFields,
 });
 export type Plan = z.infer<typeof planSchema>;
 
@@ -189,6 +206,37 @@ function utf8ByteLength(value: string): number {
   return bytes;
 }
 
+export function migratePlan(input: unknown): Plan {
+  if (
+    typeof input === "object" &&
+    input !== null &&
+    "schemaVersion" in input &&
+    input.schemaVersion === 1
+  ) {
+    const old = planV1Schema.parse(input);
+    return planSchema.parse({
+      schemaVersion: 2,
+      course: {
+        code: old.course.code,
+        version: old.course.version,
+        majorIds:
+          old.course.majorIds ??
+          (old.course.majorId ? [old.course.majorId] : []),
+        minorIds: old.course.minorIds ?? [],
+        specialisationIds: old.course.specialisationIds ?? [],
+      },
+      campus: old.campus ?? null,
+      startPeriod: old.startPeriod,
+      entries: old.entries,
+      creditBlocks: old.creditBlocks,
+      maxUnitsPerTerm: old.maxUnitsPerTerm,
+      selectedPathway: old.selectedPathway,
+      selectedPathways: {},
+    });
+  }
+  return planSchema.parse(input);
+}
+
 export function parsePlanJson(input: string): Plan {
   if (utf8ByteLength(input) > 1_000_000) {
     throw new Error("Plan file exceeds the 1 MB limit.");
@@ -199,5 +247,5 @@ export function parsePlanJson(input: string): Plan {
   } catch {
     throw new Error("Plan file is not valid JSON.");
   }
-  return planSchema.parse(parsed);
+  return migratePlan(parsed);
 }

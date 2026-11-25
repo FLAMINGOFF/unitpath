@@ -130,8 +130,11 @@ export function autoSchedule(
     if ("oneOf" in rule)
       return (
         (
-          rule.oneOf.find((item) => item.label === selectedPathway) ??
-          rule.oneOf[0]
+          rule.oneOf.find(
+            (item) =>
+              item.label ===
+              (plan.selectedPathways[rule.id] ?? selectedPathway),
+          ) ?? rule.oneOf[0]
         )?.requiredUnits ?? []
       );
     return [];

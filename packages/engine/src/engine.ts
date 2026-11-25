@@ -108,8 +108,7 @@ export function courseAndComponents(
         throw new Error(kind + " " + id + " is not in the catalog.");
       return component;
     });
-  const majorIds =
-    plan.course.majorIds ?? (plan.course.majorId ? [plan.course.majorId] : []);
+  const majorIds = plan.course.majorIds;
   const components = [
     ...resolve("Major", majorIds, course.majors),
     ...resolve("Minor", plan.course.minorIds ?? [], course.minors),
@@ -467,7 +466,11 @@ function progressForRule(
     };
   });
   const selected =
-    scored.find((item) => item.branch.label === plan.selectedPathway) ??
+    scored.find(
+      (item) =>
+        item.branch.label ===
+        (plan.selectedPathways[rule.id] ?? plan.selectedPathway),
+    ) ??
     [...scored].sort(
       (a, b) =>
         b.current / b.branch.requiredUnits.length -
