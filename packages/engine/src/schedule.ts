@@ -1,6 +1,7 @@
 import type { Catalog, Expr, Period, Plan } from "./schema";
 import {
   courseAndComponents,
+  checkProgress,
   evaluateRequisites,
   offeredAt,
   periodFromOrdinal,
@@ -320,6 +321,21 @@ export function autoSchedule(
       catalog,
     ),
   }));
+  const projectedRules = checkProgress(resultPlan, catalog).projected;
+  for (const rule of allRules) {
+    if ("creditsFromList" in rule) {
+      const current =
+        projectedRules.find((item) => item.id === rule.id)?.current ?? 0;
+      const gap = Math.max(0, rule.creditsFromList.points - current);
+      if (gap > 0)
+        unscheduled.push({
+          unit: rule.id,
+          reason:
+            gap +
+            " credit points still needed from the eligible unit list; choose units manually.",
+        });
+    }
+  }
   if (electivePointsRemaining > 0)
     unscheduled.push({
       unit: "ELECTIVE",
