@@ -357,6 +357,9 @@ describe("requisite evaluation", () => {
     ).toBe(true);
     expect(reportFor({ enrolledIn: "C2000" }, plan).ok).toBe(true);
     expect(reportFor({ enrolledIn: "C9999" }, plan).ok).toBe(false);
+    const assumed = reportFor({ assumed: "VCE Mathematical Methods" }, plan);
+    expect(assumed.ok).toBe(true);
+    expect(assumed.message).toContain("VCE Mathematical Methods");
   });
   it("does not count a same-term prerequisite but does count a corequisite", () => {
     const catalog = fixtureCatalog();

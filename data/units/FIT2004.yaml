@@ -1,0 +1,28 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT2004
+title: Algorithms and data structures
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1008
+          - unit: FIT1054
+          - unit: FIT2085
+      - any:
+          - unit: MAT1830
+          - unit: FIT1058
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT2004
+verified: false

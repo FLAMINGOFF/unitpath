@@ -1,0 +1,19 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT1061
+title: Introduction to artificial intelligence
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    any:
+      - unit: FIT1045
+      - unit: FIT1053
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT1061
+verified: false

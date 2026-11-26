@@ -1,0 +1,25 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3139
+title: Computational modelling and simulation
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+requisites:
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1008
+          - unit: FIT2085
+          - unit: FIT1054
+      - any:
+          - unit: MAT1841
+          - unit: MTH1035
+          - unit: MTH1030
+          - unit: FIT1058
+          - unit: ENG1005
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3139
+verified: false

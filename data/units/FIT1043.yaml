@@ -10,7 +10,10 @@ offerings:
   - term: S2
     campus: Clayton
 requisites:
-  prerequisite: TODO
+  prerequisite:
+    any:
+      - unit: MTH1010
+      - assumed: VCE Mathematical Methods or Specialist Mathematics units 3 and 4 with a study score of 25, or equivalent.
   corequisite: null
   prohibitions:
     - FIT5145
@@ -19,4 +22,5 @@ source: https://handbook.monash.edu/2026/units/FIT1043
 verified: false
 notes:
   - "Handbook prerequisite: MTH1010 or VCE Mathematical Methods or Specialist Mathematics units 3 & 4 with
-    a study score of 25 or equivalent. School results cannot be modelled, so the prerequisite stays TODO."
+    a study score of 25 or equivalent. The school result cannot be checked, so it is treated as met; confirm it
+    yourself."

@@ -1,5 +1,62 @@
 {
   "units": {
+    "FIT1008": {
+      "code": "FIT1008",
+      "title": "Fundamentals of algorithms",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1045"
+                },
+                {
+                  "unit": "FIT1053"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT1058"
+                },
+                {
+                  "unit": "MAT1830"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT1054",
+          "FIT2085"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT1008",
+      "verified": false
+    },
     "FIT1043": {
       "code": "FIT1043",
       "title": "Introduction to data science",
@@ -19,7 +76,16 @@
         }
       ],
       "requisites": {
-        "prerequisite": "TODO",
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "MTH1010"
+            },
+            {
+              "assumed": "VCE Mathematical Methods or Specialist Mathematics units 3 and 4 with a study score of 25, or equivalent."
+            }
+          ]
+        },
         "corequisite": null,
         "prohibitions": [
           "FIT5145"
@@ -29,7 +95,7 @@
       "source": "https://handbook.monash.edu/2026/units/FIT1043",
       "verified": false,
       "notes": [
-        "Handbook prerequisite: MTH1010 or VCE Mathematical Methods or Specialist Mathematics units 3 & 4 with a study score of 25 or equivalent. School results cannot be modelled, so the prerequisite stays TODO."
+        "Handbook prerequisite: MTH1010 or VCE Mathematical Methods or Specialist Mathematics units 3 & 4 with a study score of 25 or equivalent. The school result cannot be checked, so it is treated as met; confirm it yourself."
       ]
     },
     "FIT1045": {
@@ -136,6 +202,40 @@
         "Handbook enrolment rule: completion of 12 credit points of FIT units."
       ]
     },
+    "FIT1055": {
+      "code": "FIT1055",
+      "title": "IT professional practice and ethics",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "minCreditsFrom": {
+            "points": 12,
+            "prefix": "FIT"
+          }
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT1049",
+          "FIT2003"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT1055",
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: requires a minimum of 12 credit points of FIT units. Prohibitions FIT1049 and FIT2003 are stated in the same rule."
+      ]
+    },
     "FIT1057": {
       "code": "FIT1057",
       "title": "Introduction to cybersecurity",
@@ -154,6 +254,60 @@
       "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT1057",
       "verified": false
+    },
+    "FIT1058": {
+      "code": "FIT1058",
+      "title": "Foundations of computing",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "assumed": "VCE Specialist Mathematics or Mathematical Methods units 3 and 4 with a raw study score of at least 25."
+        },
+        "corequisite": {
+          "any": [
+            {
+              "unit": "FIT1045"
+            },
+            {
+              "unit": "FIT1053"
+            },
+            {
+              "unit": "ENG1013"
+            },
+            {
+              "unit": "ENG1014"
+            }
+          ]
+        },
+        "prohibitions": [
+          "MAT1830"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT1058",
+      "verified": false,
+      "notes": [
+        "Also offered in the Malaysia October intake and the Clayton November teaching period; UnitPath models only S1, S2 and summer.",
+        "The prerequisite is a school result, which UnitPath cannot check. It is treated as met; confirm it yourself."
+      ]
     },
     "FIT1059": {
       "code": "FIT1059",
@@ -194,6 +348,38 @@
       },
       "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT1060",
+      "verified": false
+    },
+    "FIT1061": {
+      "code": "FIT1061",
+      "title": "Introduction to artificial intelligence",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1045"
+            },
+            {
+              "unit": "FIT1053"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT1061",
       "verified": false
     },
     "FIT1093": {
@@ -308,6 +494,144 @@
         "Summer offering is Summer semester B.",
         "Handbook enrolment rule: as well as completion of at least 36 credit points of study."
       ]
+    },
+    "FIT2004": {
+      "code": "FIT2004",
+      "title": "Algorithms and data structures",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1008"
+                },
+                {
+                  "unit": "FIT1054"
+                },
+                {
+                  "unit": "FIT2085"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "MAT1830"
+                },
+                {
+                  "unit": "FIT1058"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2004",
+      "verified": false
+    },
+    "FIT2014": {
+      "code": "FIT2014",
+      "title": "Theory of computation",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1008"
+                },
+                {
+                  "unit": "FIT1054"
+                },
+                {
+                  "unit": "FIT2085"
+                },
+                {
+                  "unit": "MTH2021"
+                },
+                {
+                  "unit": "MTH2025"
+                },
+                {
+                  "unit": "MTH2140"
+                },
+                {
+                  "unit": "MTH3140"
+                },
+                {
+                  "unit": "MTH2141"
+                },
+                {
+                  "unit": "MTH3141"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT1058"
+                },
+                {
+                  "unit": "MAT1830"
+                },
+                {
+                  "unit": "MTH1035"
+                },
+                {
+                  "unit": "ATS2866"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2014",
+      "verified": false
     },
     "FIT2081": {
       "code": "FIT2081",
@@ -466,6 +790,82 @@
         "Summer offering is Summer semester B."
       ]
     },
+    "FIT2099": {
+      "code": "FIT2099",
+      "title": "Object oriented design and implementation",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1045"
+            },
+            {
+              "unit": "FIT1048"
+            },
+            {
+              "unit": "FIT1051"
+            },
+            {
+              "unit": "FIT1053"
+            },
+            {
+              "unit": "FIT1054"
+            },
+            {
+              "unit": "FIT1008"
+            },
+            {
+              "all": [
+                {
+                  "any": [
+                    {
+                      "unit": "ENG1003"
+                    },
+                    {
+                      "unit": "ENG1013"
+                    }
+                  ]
+                },
+                {
+                  "any": [
+                    {
+                      "unit": "ENG1060"
+                    },
+                    {
+                      "unit": "ENG1014"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2099",
+      "verified": false
+    },
     "FIT2100": {
       "code": "FIT2100",
       "title": "Operating systems",
@@ -500,6 +900,135 @@
       "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2100",
       "verified": false
+    },
+    "FIT2102": {
+      "code": "FIT2102",
+      "title": "Programming paradigms",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1008"
+            },
+            {
+              "unit": "FIT1054"
+            },
+            {
+              "unit": "FIT2085"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2102",
+      "verified": false
+    },
+    "FIT2109": {
+      "code": "FIT2109",
+      "title": "Computer science workshop",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1047"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT1008"
+                },
+                {
+                  "unit": "FIT1054"
+                },
+                {
+                  "unit": "FIT2085"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2109",
+      "verified": false
+    },
+    "FIT2111": {
+      "code": "FIT2111",
+      "title": "Symbolic artificial intelligence and machine learning",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1008"
+            },
+            {
+              "unit": "FIT1061"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2111",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO."
+      ]
+    },
+    "FIT2112": {
+      "code": "FIT2112",
+      "title": "Deep learning",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1061"
+            },
+            {
+              "unit": "FIT1008"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT2112",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO."
+      ]
     },
     "FIT2165": {
       "code": "FIT2165",
@@ -633,6 +1162,38 @@
       },
       "replacedBy": null,
       "source": "https://handbook.monash.edu/2026/units/FIT2179",
+      "verified": false
+    },
+    "FIT3003": {
+      "code": "FIT3003",
+      "title": "Business intelligence and data warehousing",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT2094"
+            },
+            {
+              "unit": "FIT3171"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3003",
       "verified": false
     },
     "FIT3031": {
@@ -826,6 +1387,110 @@
       "source": "https://handbook.monash.edu/2026/units/FIT3048",
       "verified": false
     },
+    "FIT3080": {
+      "code": "FIT3080",
+      "title": "Artificial intelligence",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT2004"
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3080",
+      "verified": false
+    },
+    "FIT3139": {
+      "code": "FIT3139",
+      "title": "Computational modelling and simulation",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "any": [
+                {
+                  "unit": "FIT1008"
+                },
+                {
+                  "unit": "FIT2085"
+                },
+                {
+                  "unit": "FIT1054"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "MAT1841"
+                },
+                {
+                  "unit": "MTH1035"
+                },
+                {
+                  "unit": "MTH1030"
+                },
+                {
+                  "unit": "FIT1058"
+                },
+                {
+                  "unit": "ENG1005"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3139",
+      "verified": false
+    },
+    "FIT3143": {
+      "code": "FIT3143",
+      "title": "Parallel computing",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT2004"
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3143",
+      "verified": false
+    },
     "FIT3146": {
       "code": "FIT3146",
       "title": "Maker lab",
@@ -949,6 +1614,325 @@
       "source": "https://handbook.monash.edu/2026/units/FIT3152",
       "verified": false
     },
+    "FIT3154": {
+      "code": "FIT3154",
+      "title": "Advanced data analysis",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT2086"
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3154",
+      "verified": false,
+      "notes": [
+        "Handbook prerequisite also accepts \"related statistical background\", which UnitPath cannot check."
+      ]
+    },
+    "FIT3155": {
+      "code": "FIT3155",
+      "title": "Advanced data structures and algorithms",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT2004"
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3155",
+      "verified": false
+    },
+    "FIT3159": {
+      "code": "FIT3159",
+      "title": "Computer architecture",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "FIT1047"
+            },
+            {
+              "unit": "FIT2085"
+            },
+            {
+              "unit": "FIT1008"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3159",
+      "verified": false
+    },
+    "FIT3161": {
+      "code": "FIT3161",
+      "title": "Computer science project 1",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT2004"
+            },
+            {
+              "unit": "FIT2099"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT1049"
+                },
+                {
+                  "unit": "FIT1055"
+                }
+              ]
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT2094"
+                },
+                {
+                  "unit": "FIT3171"
+                }
+              ]
+            },
+            {
+              "minCredits": 72
+            },
+            {
+              "minCreditsFrom": {
+                "points": 60,
+                "prefix": "FIT"
+              }
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3144",
+          "FIT3163"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3161",
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: must have completed at least 72 credit points of study, including 60 credit points of FIT units."
+      ]
+    },
+    "FIT3162": {
+      "code": "FIT3162",
+      "title": "Computer science project 2",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT3161"
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3144"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3162",
+      "verified": false,
+      "notes": [
+        "Also offered in Malaysia summer semester A, which UnitPath does not model."
+      ]
+    },
+    "FIT3163": {
+      "code": "FIT3163",
+      "title": "Data science project 1",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1043"
+            },
+            {
+              "unit": "FIT2004"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT1049"
+                },
+                {
+                  "unit": "FIT1055"
+                }
+              ]
+            },
+            {
+              "unit": "FIT2086"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT2094"
+                },
+                {
+                  "unit": "FIT3171"
+                }
+              ]
+            },
+            {
+              "minCredits": 72
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3144",
+          "FIT3161"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3163",
+      "verified": false,
+      "notes": [
+        "Handbook enrolment rule: at least 72 credit points of study including 60 credit points of FIT/MAT units. The 72-point part is modelled; the 60 points of FIT or MAT units cannot be expressed with one prefix and is not checked."
+      ]
+    },
+    "FIT3164": {
+      "code": "FIT3164",
+      "title": "Data science project 2",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT3163"
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "FIT3144"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3164",
+      "verified": false,
+      "notes": [
+        "Also offered in Malaysia summer semester A, which UnitPath does not model."
+      ]
+    },
     "FIT3168": {
       "code": "FIT3168",
       "title": "IT forensics",
@@ -1042,6 +2026,127 @@
         "Handbook enrolment rule: and must have passed 24 credit points of FIT level 2 or 3 units."
       ]
     },
+    "FIT3181": {
+      "code": "FIT3181",
+      "title": "Deep learning",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT2086"
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3181",
+      "verified": false
+    },
+    "FIT3182": {
+      "code": "FIT3182",
+      "title": "Big data management and processing",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT2004"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT3171"
+                },
+                {
+                  "unit": "FIT2094"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3182",
+      "verified": false,
+      "notes": [
+        "Offered only at Malaysia in 2026.",
+        "Handbook note: students should have an understanding of database concepts and SQL and Python programming background."
+      ]
+    },
+    "FIT3183": {
+      "code": "FIT3183",
+      "title": "Malicious AI and dark side security",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Malaysia"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1047"
+            },
+            {
+              "unit": "FIT2004"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3183",
+      "verified": false,
+      "notes": [
+        "Offered only at Malaysia in 2026."
+      ]
+    },
+    "FIT3185": {
+      "code": "FIT3185",
+      "title": "Privacy enhancing technologies",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1093"
+            },
+            {
+              "unit": "FIT2014"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3185",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page lists no teaching periods, so offerings stay TODO."
+      ]
+    },
     "FIT3186": {
       "code": "FIT3186",
       "title": "Vulnerability analysis, response and mitigation",
@@ -1070,6 +2175,178 @@
       "source": "https://handbook.monash.edu/2026/units/FIT3186",
       "verified": false
     },
+    "FIT3188": {
+      "code": "FIT3188",
+      "title": "Cybersecurity project 1",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S1",
+          "campus": "Clayton"
+        },
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT1049"
+            },
+            {
+              "unit": "FIT1057"
+            },
+            {
+              "unit": "FIT1093"
+            },
+            {
+              "unit": "FIT2004"
+            },
+            {
+              "unit": "FIT2173"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3188",
+      "verified": false
+    },
+    "FIT3189": {
+      "code": "FIT3189",
+      "title": "Cybersecurity project 2",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT3188"
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3189",
+      "verified": false
+    },
+    "FIT3191": {
+      "code": "FIT3191",
+      "title": "Generative artificial intelligence",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT2112"
+            },
+            {
+              "unit": "FIT2004"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3191",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO."
+      ]
+    },
+    "FIT3192": {
+      "code": "FIT3192",
+      "title": "Emerging and advanced topics in artificial intelligence",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT2111"
+            },
+            {
+              "unit": "FIT2004"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3192",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO."
+      ]
+    },
+    "FIT3193": {
+      "code": "FIT3193",
+      "title": "Artificial intelligence project 1",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT2094"
+            },
+            {
+              "unit": "FIT2004"
+            },
+            {
+              "unit": "FIT2111"
+            },
+            {
+              "any": [
+                {
+                  "unit": "FIT1049"
+                },
+                {
+                  "unit": "FIT1055"
+                }
+              ]
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3193",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO."
+      ]
+    },
+    "FIT3194": {
+      "code": "FIT3194",
+      "title": "Artificial intelligence project 2",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "unit": "FIT3193"
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3194",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO."
+      ]
+    },
     "FIT3195": {
       "code": "FIT3195",
       "title": "Deep tech entrepreneurship",
@@ -1094,6 +2371,176 @@
       "verified": false,
       "notes": [
         "Handbook enrolment rule: available to students in BIT, BCS and BSE degrees who have completed 96 credit points. UnitPath checks only the 96 points."
+      ]
+    },
+    "FIT3196": {
+      "code": "FIT3196",
+      "title": "Computer architecture and networks",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": null,
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3196",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO.",
+        "The Handbook 2026 page lists no requisites."
+      ]
+    },
+    "FIT3203": {
+      "code": "FIT3203",
+      "title": "Intelligent agents",
+      "creditPoints": 6,
+      "offerings": "TODO",
+      "requisites": {
+        "prerequisite": {
+          "all": [
+            {
+              "unit": "FIT2004"
+            },
+            {
+              "unit": "FIT2111"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": []
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/FIT3203",
+      "verified": false,
+      "notes": [
+        "The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay TODO."
+      ]
+    },
+    "MTH3170": {
+      "code": "MTH3170",
+      "title": "Network mathematics",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "MTH3130"
+            },
+            {
+              "unit": "MTH3137"
+            },
+            {
+              "unit": "MTH3140"
+            },
+            {
+              "unit": "MTH3141"
+            },
+            {
+              "unit": "FIT2014"
+            },
+            {
+              "unit": "MTH1035"
+            },
+            {
+              "unit": "MTH2121"
+            },
+            {
+              "unit": "MTH2025"
+            },
+            {
+              "unit": "MTH2137"
+            },
+            {
+              "unit": "MTH2141"
+            },
+            {
+              "unit": "MTH3110"
+            },
+            {
+              "unit": "MTH3121"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "MTH3175"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/MTH3170",
+      "verified": false,
+      "notes": [
+        "Prerequisite and prohibition are stated as Handbook enrolment rule text. Enrolment in the Master of Mathematics is an alternative to the listed units and is not modelled."
+      ]
+    },
+    "MTH3175": {
+      "code": "MTH3175",
+      "title": "Network mathematics (Advanced)",
+      "creditPoints": 6,
+      "offerings": [
+        {
+          "term": "S2",
+          "campus": "Clayton"
+        }
+      ],
+      "requisites": {
+        "prerequisite": {
+          "any": [
+            {
+              "unit": "MTH1035"
+            },
+            {
+              "unit": "MTH2025"
+            },
+            {
+              "unit": "MTH2121"
+            },
+            {
+              "unit": "MTH3110"
+            },
+            {
+              "unit": "MTH3121"
+            },
+            {
+              "unit": "MTH3130"
+            },
+            {
+              "unit": "MTH3140"
+            },
+            {
+              "unit": "FIT2014"
+            },
+            {
+              "unit": "MTH2137"
+            },
+            {
+              "unit": "MTH3137"
+            },
+            {
+              "unit": "MTH2141"
+            },
+            {
+              "unit": "MTH3141"
+            }
+          ]
+        },
+        "corequisite": null,
+        "prohibitions": [
+          "MTH3170"
+        ]
+      },
+      "replacedBy": null,
+      "source": "https://handbook.monash.edu/2026/units/MTH3175",
+      "verified": false,
+      "notes": [
+        "Prerequisite and prohibition are stated as Handbook enrolment rule text."
       ]
     }
   },
@@ -1200,6 +2647,253 @@
       ],
       "minors": [],
       "specialisations": []
+    },
+    {
+      "code": "C2001",
+      "version": 2026,
+      "title": "Bachelor of Computer Science",
+      "source": "https://handbook.monash.edu/2026/courses/C2001",
+      "rules": [
+        {
+          "id": "total",
+          "totalCredits": 144
+        },
+        {
+          "id": "level1-cap",
+          "maxCreditsAtLevel": {
+            "level": 1,
+            "points": 60
+          }
+        },
+        {
+          "id": "level3-min",
+          "minCreditsAtLevel": {
+            "level": 3,
+            "points": 36
+          }
+        },
+        {
+          "id": "foundation",
+          "requiredUnits": [
+            "FIT1008",
+            "FIT1045",
+            "FIT1047",
+            "FIT1058",
+            "FIT2004",
+            "FIT2014",
+            "FIT2094"
+          ]
+        },
+        {
+          "id": "professional-practice",
+          "oneOf": [
+            {
+              "label": "FIT1049 IT professional practice",
+              "requiredUnits": [
+                "FIT1049"
+              ]
+            },
+            {
+              "label": "FIT1055 IT professional practice and ethics (Malaysia)",
+              "requiredUnits": [
+                "FIT1055"
+              ]
+            }
+          ]
+        }
+      ],
+      "majors": [],
+      "minors": [],
+      "specialisations": [
+        {
+          "id": "algorithms-and-software",
+          "title": "Algorithms and software",
+          "rules": [
+            {
+              "id": "alg-core",
+              "requiredUnits": [
+                "FIT2109",
+                "FIT2102",
+                "FIT2099",
+                "FIT3155",
+                "FIT3143"
+              ]
+            },
+            {
+              "id": "alg-level3-elective",
+              "creditsFromList": {
+                "units": [
+                  "FIT3196",
+                  "FIT3080",
+                  "FIT3159",
+                  "FIT3182",
+                  "FIT3146",
+                  "FIT3139",
+                  "MTH3175",
+                  "MTH3170"
+                ],
+                "points": 6
+              }
+            },
+            {
+              "id": "alg-applied",
+              "oneOf": [
+                {
+                  "label": "Algorithms and software project studies",
+                  "requiredUnits": [
+                    "FIT3161",
+                    "FIT3162"
+                  ]
+                },
+                {
+                  "label": "Industry Based Learning",
+                  "requiredUnits": [
+                    "FIT3045"
+                  ]
+                }
+              ]
+            }
+          ],
+          "suggestedSequence": {}
+        },
+        {
+          "id": "artificial-intelligence",
+          "title": "Artificial intelligence",
+          "rules": [
+            {
+              "id": "ai-core",
+              "requiredUnits": [
+                "FIT1061",
+                "FIT2111",
+                "FIT2112",
+                "FIT3191",
+                "FIT3203"
+              ]
+            },
+            {
+              "id": "ai-level3-elective",
+              "creditsFromList": {
+                "units": [
+                  "FIT3192",
+                  "FIT3183"
+                ],
+                "points": 6
+              }
+            },
+            {
+              "id": "ai-applied",
+              "oneOf": [
+                {
+                  "label": "Artificial intelligence project studies",
+                  "requiredUnits": [
+                    "FIT3193",
+                    "FIT3194"
+                  ]
+                },
+                {
+                  "label": "Industry Based Learning",
+                  "requiredUnits": [
+                    "FIT3045"
+                  ]
+                }
+              ]
+            }
+          ],
+          "suggestedSequence": {}
+        },
+        {
+          "id": "cybersecurity",
+          "title": "Cybersecurity",
+          "rules": [
+            {
+              "id": "cyber-core",
+              "requiredUnits": [
+                "FIT1057",
+                "FIT1093",
+                "FIT2173",
+                "FIT3185",
+                "FIT3186"
+              ]
+            },
+            {
+              "id": "cyber-level3-elective",
+              "creditsFromList": {
+                "units": [
+                  "FIT3031",
+                  "FIT3168"
+                ],
+                "points": 6
+              }
+            },
+            {
+              "id": "cyber-applied",
+              "oneOf": [
+                {
+                  "label": "Cybersecurity project studies",
+                  "requiredUnits": [
+                    "FIT3188",
+                    "FIT3189"
+                  ]
+                },
+                {
+                  "label": "Industry Based Learning",
+                  "requiredUnits": [
+                    "FIT3045"
+                  ]
+                }
+              ]
+            }
+          ],
+          "suggestedSequence": {}
+        },
+        {
+          "id": "data-science",
+          "title": "Data science",
+          "rules": [
+            {
+              "id": "ds-core",
+              "requiredUnits": [
+                "FIT1043",
+                "FIT2086",
+                "FIT2179",
+                "FIT3152"
+              ]
+            },
+            {
+              "id": "ds-level3-electives",
+              "creditsFromList": {
+                "units": [
+                  "FIT3182",
+                  "FIT3183",
+                  "FIT3154",
+                  "FIT3181",
+                  "FIT3003"
+                ],
+                "points": 12
+              }
+            },
+            {
+              "id": "ds-applied",
+              "oneOf": [
+                {
+                  "label": "Data science project studies",
+                  "requiredUnits": [
+                    "FIT3163",
+                    "FIT3164"
+                  ]
+                },
+                {
+                  "label": "Industry Based Learning",
+                  "requiredUnits": [
+                    "FIT3045"
+                  ]
+                }
+              ]
+            }
+          ],
+          "suggestedSequence": {}
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,20 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3159
+title: Computer architecture
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+requisites:
+  prerequisite:
+    any:
+      - unit: FIT1047
+      - unit: FIT2085
+      - unit: FIT1008
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3159
+verified: false
