@@ -1,0 +1,20 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT2102
+title: Programming paradigms
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    any:
+      - unit: FIT1008
+      - unit: FIT1054
+      - unit: FIT2085
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT2102
+verified: false

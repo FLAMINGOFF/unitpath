@@ -100,6 +100,61 @@ describe("real Handbook catalogue", () => {
     expect(result.expectedGraduation).toBeNull();
   });
 
+  it("auto-schedules C2001 algorithms and software except the chosen elective", () => {
+    const plan = emptyPlan({
+      course: {
+        code: "C2001",
+        version: 2026,
+        majorIds: [],
+        minorIds: [],
+        specialisationIds: ["algorithms-and-software"],
+      },
+    });
+    const result = autoSchedule(plan, catalog, options);
+    // Only the level 3 elective list is left, because list units are chosen by hand.
+    expect(result.unscheduled.map((item) => item.unit)).toEqual([
+      "specialisation:algorithms-and-software/alg-level3-elective",
+    ]);
+    expect(result.issues.filter((issue) => issue.level === "error")).toEqual(
+      [],
+    );
+    const points =
+      result.entries.reduce(
+        (sum, entry) => sum + catalog.units[entry.unit]!.creditPoints,
+        0,
+      ) + result.placeholders.reduce((sum, slot) => sum + slot.points, 0);
+    expect(points).toBe(144);
+    const applied = {
+      ...plan,
+      entries: result.entries,
+      electiveSlots: toPlanSlots(result.placeholders),
+    };
+    expect(
+      validatePlan(applied, catalog).filter((issue) => issue.level === "error"),
+    ).toEqual([]);
+  });
+
+  it("reports C2001 artificial intelligence units as not yet scheduled", () => {
+    const result = autoSchedule(
+      emptyPlan({
+        course: {
+          code: "C2001",
+          version: 2026,
+          majorIds: [],
+          minorIds: [],
+          specialisationIds: ["artificial-intelligence"],
+        },
+      }),
+      catalog,
+      options,
+    );
+    expect(result.unscheduled).toContainEqual({
+      unit: "FIT2111",
+      reason: "Teaching periods have not been verified.",
+    });
+    expect(result.expectedGraduation).toBeNull();
+  });
+
   it("runs progress and validation on the empty plan without throwing", () => {
     expect(() => checkProgress(emptyPlan(), catalog)).not.toThrow();
     expect(validatePlan(emptyPlan(), catalog)).toEqual([]);

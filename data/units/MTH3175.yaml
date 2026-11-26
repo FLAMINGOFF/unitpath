@@ -1,0 +1,30 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: MTH3175
+title: Network mathematics (Advanced)
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+requisites:
+  prerequisite:
+    any:
+      - unit: MTH1035
+      - unit: MTH2025
+      - unit: MTH2121
+      - unit: MTH3110
+      - unit: MTH3121
+      - unit: MTH3130
+      - unit: MTH3140
+      - unit: FIT2014
+      - unit: MTH2137
+      - unit: MTH3137
+      - unit: MTH2141
+      - unit: MTH3141
+  corequisite: null
+  prohibitions:
+    - MTH3170
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/MTH3175
+verified: false
+notes:
+  - Prerequisite and prohibition are stated as Handbook enrolment rule text.

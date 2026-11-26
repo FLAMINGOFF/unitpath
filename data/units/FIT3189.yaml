@@ -1,0 +1,15 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3189
+title: Cybersecurity project 2
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+requisites:
+  prerequisite:
+    unit: FIT3188
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3189
+verified: false

@@ -1,0 +1,22 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3182
+title: Big data management and processing
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Malaysia
+requisites:
+  prerequisite:
+    all:
+      - unit: FIT2004
+      - any:
+          - unit: FIT3171
+          - unit: FIT2094
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3182
+verified: false
+notes:
+  - Offered only at Malaysia in 2026.
+  - "Handbook note: students should have an understanding of database concepts and SQL and Python programming background."

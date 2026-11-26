@@ -1,0 +1,31 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT1058
+title: Foundations of computing
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    assumed: VCE Specialist Mathematics or Mathematical Methods units 3 and 4 with a raw study score of at least 25.
+  corequisite:
+    any:
+      - unit: FIT1045
+      - unit: FIT1053
+      - unit: ENG1013
+      - unit: ENG1014
+  prohibitions:
+    - MAT1830
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT1058
+verified: false
+notes:
+  - Also offered in the Malaysia October intake and the Clayton November teaching period; UnitPath models only S1,
+    S2 and summer.
+  - The prerequisite is a school result, which UnitPath cannot check. It is treated as met; confirm it yourself.

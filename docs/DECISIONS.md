@@ -84,3 +84,27 @@ Real rules such as "90 credit points before FIT3047" depend on electives a stude
 ## 2026-11-25: Public deployment
 
 This supersedes "Private source repository, no public deployment". The owner chose to make the repository public so GitHub Pages can host the site for free. The full history was scanned for credentials before that step and none were found. Deploy Pages now runs after CI succeeds on a push to `main` and skips itself while the repository is private, so it never fails noisily. Unit data stays marked unverified on the site until a person checks it, and every page shows that warning.
+
+## 2026-11-26: Bachelor of Computer Science (C2001) 2026
+
+### Source
+
+The C2001 2026 course page and its four specialisation pages (ALGSFTWR01, ATINTELL02, CSCYBSEC01, DATASCI11) were read in a browser, together with each of the 36 new unit pages, one at a time. Shared FIT units reuse the existing records. Every new unit links to its page and stays `verified: false`.
+
+### How the course is modelled
+
+- Course rules: 144 points, at most 60 at level 1, at least 36 at level 3, Part A foundation units, and Part B as a choice between FIT1049 and FIT1055 (the Malaysia unit).
+- Each specialisation holds its core units, its level 3 elective list as `creditsFromList`, and Part D as a `oneOf` between its project pair and Industry Based Learning (FIT3045).
+- Part E free electives are covered by the total and level rules. The recommended Clayton minors and FIT3190 are not listed.
+
+### What is not modelled
+
+- Part C says a student must complete one specialisation. Nothing enforces that a specialisation is selected; with none selected, Parts C and D are simply absent.
+- IBL replaces the specialisation's level 3 elective (and for Malaysia students two free electives). The elective list rule still asks for its points when IBL is chosen, so an IBL plan shows that rule as unmet.
+- Malaysia students must do project studies plus either IBL or FIT3199 Industry work experience. The 0-point units FIT2108, FIT3199, FIT3201 and FIT3202 are not in the catalogue, because unit credit points must be positive.
+- The double degree substitutions for FIT2094 and FIT2099 are not modelled.
+- Nine units are not offered in 2026 or list no teaching periods (most of the artificial intelligence specialisation, FIT3185 and FIT3196). Their offerings stay `TODO`, so automatic schedules leave them unscheduled with that reason.
+
+### School results as prerequisites
+
+FIT1058 is a foundation unit whose only prerequisite is a VCE mathematics study score. Leaving it `TODO` would block FIT1008, FIT2004 and almost every later unit in every C2001 plan. A new `assumed` expression node holds that Handbook text: the engine treats it as met and shows "Not checked by UnitPath, confirm yourself" with the text. FIT1043's prerequisite (MTH1010 or a VCE result) now uses it too, which removes its `TODO`.

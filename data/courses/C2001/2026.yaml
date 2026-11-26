@@ -1,0 +1,97 @@
+# Read from the Monash Handbook 2026 course page and the four specialisation pages on 2026-11-26.
+# Not yet checked by a person. What the rules leave out is listed in docs/DECISIONS.md.
+code: C2001
+version: 2026
+title: Bachelor of Computer Science
+source: https://handbook.monash.edu/2026/courses/C2001
+rules:
+  - id: total
+    totalCredits: 144
+  - id: level1-cap
+    maxCreditsAtLevel: { level: 1, points: 60 }
+  - id: level3-min
+    minCreditsAtLevel: { level: 3, points: 36 }
+  - id: foundation
+    requiredUnits:
+      [FIT1008, FIT1045, FIT1047, FIT1058, FIT2004, FIT2014, FIT2094]
+  - id: professional-practice
+    oneOf:
+      - label: FIT1049 IT professional practice
+        requiredUnits: [FIT1049]
+      - label: FIT1055 IT professional practice and ethics (Malaysia)
+        requiredUnits: [FIT1055]
+specialisations:
+  # https://handbook.monash.edu/2026/aos/ALGSFTWR01
+  - id: algorithms-and-software
+    title: Algorithms and software
+    rules:
+      - id: alg-core
+        requiredUnits: [FIT2109, FIT2102, FIT2099, FIT3155, FIT3143]
+      - id: alg-level3-elective
+        creditsFromList:
+          units:
+            [
+              FIT3196,
+              FIT3080,
+              FIT3159,
+              FIT3182,
+              FIT3146,
+              FIT3139,
+              MTH3175,
+              MTH3170,
+            ]
+          points: 6
+      - id: alg-applied
+        oneOf:
+          - label: Algorithms and software project studies
+            requiredUnits: [FIT3161, FIT3162]
+          - label: Industry Based Learning
+            requiredUnits: [FIT3045]
+  # https://handbook.monash.edu/2026/aos/ATINTELL02
+  - id: artificial-intelligence
+    title: Artificial intelligence
+    rules:
+      - id: ai-core
+        requiredUnits: [FIT1061, FIT2111, FIT2112, FIT3191, FIT3203]
+      - id: ai-level3-elective
+        creditsFromList:
+          units: [FIT3192, FIT3183]
+          points: 6
+      - id: ai-applied
+        oneOf:
+          - label: Artificial intelligence project studies
+            requiredUnits: [FIT3193, FIT3194]
+          - label: Industry Based Learning
+            requiredUnits: [FIT3045]
+  # https://handbook.monash.edu/2026/aos/CSCYBSEC01
+  - id: cybersecurity
+    title: Cybersecurity
+    rules:
+      - id: cyber-core
+        requiredUnits: [FIT1057, FIT1093, FIT2173, FIT3185, FIT3186]
+      - id: cyber-level3-elective
+        creditsFromList:
+          units: [FIT3031, FIT3168]
+          points: 6
+      - id: cyber-applied
+        oneOf:
+          - label: Cybersecurity project studies
+            requiredUnits: [FIT3188, FIT3189]
+          - label: Industry Based Learning
+            requiredUnits: [FIT3045]
+  # https://handbook.monash.edu/2026/aos/DATASCI11
+  - id: data-science
+    title: Data science
+    rules:
+      - id: ds-core
+        requiredUnits: [FIT1043, FIT2086, FIT2179, FIT3152]
+      - id: ds-level3-electives
+        creditsFromList:
+          units: [FIT3182, FIT3183, FIT3154, FIT3181, FIT3003]
+          points: 12
+      - id: ds-applied
+        oneOf:
+          - label: Data science project studies
+            requiredUnits: [FIT3163, FIT3164]
+          - label: Industry Based Learning
+            requiredUnits: [FIT3045]

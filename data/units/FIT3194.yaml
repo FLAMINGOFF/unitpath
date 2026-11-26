@@ -1,0 +1,16 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3194
+title: Artificial intelligence project 2
+creditPoints: 6
+offerings: TODO
+requisites:
+  prerequisite:
+    unit: FIT3193
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3194
+verified: false
+notes:
+  - The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay
+    TODO.

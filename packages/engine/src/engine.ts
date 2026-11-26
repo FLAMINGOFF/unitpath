@@ -344,6 +344,12 @@ function evalExpr(
       message: `${current} of ${points}${scope ? " " + scope : ""} credit points earned before this term.`,
     };
   }
+  if ("assumed" in expr)
+    return {
+      expr,
+      ok: true,
+      message: `Not checked by UnitPath, confirm yourself: ${expr.assumed}`,
+    };
   const ok = plan.course.code === expr.enrolledIn;
   return {
     expr,

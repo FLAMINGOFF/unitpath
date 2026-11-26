@@ -1,0 +1,18 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3191
+title: Generative artificial intelligence
+creditPoints: 6
+offerings: TODO
+requisites:
+  prerequisite:
+    all:
+      - unit: FIT2112
+      - unit: FIT2004
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3191
+verified: false
+notes:
+  - The Handbook 2026 page says this unit is not offered in 2026 and lists no teaching periods, so offerings stay
+    TODO.

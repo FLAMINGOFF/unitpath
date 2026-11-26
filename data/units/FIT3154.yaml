@@ -1,0 +1,19 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3154
+title: Advanced data analysis
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    unit: FIT2086
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3154
+verified: false
+notes:
+  - Handbook prerequisite also accepts "related statistical background", which UnitPath cannot check.

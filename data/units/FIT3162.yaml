@@ -1,0 +1,24 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3162
+title: Computer science project 2
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    unit: FIT3161
+  corequisite: null
+  prohibitions:
+    - FIT3144
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3162
+verified: false
+notes:
+  - Also offered in Malaysia summer semester A, which UnitPath does not model.

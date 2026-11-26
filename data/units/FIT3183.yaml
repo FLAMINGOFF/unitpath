@@ -1,0 +1,19 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3183
+title: Malicious AI and dark side security
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    all:
+      - unit: FIT1047
+      - unit: FIT2004
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3183
+verified: false
+notes:
+  - Offered only at Malaysia in 2026.

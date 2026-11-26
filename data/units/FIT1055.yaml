@@ -1,0 +1,24 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT1055
+title: IT professional practice and ethics
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    minCreditsFrom:
+      points: 12
+      prefix: FIT
+  corequisite: null
+  prohibitions:
+    - FIT1049
+    - FIT2003
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT1055
+verified: false
+notes:
+  - "Handbook enrolment rule: requires a minimum of 12 credit points of FIT units. Prohibitions FIT1049 and FIT2003
+    are stated in the same rule."

@@ -1,0 +1,36 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3163
+title: Data science project 1
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    all:
+      - unit: FIT1043
+      - unit: FIT2004
+      - any:
+          - unit: FIT1049
+          - unit: FIT1055
+      - unit: FIT2086
+      - any:
+          - unit: FIT2094
+          - unit: FIT3171
+      - minCredits: 72
+  corequisite: null
+  prohibitions:
+    - FIT3144
+    - FIT3161
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3163
+verified: false
+notes:
+  - "Handbook enrolment rule: at least 72 credit points of study including 60 credit points of FIT/MAT units. The
+    72-point part is modelled; the 60 points of FIT or MAT units cannot be expressed with one prefix and is not checked."

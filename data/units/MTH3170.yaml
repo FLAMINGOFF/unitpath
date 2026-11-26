@@ -1,0 +1,31 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: MTH3170
+title: Network mathematics
+creditPoints: 6
+offerings:
+  - term: S2
+    campus: Clayton
+requisites:
+  prerequisite:
+    any:
+      - unit: MTH3130
+      - unit: MTH3137
+      - unit: MTH3140
+      - unit: MTH3141
+      - unit: FIT2014
+      - unit: MTH1035
+      - unit: MTH2121
+      - unit: MTH2025
+      - unit: MTH2137
+      - unit: MTH2141
+      - unit: MTH3110
+      - unit: MTH3121
+  corequisite: null
+  prohibitions:
+    - MTH3175
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/MTH3170
+verified: false
+notes:
+  - Prerequisite and prohibition are stated as Handbook enrolment rule text. Enrolment in the Master of Mathematics
+    is an alternative to the listed units and is not modelled.

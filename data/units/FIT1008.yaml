@@ -1,0 +1,29 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT1008
+title: Fundamentals of algorithms
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    all:
+      - any:
+          - unit: FIT1045
+          - unit: FIT1053
+      - any:
+          - unit: FIT1058
+          - unit: MAT1830
+  corequisite: null
+  prohibitions:
+    - FIT1054
+    - FIT2085
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT1008
+verified: false

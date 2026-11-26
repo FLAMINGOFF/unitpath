@@ -1,0 +1,38 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT3161
+title: Computer science project 1
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    all:
+      - unit: FIT2004
+      - unit: FIT2099
+      - any:
+          - unit: FIT1049
+          - unit: FIT1055
+      - any:
+          - unit: FIT2094
+          - unit: FIT3171
+      - minCredits: 72
+      - minCreditsFrom:
+          points: 60
+          prefix: FIT
+  corequisite: null
+  prohibitions:
+    - FIT3144
+    - FIT3163
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT3161
+verified: false
+notes:
+  - "Handbook enrolment rule: must have completed at least 72 credit points of study, including 60 credit points of
+    FIT units."

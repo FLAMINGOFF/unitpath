@@ -1,0 +1,34 @@
+# Read from the Monash Handbook 2026 page on 2026-11-26. Not yet checked by a person.
+code: FIT2099
+title: Object oriented design and implementation
+creditPoints: 6
+offerings:
+  - term: S1
+    campus: Clayton
+  - term: S1
+    campus: Malaysia
+  - term: S2
+    campus: Clayton
+  - term: S2
+    campus: Malaysia
+requisites:
+  prerequisite:
+    any:
+      - unit: FIT1045
+      - unit: FIT1048
+      - unit: FIT1051
+      - unit: FIT1053
+      - unit: FIT1054
+      - unit: FIT1008
+      - all:
+          - any:
+              - unit: ENG1003
+              - unit: ENG1013
+          - any:
+              - unit: ENG1060
+              - unit: ENG1014
+  corequisite: null
+  prohibitions: []
+replacedBy: null
+source: https://handbook.monash.edu/2026/units/FIT2099
+verified: false

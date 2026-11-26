@@ -32,7 +32,8 @@ export type Expr =
   | { minCredits: number }
   | { minCreditsAtLevel: { level: number; points: number } }
   | { minCreditsFrom: { points: number; prefix?: string; levels?: number[] } }
-  | { enrolledIn: string };
+  | { enrolledIn: string }
+  | { assumed: string };
 
 const unitCode = z.string().regex(/^[A-Z]{2,5}\d{4}$/);
 export const levelSchema = z.number().int().min(0).max(9);
@@ -63,6 +64,9 @@ export const exprSchema: z.ZodType<Expr> = z.lazy(() =>
       }),
     }),
     z.strictObject({ enrolledIn: z.string().regex(/^[A-Z]\d{4}$/) }),
+    // A Handbook condition UnitPath cannot check, such as a school result.
+    // It is treated as met and its text is shown so the student confirms it.
+    z.strictObject({ assumed: z.string().min(1).max(500) }),
   ]),
 );
 

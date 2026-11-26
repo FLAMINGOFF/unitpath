@@ -7,7 +7,7 @@ An unofficial degree planner for Monash students: it checks course rules, explai
 
 ![Setup, auto schedule and an error on a unit moved to a term it is not offered](docs/media/demo.gif)
 
-> **Data status:** The C2000 Bachelor of Information Technology (2026), Applied cybersecurity major, and eleven FIT electives were read from their [Monash Handbook 2026](https://handbook.monash.edu/) pages. Every record links its source and is still marked unverified until a person checks it ([checklist](docs/VERIFY.md)). FIT3045 IBL teaching periods and two prerequisites remain unknown, and unknown rules are never treated as met.
+> **Data status:** Two 2026 courses were read from their [Monash Handbook 2026](https://handbook.monash.edu/) pages: C2000 Bachelor of Information Technology (Applied cybersecurity major, plus eleven FIT electives) and C2001 Bachelor of Computer Science (all four specialisations). Every record links its source and is still marked unverified until a person checks it ([checklist](docs/VERIFY.md)). Unknown rules, such as the teaching periods of units not offered in 2026, are never treated as met.
 
 ## Features
 
@@ -108,7 +108,7 @@ Choose the correct Handbook year and unit page. Add one YAML file per unit under
 ## Current limitations
 
 - Unit records are read from the Handbook but not yet checked by a person. See the [verification checklist](docs/VERIFY.md).
-- Only C2000 (2026) applied cybersecurity is published so far. Other courses can be added as YAML; see [contributing data](#contributing-data).
+- Only C2000 (2026) applied cybersecurity and C2001 (2026) computer science are published so far. Other courses can be added as YAML; see [contributing data](#contributing-data).
 - Teaching periods other than S1, S2 and summer, attendance modes, double degrees and Honours are not modelled.
 - Industry Based Learning is shown as a pathway, but its placement terms are not scheduled automatically.
 
