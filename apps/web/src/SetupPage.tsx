@@ -245,7 +245,7 @@ export function SetupPage({
       />
 
       <ol className="questions">
-        <li className="question">
+        <li className="question" data-tour="setup-course">
           <div className="question-label">
             <span className="q-num">01</span>
             <h2>Which course?</h2>
@@ -374,7 +374,7 @@ export function SetupPage({
           </div>
         </li>
 
-        <li className="question">
+        <li className="question" data-tour="setup-start">
           <div className="question-label">
             <span className="q-num">02</span>
             <h2>When did you start?</h2>
@@ -431,7 +431,7 @@ export function SetupPage({
           </div>
         </li>
 
-        <li className="question">
+        <li className="question" data-tour="setup-passed">
           <div className="question-label">
             <span className="q-num">03</span>
             <h2>What have you already passed?</h2>

@@ -2,6 +2,16 @@ import { expect, test } from "@playwright/test";
 
 const entryYear = new Date().getFullYear();
 
+// The first-visit guide is covered in tour.spec.ts; keep it out of the way here.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() =>
+    window.localStorage.setItem(
+      "unitpath-tour-v1",
+      JSON.stringify({ step: 0, completed: true }),
+    ),
+  );
+});
+
 test("setup persists a completed unit and updates progress", async ({
   page,
 }) => {

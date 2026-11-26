@@ -77,7 +77,7 @@ export function SettingsPage({
         lede="No account and no server. Back it up, move it, or share a copy whenever you like."
       />
 
-      <div className="data-rows">
+      <div className="data-rows" data-tour="data-rows">
         <section className="data-row">
           <div className="data-row-label">
             <h2>Term load</h2>

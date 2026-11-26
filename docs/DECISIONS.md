@@ -108,3 +108,12 @@ The C2001 2026 course page and its four specialisation pages (ALGSFTWR01, ATINTE
 ### School results as prerequisites
 
 FIT1058 is a foundation unit whose only prerequisite is a VCE mathematics study score. Leaving it `TODO` would block FIT1008, FIT2004 and almost every later unit in every C2001 plan. A new `assumed` expression node holds that Handbook text: the engine treats it as met and shows "Not checked by UnitPath, confirm yourself" with the text. FIT1043's prerequisite (MTH1010 or a VCE result) now uses it too, which removes its `TODO`.
+
+## First-visit guide (2026-11-26)
+
+- A hand-written tour (`apps/web/src/Tour.tsx`) instead of a tour library: it is about 400 lines, adds no dependency, and uses the existing design tokens.
+- Steps point at elements by a `data-tour` attribute, not by class names or text, so restyling a page does not silently break the tour. Each step names its route, and the tour navigates there before highlighting.
+- It opens on a first visit only, never when the URL carries a `#share=` link, and can be skipped on the first card or closed with Escape at any step. Its state is one `unitpath-tour-v1` key in local storage: `{ step, completed }`. Reopening from **Guide** resumes a skipped tour where it stopped, or starts over after a finished one.
+- While it is open the page behind is `inert`, focus stays in the dialog, arrow keys move between steps, and focus returns to **Guide** on close. On narrow screens the card docks to the bottom as a sheet.
+- The unverified-data step is shown only while the selected course has unverified records.
+- E2E tests outside `e2e/tour.spec.ts` mark the tour completed in an init script so it does not cover the page.

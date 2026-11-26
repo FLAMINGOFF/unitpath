@@ -16,6 +16,7 @@ An unofficial degree planner for Monash students: it checks course rules, explai
 - Explore a unit's full prerequisite result tree and its official Handbook source.
 - Preview deterministic, constraint-aware scheduling suggestions before applying them.
 - Keep plans in local storage, with validated JSON import/export and compressed share links.
+- A first-visit guide walks through Setup, Planner, Progress, Graph and Data, and can be reopened from **Guide** in the top bar.
 
 ## Deployment
 

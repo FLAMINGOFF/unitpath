@@ -135,7 +135,11 @@ export function ProgressPage({
         lede="Every requirement from the course map, measured against the units you've recorded."
       />
 
-      <section className="scoreboard" aria-label="Credit point summary">
+      <section
+        className="scoreboard"
+        aria-label="Credit point summary"
+        data-tour="progress-score"
+      >
         <div className="score">
           <span className="mono-label">Credit points counted</span>
           <p className="score-figure">
