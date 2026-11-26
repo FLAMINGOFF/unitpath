@@ -170,7 +170,7 @@ export function GraphPage({ openUnit }: { openUnit: (code: string) => void }) {
           prerequisites.
         </Note>
       )}
-      <div className="graph-layout">
+      <div className="graph-layout" data-tour="graph">
         <div className="canvas" aria-label="Prerequisite graph">
           <ReactFlow
             nodes={shownNodes}

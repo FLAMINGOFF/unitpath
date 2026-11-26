@@ -666,7 +666,12 @@ export function PlanPage({
             >
               <RotateCcw size={15} /> Undo
             </button>
-            <button className="button primary" type="button" onClick={suggest}>
+            <button
+              className="button primary"
+              type="button"
+              onClick={suggest}
+              data-tour="plan-autoschedule"
+            >
               <Sparkles size={15} /> Auto schedule
             </button>
           </>
@@ -706,7 +711,7 @@ export function PlanPage({
       </dl>
 
       <div className="planner-layout">
-        <div className="board-wrap">
+        <div className="board-wrap" data-tour="plan-board">
           <DndContext
             sensors={sensors}
             onDragStart={onDragStart}
@@ -755,7 +760,12 @@ export function PlanPage({
           </div>
         </div>
 
-        <aside id="catalogue" className="catalogue" aria-label="Unit catalogue">
+        <aside
+          id="catalogue"
+          className="catalogue"
+          aria-label="Unit catalogue"
+          data-tour="plan-catalogue"
+        >
           <header>
             <p className="kicker">
               <span>§</span>Catalogue

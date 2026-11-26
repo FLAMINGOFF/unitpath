@@ -13,7 +13,7 @@ import {
   Routes,
   useNavigate,
 } from "react-router-dom";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, HelpCircle, X } from "lucide-react";
 import { decompressFromEncodedURIComponent } from "lz-string";
 import {
   courseDataMetrics,
@@ -28,6 +28,7 @@ import { SettingsPage } from "./SettingsPage";
 import { UnitDrawer } from "./UnitDrawer";
 import { usePlanStore, validateImportedPlan } from "./store";
 import { disclaimer } from "./ui";
+import { buildTourSteps, readTourRecord, Tour } from "./Tour";
 
 const GraphPage = lazy(() =>
   import("./GraphPage").then((module) => ({ default: module.GraphPage })),
@@ -49,6 +50,19 @@ export function App() {
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const processedShare = useRef(false);
+  const guideButton = useRef<HTMLButtonElement>(null);
+  const [tourStart, setTourStart] = useState<number | null>(() => {
+    if (window.location.hash.startsWith("#share=")) return null;
+    return readTourRecord() ? null : 0;
+  });
+  const openTour = () => {
+    const record = readTourRecord();
+    setTourStart(record && !record.completed ? record.step : 0);
+  };
+  const closeTour = useCallback(() => {
+    setTourStart(null);
+    window.requestAnimationFrame(() => guideButton.current?.focus());
+  }, []);
   const closeUnit = useCallback(() => setSelectedUnit(null), []);
   const issues = validatePlan(plan, catalog);
   const errors = issues.filter((issue) => issue.level === "error").length;
@@ -107,116 +121,144 @@ export function App() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  const tourOpen = tourStart !== null;
+
   return (
-    <div className="shell">
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <header className="masthead">
-        <NavLink to="/setup" className="wordmark" aria-label="UnitPath home">
-          Unit<em>Path</em>
-        </NavLink>
-        <nav className="tabs" aria-label="Main navigation">
-          {links.map(({ to, label, index }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) => `tab${isActive ? " active" : ""}`}
+    <>
+      <div className="shell" inert={tourOpen}>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <header className="masthead">
+          <NavLink to="/setup" className="wordmark" aria-label="UnitPath home">
+            Unit<em>Path</em>
+          </NavLink>
+          <nav className="tabs" aria-label="Main navigation">
+            {links.map(({ to, label, index }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) => `tab${isActive ? " active" : ""}`}
+              >
+                <span className="tab-index" aria-hidden="true">
+                  {index}
+                </span>
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="masthead-meta">
+            <button
+              ref={guideButton}
+              type="button"
+              className="guide-button"
+              data-tour="guide"
+              onClick={openTour}
+              aria-haspopup="dialog"
             >
-              <span className="tab-index" aria-hidden="true">
-                {index}
-              </span>
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="masthead-meta">
-          <span className="ticket" title={course?.title}>
-            {plan.course.code} · {plan.course.version}
-            {selectedComponents.length
-              ? " · " + selectedComponents.map((item) => item.title).join(" · ")
-              : ""}
-          </span>
-          <span
-            className={`health${errors ? " bad" : ""}`}
-            aria-label={
-              errors
-                ? `${errors} plan error${errors === 1 ? "" : "s"}`
-                : "No confirmed errors"
-            }
-          >
-            <span className="health-dot" aria-hidden="true" />
-            {errors
-              ? `${errors} error${errors === 1 ? "" : "s"}`
-              : "No confirmed errors"}
-          </span>
-        </div>
-      </header>
-      {unverified > 0 && (
-        <div className="data-banner">
-          <AlertTriangle size={14} aria-hidden="true" />
-          <span>
-            <strong>Unofficial, unverified data.</strong> Unit rules were read
-            from the Monash Handbook, but {unverified} of{" "}
-            {metrics?.referencedUnits ?? 0} records have not been checked by a
-            person yet.{" "}
-            <span className="more">
-              Confirm every unit on its Handbook page before you enrol.
+              <HelpCircle size={15} aria-hidden="true" />
+              <span>Guide</span>
+            </button>
+            <span className="ticket" title={course?.title}>
+              {plan.course.code} · {plan.course.version}
+              {selectedComponents.length
+                ? " · " +
+                  selectedComponents.map((item) => item.title).join(" · ")
+                : ""}
             </span>
-          </span>
-        </div>
+            <span
+              className={`health${errors ? " bad" : ""}`}
+              aria-label={
+                errors
+                  ? `${errors} plan error${errors === 1 ? "" : "s"}`
+                  : "No confirmed errors"
+              }
+            >
+              <span className="health-dot" aria-hidden="true" />
+              {errors
+                ? `${errors} error${errors === 1 ? "" : "s"}`
+                : "No confirmed errors"}
+            </span>
+          </div>
+        </header>
+        {unverified > 0 && (
+          <div className="data-banner" data-tour="data-banner">
+            <AlertTriangle size={14} aria-hidden="true" />
+            <span>
+              <strong>Unofficial, unverified data.</strong> Unit rules were read
+              from the Monash Handbook, but {unverified} of{" "}
+              {metrics?.referencedUnits ?? 0} records have not been checked by a
+              person yet.{" "}
+              <span className="more">
+                Confirm every unit on its Handbook page before you enrol.
+              </span>
+            </span>
+          </div>
+        )}
+        <main id="main" className="main">
+          <Routes>
+            <Route path="/" element={<Navigate to="/setup" replace />} />
+            <Route
+              path="/setup"
+              element={
+                <SetupPage
+                  openUnit={setSelectedUnit}
+                  currentYear={currentYear}
+                />
+              }
+            />
+            <Route
+              path="/plan"
+              element={
+                <PlanPage openUnit={setSelectedUnit} notify={setNotice} />
+              }
+            />
+            <Route
+              path="/progress"
+              element={<ProgressPage openUnit={setSelectedUnit} />}
+            />
+            <Route
+              path="/graph"
+              element={
+                <Suspense fallback={<div className="page">Loading graph…</div>}>
+                  <GraphPage openUnit={setSelectedUnit} />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/settings"
+              element={<SettingsPage notify={setNotice} />}
+            />
+            <Route path="*" element={<Navigate to="/setup" replace />} />
+          </Routes>
+        </main>
+        <footer className="colophon">
+          <p>{disclaimer}</p>
+          <p className="colophon-meta">
+            Plans live only in this browser · No accounts, no tracking
+          </p>
+        </footer>
+        {notice && (
+          <div className="toast" role="status">
+            <span>{notice}</span>
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              aria-label="Dismiss notification"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
+        {selectedUnit && <UnitDrawer code={selectedUnit} close={closeUnit} />}
+      </div>
+      {tourOpen && (
+        <Tour
+          steps={buildTourSteps({ showDataBanner: unverified > 0 })}
+          initialStep={tourStart}
+          onClose={closeTour}
+        />
       )}
-      <main id="main" className="main">
-        <Routes>
-          <Route path="/" element={<Navigate to="/setup" replace />} />
-          <Route
-            path="/setup"
-            element={
-              <SetupPage openUnit={setSelectedUnit} currentYear={currentYear} />
-            }
-          />
-          <Route
-            path="/plan"
-            element={<PlanPage openUnit={setSelectedUnit} notify={setNotice} />}
-          />
-          <Route
-            path="/progress"
-            element={<ProgressPage openUnit={setSelectedUnit} />}
-          />
-          <Route
-            path="/graph"
-            element={
-              <Suspense fallback={<div className="page">Loading graph…</div>}>
-                <GraphPage openUnit={setSelectedUnit} />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/settings"
-            element={<SettingsPage notify={setNotice} />}
-          />
-          <Route path="*" element={<Navigate to="/setup" replace />} />
-        </Routes>
-      </main>
-      <footer className="colophon">
-        <p>{disclaimer}</p>
-        <p className="colophon-meta">
-          Plans live only in this browser · No accounts, no tracking
-        </p>
-      </footer>
-      {notice && (
-        <div className="toast" role="status">
-          <span>{notice}</span>
-          <button
-            type="button"
-            onClick={() => setNotice(null)}
-            aria-label="Dismiss notification"
-          >
-            <X size={15} />
-          </button>
-        </div>
-      )}
-      {selectedUnit && <UnitDrawer code={selectedUnit} close={closeUnit} />}
-    </div>
+    </>
   );
 }
